@@ -582,6 +582,7 @@ form.addEventListener('submit', (e) => {
   };
 
   historial.unshift(salida);
+  ordenImpresion = salida;
   localStorage.setItem('historialSalidas', JSON.stringify(historial));
   contador++;
   localStorage.setItem('contadorSalidas', contador);
