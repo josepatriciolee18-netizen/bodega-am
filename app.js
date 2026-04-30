@@ -284,7 +284,7 @@ async function cargarDesdeFirebase() {
           const nrosActuales = historial.map(h => h.nro);
           const ordenesNuevas = nuevos.filter(n => !nrosActuales.includes(n.nro));
           ordenesNuevas.forEach(orden => {
-            mostrarNotificacion('📦 Nueva Orden', `Orden ${orden.nro} — Cliente: ${orden.solicitante || 'Sin nombre'}`);
+            mostrarNotificacion('📦 Nueva Orden', `Orden ${orden.nro} — Cliente: ${orden.solicitante || 'Sin nombre'}`, orden.nro);
           });
         }
         historial = nuevos;
@@ -315,7 +315,7 @@ async function cargarDesdeFirebase() {
           const nrosActuales = recepciones.map(r => r.nro);
           const recNuevas = nuevos.filter(n => !nrosActuales.includes(n.nro));
           recNuevas.forEach(rec => {
-            mostrarNotificacion('📥 Orden Recibida por Bodega', `${rec.nro} — Orden ${rec.nroOrden} recibida por ${rec.recibidoPor}`);
+            mostrarNotificacion('📥 Orden Recibida por Bodega', `${rec.nro} — Orden ${rec.nroOrden} recibida por ${rec.recibidoPor}`, rec.nroOrden);
           });
         }
         recepciones = merged;
@@ -1960,12 +1960,28 @@ function showToast(msg, error = false) {
 }
 
 // ── Notificaciones de escritorio ──────────────────────────
-function mostrarNotificacion(titulo, mensaje) {
+function mostrarNotificacion(titulo, mensaje, nroOrden) {
   // Enviar al proceso principal para notificación persistente
   if (window.require) {
     const { ipcRenderer } = window.require('electron');
-    ipcRenderer.send('mostrar-notificacion', { titulo, mensaje });
+    ipcRenderer.send('mostrar-notificacion', { titulo, mensaje, nroOrden });
   }
   // También mostrar toast en la app
   showToast(`${titulo}: ${mensaje}`);
+}
+
+// Listener para abrir orden desde notificación
+if (window.require) {
+  const { ipcRenderer } = window.require('electron');
+  ipcRenderer.on('abrir-orden', (event, nroOrden) => {
+    const idx = historial.findIndex(s => s.nro === nroOrden);
+    if (idx !== -1) {
+      // Ir a la pestaña de reportes y abrir el modal
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      document.querySelector('[data-tab="reportes"]').classList.add('active');
+      document.getElementById('tab-reportes').classList.add('active');
+      abrirModal(idx);
+    }
+  });
 }

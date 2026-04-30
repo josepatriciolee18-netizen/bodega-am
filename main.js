@@ -130,7 +130,7 @@ ipcMain.on('forzarFoco', () => {
 });
 
 // Notificaciones persistentes de Windows
-ipcMain.on('mostrar-notificacion', (event, { titulo, mensaje }) => {
+ipcMain.on('mostrar-notificacion', (event, { titulo, mensaje, nroOrden }) => {
   const notif = new Notification({
     title: titulo,
     body: mensaje,
@@ -142,6 +142,10 @@ ipcMain.on('mostrar-notificacion', (event, { titulo, mensaje }) => {
     if (win && !win.isDestroyed()) {
       win.show();
       win.focus();
+      // Enviar al renderer para que abra la orden
+      if (nroOrden) {
+        win.webContents.send('abrir-orden', nroOrden);
+      }
     }
   });
   notif.show();
