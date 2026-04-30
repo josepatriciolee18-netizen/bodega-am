@@ -262,6 +262,11 @@ async function cargarDesdeFirebase() {
       const jsonNuevo = JSON.stringify(nuevos);
       const jsonActual = JSON.stringify(historial);
       if (jsonNuevo !== jsonActual) {
+        // Detectar órdenes nuevas para notificar
+        if (historial.length > 0 && nuevos.length > historial.length) {
+          const ordenNueva = nuevos[0];
+          mostrarNotificacion('📦 Nueva Orden', `Orden ${ordenNueva.nro} — Cliente: ${ordenNueva.solicitante || 'Sin nombre'}`);
+        }
         historial = nuevos;
         localStorage.setItem('historialSalidas', JSON.stringify(historial));
         renderReportes();
@@ -272,6 +277,11 @@ async function cargarDesdeFirebase() {
     fbEscuchar('recepciones', (datos) => {
       const nuevos = datos.sort((a,b) => b.nro.localeCompare(a.nro));
       if (nuevos.length !== recepciones.length) {
+        // Detectar recepciones nuevas para notificar
+        if (recepciones.length > 0 && nuevos.length > recepciones.length) {
+          const recNueva = nuevos[0];
+          mostrarNotificacion('📥 Orden Recibida', `Recepción ${recNueva.nro} — Orden ${recNueva.nroOrden} recibida por ${recNueva.recibidoPor}`);
+        }
         recepciones = nuevos;
         localStorage.setItem('recepcionesBodega', JSON.stringify(recepciones));
         renderRecepciones();
@@ -1889,4 +1899,19 @@ function showToast(msg, error = false) {
   t.textContent = msg;
   t.className = 'toast show' + (error ? ' error' : '');
   setTimeout(() => { t.className = 'toast'; }, 3000);
+}
+
+// ── Notificaciones de escritorio ──────────────────────────
+function mostrarNotificacion(titulo, mensaje) {
+  // Notificación nativa de Windows
+  if (window.require) {
+    const { ipcRenderer } = window.require('electron');
+    new Notification(titulo, {
+      body: mensaje,
+      icon: '📦',
+      silent: false
+    });
+  }
+  // También mostrar toast en la app
+  showToast(`${titulo}: ${mensaje}`);
 }
