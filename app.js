@@ -932,6 +932,7 @@ function abrirModal(i) {
     <div class="detail-row"><strong>Tipo Documento:</strong> ${s.tipoDocumento || '-'}</div>
     <div class="detail-row"><strong>N° Documento:</strong> ${s.nroDocumento || '-'}</div>
     <div class="detail-row"><strong>Cliente:</strong> ${s.solicitante}</div>
+    ${s.creadoPor ? `<div class="detail-row"><strong>Creada por:</strong> ${s.creadoPor} (${s.rolCreador || '-'})</div>` : ''}
     ${s.observaciones ? `<div class="detail-row"><strong>Observaciones:</strong> ${s.observaciones}</div>` : ''}
     <table style="margin-top:14px">
       <thead><tr><th>#</th><th>Código</th><th>Descripción</th><th>Unidad</th><th>Cantidad</th></tr></thead>
@@ -1750,6 +1751,7 @@ function verOrdenEmitida(btn) {
     <div class="detail-row"><strong>Tipo Documento:</strong> ${s.tipoDocumento || '-'}</div>
     <div class="detail-row"><strong>N° Documento:</strong> ${s.nroDocumento || '-'}</div>
     <div class="detail-row"><strong>Cliente:</strong> ${s.solicitante || '-'}</div>
+    ${s.creadoPor ? `<div class="detail-row"><strong>Creada por:</strong> ${s.creadoPor} (${s.rolCreador || '-'})</div>` : ''}
     ${s.observaciones ? `<div class="detail-row"><strong>Observaciones:</strong> ${s.observaciones}</div>` : ''}
     <table style="margin-top:14px">
       <thead><tr><th>#</th><th>Código</th><th>Descripción</th><th>Unidad</th><th>Cantidad</th><th>En Palabras</th></tr></thead>
