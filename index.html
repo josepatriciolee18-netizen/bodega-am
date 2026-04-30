@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Bodega A&M — Salida de Mercadería</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- ── PANTALLA DE LOGIN ── -->
+  <div id="loginScreen" class="login-screen">
+    <div class="login-box">
+      <div class="login-logo">📦</div>
+      <h2>Bodega A&amp;M</h2>
+      <p class="login-sub">Ingresa tus credenciales para continuar</p>
+      <div class="field">
+        <label for="loginUsuario">Usuario</label>
+        <input type="text" id="loginUsuario" placeholder="Nombre de usuario" autocomplete="off" />
+      </div>
+      <div class="field" style="margin-top:12px">
+        <label for="loginClave">Contraseña</label>
+        <input type="password" id="loginClave" placeholder="••••••" />
+      </div>
+      <div id="loginError" class="login-error" style="display:none">Usuario o contraseña incorrectos</div>
+      <button id="btnLogin" class="btn-primary" style="width:100%; margin-top:18px; padding:12px">Ingresar</button>
+    </div>
+  </div>
+
+  <!-- ── APP PRINCIPAL ── -->
+  <div id="appMain" class="container" style="display:none">
+    <header>
+      <div style="display:flex; justify-content:space-between; align-items:center">
+        <div>
+          <h1>📦 Salida de Mercadería</h1>
+          <p>Bodega A&amp;M</p>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px">
+          <span id="headerUsuario" style="font-size:0.85rem; opacity:0.9"></span>
+          <button id="btnLogout" class="btn-logout">Cerrar sesión</button>
+          <div class="win-controls">
+            <button onclick="winMinimizar()" title="Minimizar">─</button>
+            <button onclick="winMaximizar()" title="Maximizar">□</button>
+            <button onclick="winCerrar()" title="Cerrar" style="background:#e53e3e">✕</button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Pestañas -->
+    <nav class="tabs">
+      <button class="tab active" data-tab="formulario">📋 Crear Orden de Bodega</button>
+      <button class="tab" data-tab="reportes">📊 Reportes</button>
+      <button class="tab" data-tab="productos">🗂 Productos</button>
+      <button class="tab" data-tab="clientes">👥 Clientes</button>
+      <button class="tab" data-tab="recepciones">📥 Recepción de Órdenes</button>
+      <button class="tab" data-tab="usuarios">👤 Usuarios</button>
+    </nav>
+
+    <!-- ── PESTAÑA: FORMULARIO ── -->
+    <div id="tab-formulario" class="tab-content active">
+      <form id="salidaForm">
+        <section class="section">
+          <h2>Datos Generales</h2>
+          <div class="grid-2">
+            <div class="field">
+              <label for="nroSalida">N° de Salida</label>
+              <input type="text" id="nroSalida" readonly />
+            </div>
+            <div class="field">
+              <label for="fecha">Fecha y Hora</label>
+              <input type="datetime-local" id="fecha" required />
+            </div>
+            <div class="field">
+              <label for="tipoDocumento">Tipo de Documento</label>
+              <select id="tipoDocumento" required>
+                <option value="">-- Seleccionar --</option>
+                <option value="Factura">Factura</option>
+                <option value="Boleta">Boleta</option>
+                <option value="Guía de Despacho">Guía de Despacho</option>
+                <option value="Sin Documento">No hay documento</option>
+              </select>
+            </div>
+            <div class="field" id="campoNroDoc">
+              <label for="nroDocumento">N° de Documento</label>
+              <input type="text" id="nroDocumento" placeholder="Ej: 000123" />
+            </div>
+            <div class="field" style="position:relative">
+              <label for="solicitante">Cliente</label>
+              <input type="text" id="solicitante" placeholder="Nombre del cliente" required autocomplete="off" />
+              <ul id="sugerenciasCliente" class="sugerencias"></ul>
+            </div>
+
+          </div>
+          <div class="field full">
+            <label for="observaciones">Observaciones</label>
+            <textarea id="observaciones" rows="2" placeholder="Notas adicionales..."></textarea>
+          </div>
+        </section>
+
+        <section class="section">
+          <h2>Detalle de Productos</h2>
+          <div class="add-product-row">
+            <div class="field" style="flex:2; position:relative">
+              <label>Buscar Producto</label>
+              <input type="text" id="inputBuscar" placeholder="Código o nombre + Enter" autocomplete="off" />
+              <ul id="sugerencias" class="sugerencias"></ul>
+            </div>
+            <div class="field">
+              <label>Código</label>
+              <input type="text" id="inputCodigo" placeholder="Ej: PRD-001" />
+            </div>
+            <div class="field" style="flex:2">
+              <label>Descripción</label>
+              <input type="text" id="inputDescripcion" placeholder="Nombre del producto" />
+            </div>
+            <div class="field">
+              <label>Unidad</label>
+              <select id="inputUnidad">
+                <option value="unidad">Unidad</option>
+                <option value="kg">Kg</option>
+                <option value="litro">Litro</option>
+                <option value="caja">Caja</option>
+                <option value="metro">Metro</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Cantidad</label>
+              <input type="number" id="inputCantidad" placeholder="0" min="1" />
+            </div>
+            <div class="field">
+              <label>En palabras</label>
+              <input type="text" id="inputCantidadPalabras" placeholder="—" readonly />
+            </div>
+            <button type="button" id="btnAgregar" class="btn-add">+ Agregar</button>
+          </div>
+
+          <table id="tablaProductos">
+            <thead>
+              <tr>
+                <th>#</th><th>Código</th><th>Descripción</th><th>Unid.</th><th>Cant.</th><th>En Palabras</th><th></th>
+              </tr>
+            </thead>
+            <tbody id="tbodyProductos">
+              <tr><td colspan="6" class="empty-msg">No hay productos agregados</td></tr>
+            </tbody>
+          </table>
+        </section>
+
+        <div class="actions">
+          <button type="button" id="btnLimpiar" class="btn-secondary">🗑 Limpiar</button>
+          <button type="button" id="btnImprimir" class="btn-secondary" style="display:none">🖨 Imprimir</button>
+          <button type="submit" id="btnRegistrar" class="btn-primary">✔ Registrar Salida</button>
+          <button type="button" id="btnNuevaOrden" class="btn-primary" style="display:none; background:#16a34a">＋ Nueva Orden</button>
+        </div>
+        <div id="ordenRegistradaBanner" class="orden-banner" style="display:none">
+          ✔ Orden registrada correctamente. Presiona "Nueva Orden" para continuar.
+        </div>
+
+        <div class="print-footer">
+          <p style="margin-top:14px; font-weight:bold">Entregar comprobante a bodeguero</p>
+          <p style="margin-top:8px">¡Gracias por su compra!</p>
+          <p style="margin-top:10px; font-size:9px">Bodega A&amp;M — Documento interno</p>
+        </div>
+      </form>
+
+      <!-- Buscar orden antigua -->
+      <section class="section no-print">
+        <h2>🔍 Buscar y Reimprimir Orden</h2>
+        <div class="filtros">
+          <div class="field" style="flex:2">
+            <label>Buscar por N° orden o cliente</label>
+            <input type="text" id="buscarOrdenAntigua" placeholder="Ej: SAL-0001, Juan..." />
+          </div>
+          <button type="button" id="btnBuscarOrden" class="btn-add">🔍 Buscar</button>
+        </div>
+        <table id="tablaOrdenesAntiguas" style="margin-top:12px; display:none">
+          <thead>
+            <tr>
+              <th>N° Orden</th>
+              <th>Fecha</th>
+              <th>Tipo Doc.</th>
+              <th>N° Doc.</th>
+              <th>Cliente</th>
+              <th>Estado</th>
+              <th>Acción</th>
+            </tr>
+          </thead>
+          <tbody id="tbodyOrdenesAntiguas"></tbody>
+        </table>
+      </section>
+    </div>
+
+    <!-- ── PESTAÑA: REPORTES ── -->
+    <div id="tab-reportes" class="tab-content">
+      <section class="section">
+        <h2>Resumen General</h2>
+        <div style="display:flex; justify-content:flex-end; margin-bottom:12px">
+          <button type="button" id="btnImprimirReportesCarta" class="btn-secondary">🖨 Imprimir Reportes</button>
+        </div>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <span class="stat-num" id="statTotal">0</span>
+            <span class="stat-label">Total Órdenes</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-num" id="statHoy">0</span>
+            <span class="stat-label">Órdenes Hoy</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-num" id="statItems">0</span>
+            <span class="stat-label">Ítems Despachados</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-num" id="statMes">0</span>
+            <span class="stat-label">Órdenes este Mes</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>📦 Productos Más Despachados</h2>
+        <table id="tablaTopProductos">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Código</th>
+              <th>Producto</th>
+              <th>Unidad</th>
+              <th>Total Despachado</th>
+            </tr>
+          </thead>
+          <tbody id="tbodyTopProductos">
+            <tr><td colspan="5" class="empty-msg">No hay datos</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="section">
+        <h2>📅 Productos Más Despachados por Mes</h2>
+        <div class="filtros" style="margin-bottom:12px">
+          <div class="field">
+            <label>Seleccionar Mes</label>
+            <input type="month" id="filtroMes" />
+          </div>
+          <button type="button" id="btnFiltroMes" class="btn-add">🔍 Ver</button>
+          <button type="button" id="btnImprimirTopMes" class="btn-secondary" style="align-self:flex-end;display:none">🖨 Imprimir</button>
+        </div>
+        <table id="tablaTopMes">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Código</th>
+              <th>Producto</th>
+              <th>Unidad</th>
+              <th>Total Despachado</th>
+            </tr>
+          </thead>
+          <tbody id="tbodyTopMes">
+            <tr><td colspan="5" class="empty-msg">Selecciona un mes para ver los datos</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="section">
+        <h2>🔎 Buscar Fechas de Salida por Producto</h2>
+        <div class="filtros" style="margin-bottom:12px">
+          <div class="field" style="flex:2">
+            <label>Producto (código o nombre)</label>
+            <input type="text" id="buscarProductoFecha" placeholder="Ej: PRD-001 o Cemento..." />
+          </div>
+          <div class="field">
+            <label>Desde</label>
+            <input type="date" id="prodFechaDesde" />
+          </div>
+          <div class="field">
+            <label>Hasta</label>
+            <input type="date" id="prodFechaHasta" />
+          </div>
+          <button type="button" id="btnBuscarProductoFecha" class="btn-add">🔍 Buscar</button>
+          <button type="button" id="btnImprimirProductoFecha" class="btn-secondary" style="align-self:flex-end;display:none">🖨 Imprimir</button>
+        </div>
+        <table id="tablaProductoFechas" style="display:none">
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>N° Orden</th>
+              <th>Código</th>
+              <th>Producto</th>
+              <th>Unid.</th>
+              <th>Cant.</th>
+              <th>Cliente</th>
+            </tr>
+          </thead>
+          <tbody id="tbodyProductoFechas"></tbody>
+        </table>
+      </section>
+
+      <section class="section">
+        <h2>Filtrar Órdenes</h2>
+        <div class="filtros">
+          <div class="field">
+            <label>N° Salida</label>
+            <input type="text" id="filtroNroSalida" placeholder="Ej: SAL-0001" />
+          </div>
+          <div class="field">
+            <label>Desde</label>
+            <input type="date" id="filtroDesde" />
+          </div>
+          <div class="field">
+            <label>Hasta</label>
+            <input type="date" id="filtroHasta" />
+          </div>
+          <div class="field">
+            <label>Tipo Documento</label>
+            <select id="filtroTipo">
+              <option value="">Todos</option>
+              <option value="Factura">Factura</option>
+              <option value="Boleta">Boleta</option>
+              <option value="Guía de Despacho">Guía de Despacho</option>
+              <option value="Sin Documento">No hay documento</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Cliente</label>
+            <input type="text" id="filtroCliente" placeholder="Buscar..." />
+          </div>
+          <button type="button" id="btnFiltrar" class="btn-add">🔍 Filtrar</button>
+          <button type="button" id="btnLimpiarFiltro" class="btn-secondary" style="align-self:flex-end">✕ Limpiar</button>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>Órdenes de Bodega</h2>
+        <div style="overflow-x:auto">
+          <table id="tablaReportes">
+            <thead>
+              <tr>
+                <th>N° Salida</th>
+                <th>Tipo Doc.</th>
+                <th>Fecha</th>
+                <th>Cliente</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyReportes">
+              <tr><td colspan="7" class="empty-msg">No hay órdenes registradas</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+
+    <!-- ── PESTAÑA: PRODUCTOS ── -->
+    <div id="tab-productos" class="tab-content">
+      <section class="section">
+        <h2>🗂 Mis Productos</h2>
+        <div class="add-product-row">
+          <div class="field">
+            <label>Código</label>
+            <input type="text" id="catCodigo" placeholder="Ej: PRD-001" />
+          </div>
+          <div class="field" style="flex:2">
+            <label>Nombre</label>
+            <input type="text" id="catNombre" placeholder="Nombre del producto" />
+          </div>
+          <div class="field">
+            <label>Unidad</label>
+            <select id="catUnidad">
+              <option value="unidad">Unidad</option>
+              <option value="kg">Kg</option>
+              <option value="litro">Litro</option>
+              <option value="caja">Caja</option>
+              <option value="metro">Metro</option>
+            </select>
+          </div>
+          <button type="button" id="btnGuardarProducto" class="btn-add">+ Guardar</button>
+        </div>
+        <div class="filtros" style="margin-bottom:8px">
+          <div class="field" style="flex:2">
+            <label>Buscar producto</label>
+            <input type="text" id="buscarCatalogo" placeholder="Código o nombre..." />
+          </div>
+          <button type="button" id="btnBuscarCatalogo" class="btn-add">🔍 Buscar</button>
+          <button type="button" id="btnMostrarTodosCatalogo" class="btn-secondary" style="align-self:flex-end">Mostrar todos</button>
+        </div>
+        <div class="import-box">
+          <label class="permisos-title">📂 Importar desde Excel / CSV</label>
+          <p style="font-size:0.8rem;color:#666;margin-bottom:8px">
+            El archivo debe tener columnas: <strong>Código, Nombre, Unidad</strong> (primera fila = encabezado)
+          </p>
+          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+            <input type="file" id="inputExcelProductos" accept=".csv,.xlsx,.xls" />
+            <button type="button" id="btnImportarProductos" class="btn-add">⬆ Importar</button>
+            <a id="btnDescargarPlantillaProductos" href="#" class="btn-secondary" style="padding:9px 16px;font-size:0.88rem;text-decoration:none;border-radius:7px">⬇ Descargar Plantilla</a>
+          </div>
+          <div id="importResultProductos" style="margin-top:8px;font-size:0.82rem"></div>
+        </div>
+        <table id="tablaCatalogo">
+          <thead>
+            <tr><th>Código</th><th>Nombre</th><th>Unidad</th><th></th></tr>
+          </thead>
+          <tbody id="tbodyCatalogo">
+            <tr><td colspan="4" class="empty-msg">No hay productos en el catálogo</td></tr>
+          </tbody>
+        </table>
+      </section>
+    </div>
+
+    <!-- ── PESTAÑA: CLIENTES ── -->
+    <div id="tab-clientes" class="tab-content">
+      <section class="section">
+        <h2>👥 Gestión de Clientes</h2>
+        <div class="add-product-row">
+          <div class="field">
+            <label>RUT</label>
+            <input type="text" id="cliRut" placeholder="Ej: 12.345.678-9" />
+          </div>
+          <div class="field" style="flex:2">
+            <label>Nombre / Razón Social</label>
+            <input type="text" id="cliNombre" placeholder="Nombre del cliente" />
+          </div>
+          <div class="field">
+            <label>Teléfono</label>
+            <input type="text" id="cliTelefono" placeholder="Ej: +56 9 1234 5678" />
+          </div>
+          <div class="field" style="flex:2">
+            <label>Dirección</label>
+            <input type="text" id="cliDireccion" placeholder="Dirección" />
+          </div>
+          <button type="button" id="btnGuardarCliente" class="btn-add">+ Guardar</button>
+        </div>
+        <div class="filtros" style="margin-bottom:8px">
+          <div class="field" style="flex:2">
+            <label>Buscar cliente</label>
+            <input type="text" id="buscarClienteLista" placeholder="RUT o nombre..." />
+          </div>
+          <button type="button" id="btnBuscarClienteLista" class="btn-add">🔍 Buscar</button>
+          <button type="button" id="btnMostrarTodosClientes" class="btn-secondary" style="align-self:flex-end">Mostrar todos</button>
+        </div>
+        <div class="import-box">
+          <label class="permisos-title">📂 Importar desde Excel / CSV</label>
+          <p style="font-size:0.8rem;color:#666;margin-bottom:8px">
+            El archivo debe tener columnas: <strong>RUT, Nombre, Teléfono, Dirección</strong> (primera fila = encabezado)
+          </p>
+          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+            <input type="file" id="inputExcelClientes" accept=".csv,.xlsx,.xls" />
+            <button type="button" id="btnImportarClientes" class="btn-add">⬆ Importar</button>
+            <a id="btnDescargarPlantilla" href="#" class="btn-secondary" style="padding:9px 16px;font-size:0.88rem;text-decoration:none;border-radius:7px">⬇ Descargar Plantilla</a>
+          </div>
+          <div id="importResult" style="margin-top:8px;font-size:0.82rem"></div>
+        </div>
+        <table id="tablaClientes">
+          <thead>
+            <tr>
+              <th>RUT</th>
+              <th>Nombre / Razón Social</th>
+              <th>Teléfono</th>
+              <th>Dirección</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="tbodyClientes">
+            <tr><td colspan="5" class="empty-msg">No hay clientes registrados</td></tr>
+          </tbody>
+        </table>
+      </section>
+    </div>
+
+    <!-- ── PESTAÑA: RECEPCIONES ── -->
+    <div id="tab-recepciones" class="tab-content">
+
+      <!-- Órdenes pendientes de recepción -->
+      <section class="section">
+        <h2>Órdenes Emitidas Pendientes de Recepción</h2>
+        <div class="filtros" style="margin-bottom:12px">
+          <div class="field">
+            <label>Buscar orden</label>
+            <input type="text" id="recFiltro" placeholder="N° orden, Cliente..." />
+          </div>
+          <button type="button" id="recBtnFiltrar" class="btn-add">🔍 Buscar</button>
+          <button type="button" id="recBtnMostrarTodas" class="btn-secondary" style="align-self:flex-end">Mostrar todas</button>
+        </div>
+        <div style="overflow-x:auto">
+          <table id="tablaOrdenesEmitidas">
+            <thead>
+              <tr>
+                <th>N° Orden</th>
+                <th>Tipo Doc.</th>
+                <th>Fecha Emisión</th>
+                <th>Cliente</th>
+                <th>Estado</th>
+                <th>Acción</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyOrdenesEmitidas">
+              <tr><td colspan="8" class="empty-msg">No hay órdenes emitidas</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Historial recepciones confirmadas -->
+      <section class="section">
+        <h2>Historial de Recepciones Confirmadas</h2>
+        <div class="filtros" style="margin-bottom:12px">
+          <div class="field" style="flex:2">
+            <label>Buscar recepción</label>
+            <input type="text" id="buscarRecepcion" placeholder="N° recepción, N° orden, cliente..." />
+          </div>
+          <button type="button" id="btnBuscarRecepcion" class="btn-add">🔍 Buscar</button>
+          <button type="button" id="btnLimpiarRecepcion" class="btn-secondary" style="align-self:flex-end">✕ Limpiar</button>
+        </div>
+        <div style="overflow-x:auto">
+          <table id="tablaRecepciones">
+            <thead>
+              <tr>
+                <th>N° Recepción</th>
+                <th>N° Orden</th>
+                <th>Fecha Recepción</th>
+                <th>Cliente</th>
+                <th>Recibido por</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyRecepciones">
+              <tr><td colspan="7" class="empty-msg">No hay recepciones registradas</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+
+    <!-- Modal confirmar recepción -->
+    <div id="modalRecepcion" class="modal-overlay" style="display:none">
+      <div class="modal">
+        <div class="modal-header">
+          <h3 id="modalRecTitulo">Confirmar Recepción</h3>
+          <button onclick="cerrarModalRec()" class="modal-close">✕</button>
+        </div>
+        <div id="modalRecBody" class="modal-body"></div>
+        <div class="modal-footer">
+          <div class="field" style="flex:1; margin-right:12px">
+            <label>Recibido por</label>
+            <input type="text" id="recibidoPor" placeholder="Nombre de quien recibe" />
+          </div>
+          <button onclick="cerrarModalRec()" class="btn-secondary">Cancelar</button>
+          <button onclick="confirmarRecepcion()" class="btn-primary">✔ Confirmar Recepción</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PESTAÑA: USUARIOS ── -->
+    <div id="tab-usuarios" class="tab-content">
+      <section class="section">
+        <h2>👤 Gestión de Usuarios</h2>
+        <div class="add-product-row">
+          <div class="field">
+            <label>Nombre</label>
+            <input type="text" id="usuNombre" placeholder="Nombre completo" />
+          </div>
+          <div class="field">
+            <label>Usuario</label>
+            <input type="text" id="usuLogin" placeholder="Ej: jperez" />
+          </div>
+          <div class="field">
+            <label>Contraseña</label>
+            <input type="password" id="usuPassword" placeholder="••••••" />
+          </div>
+          <div class="field">
+            <label>Rol</label>
+            <select id="usuRol">
+              <option value="Bodeguero">Bodeguero</option>
+              <option value="Supervisor">Supervisor</option>
+              <option value="Admin">Admin</option>
+            </select>
+          </div>
+          <button type="button" id="btnGuardarUsuario" class="btn-add">+ Agregar</button>
+        </div>
+        <div class="permisos-box">
+          <label class="permisos-title">Permisos</label>
+          <div class="permisos-grid">
+            <label class="perm-item"><input type="checkbox" id="permCrearOrden" checked /> Crear Orden de Bodega</label>
+            <label class="perm-item"><input type="checkbox" id="permReportes" checked /> Ver Reportes</label>
+            <label class="perm-item"><input type="checkbox" id="permEliminarReporte" /> Eliminar Reporte</label>
+            <label class="perm-item"><input type="checkbox" id="permProductos" checked /> Gestionar Productos</label>
+            <label class="perm-item"><input type="checkbox" id="permRecepciones" checked /> Recepciones de Órdenes</label>
+            <label class="perm-item"><input type="checkbox" id="permUsuarios" /> Gestionar Usuarios</label>
+          </div>
+        </div>
+        <table id="tablaUsuarios">
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Usuario</th>
+              <th>Rol</th>
+              <th>Permisos</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tbodyUsuarios">
+            <tr><td colspan="5" class="empty-msg">No hay usuarios registrados</td></tr>
+          </tbody>
+        </table>
+
+        <div style="margin-top:24px; padding-top:16px; border-top:2px dashed #fde8e8;">
+          <p style="font-size:0.85rem; color:#c81e1e; font-weight:600; margin-bottom:10px">⚠ Zona de Peligro</p>
+          <button type="button" id="btnEliminarHistorial" style="background:#e53e3e;color:white;border:none;padding:10px 20px;border-radius:7px;cursor:pointer;font-weight:600;font-size:0.9rem">
+            🗑 Eliminar Historial de Órdenes y Reportes
+          </button>
+        </div>
+
+
+      </section>
+    </div>
+
+  </div><!-- /appMain -->
+
+  <!-- Modal detalle orden -->
+  <div id="modalOverlay" class="modal-overlay" style="display:none">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="modalTitulo">Detalle de Orden</h3>
+        <button onclick="cerrarModal()" class="modal-close">✕</button>
+      </div>
+      <div id="modalBody" class="modal-body"></div>
+      <div class="modal-footer">
+        <button onclick="cerrarModal()" class="btn-secondary">Cerrar</button>
+        <button onclick="imprimirOrden()" class="btn-primary">🖨 Imprimir</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="updateBar" class="update-bar" style="display:none"></div>
+  <div id="toast" class="toast"></div>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="firebase-init.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
