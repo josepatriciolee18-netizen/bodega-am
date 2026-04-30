@@ -284,7 +284,8 @@ async function cargarDesdeFirebase() {
           const nrosActuales = historial.map(h => h.nro);
           const ordenesNuevas = nuevos.filter(n => !nrosActuales.includes(n.nro));
           ordenesNuevas.forEach(orden => {
-            mostrarNotificacion('📦 Nueva Orden', `Orden ${orden.nro} — Cliente: ${orden.solicitante || 'Sin nombre'}`, orden.nro);
+            const quien = orden.rolCreador ? ` — Enviada por ${orden.rolCreador}` : '';
+            mostrarNotificacion('📦 Nueva Orden', `Orden ${orden.nro} — Cliente: ${orden.solicitante || 'Sin nombre'}${quien}`, orden.nro);
           });
         }
         historial = nuevos;
@@ -575,7 +576,9 @@ form.addEventListener('submit', (e) => {
     responsable:   '',
     observaciones: document.getElementById('observaciones').value,
     productos:     [...productos],
-    total:         productos.length
+    total:         productos.length,
+    creadoPor:     usuarioActivo ? usuarioActivo.nombre : '',
+    rolCreador:    usuarioActivo ? usuarioActivo.rol : ''
   };
 
   historial.unshift(salida);
