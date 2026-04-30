@@ -1961,21 +1961,10 @@ function showToast(msg, error = false) {
 
 // ── Notificaciones de escritorio ──────────────────────────
 function mostrarNotificacion(titulo, mensaje) {
-  // Notificación nativa de Windows
-  try {
-    const notif = new Notification(titulo, {
-      body: mensaje,
-      silent: false
-    });
-    // Al hacer click en la notificación, traer la app al frente
-    notif.onclick = () => {
-      if (window.require) {
-        const { ipcRenderer } = window.require('electron');
-        ipcRenderer.send('forzarFoco');
-      }
-    };
-  } catch(e) {
-    console.error('Error en notificación:', e);
+  // Enviar al proceso principal para notificación persistente
+  if (window.require) {
+    const { ipcRenderer } = window.require('electron');
+    ipcRenderer.send('mostrar-notificacion', { titulo, mensaje });
   }
   // También mostrar toast en la app
   showToast(`${titulo}: ${mensaje}`);

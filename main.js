@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, dialog } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, Notification } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const os = require('os');
@@ -127,6 +127,24 @@ ipcMain.on('ventana-cerrar', () => win.close());
 ipcMain.on('forzarFoco', () => {
   win.focus();
   win.webContents.focus();
+});
+
+// Notificaciones persistentes de Windows
+ipcMain.on('mostrar-notificacion', (event, { titulo, mensaje }) => {
+  const notif = new Notification({
+    title: titulo,
+    body: mensaje,
+    silent: false,
+    urgency: 'critical',
+    timeoutType: 'never'
+  });
+  notif.on('click', () => {
+    if (win && !win.isDestroyed()) {
+      win.show();
+      win.focus();
+    }
+  });
+  notif.show();
 });
 
 // Impresión térmica - muestra ventana con contenido
