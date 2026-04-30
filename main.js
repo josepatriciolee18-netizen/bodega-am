@@ -122,7 +122,9 @@ ipcMain.on('forzarFoco', () => {
 // Impresión térmica - muestra ventana con contenido
 ipcMain.on('imprimir', (event, htmlContent) => {
   const tmpHtml = path.join(os.tmpdir(), 'bodega_termica.html');
-  fs.writeFileSync(tmpHtml, htmlContent, 'utf-8');
+  // Quitar el script de window.print() del HTML porque lo manejamos desde aquí
+  const htmlLimpio = htmlContent.replace(/<script>.*?<\/script>/gs, '');
+  fs.writeFileSync(tmpHtml, htmlLimpio, 'utf-8');
 
   const printWin = new BrowserWindow({
     width: 350,
@@ -130,23 +132,20 @@ ipcMain.on('imprimir', (event, htmlContent) => {
     show: true,
     title: 'Imprimir - Bodega A&M',
     alwaysOnTop: true,
-    webPreferences: { nodeIntegration: true, contextIsolation: false }
+    webPreferences: { nodeIntegration: false, contextIsolation: true }
   });
 
   printWin.setMenuBarVisibility(false);
-  printWin.loadFile(tmpHtml);
+  printWin.loadURL('file:///' + tmpHtml.replace(/\\/g, '/'));
 
   let printDialogOpen = false;
 
-  // Detectar cuando la ventana pierde foco (diálogo de impresión se abrió)
   printWin.on('blur', () => {
     printDialogOpen = true;
   });
 
-  // Detectar cuando la ventana recupera foco (diálogo de impresión se cerró)
   printWin.on('focus', () => {
     if (printDialogOpen) {
-      // El usuario ya imprimió o canceló — cerrar ventana
       setTimeout(() => {
         if (!printWin.isDestroyed()) printWin.close();
       }, 300);
@@ -156,13 +155,15 @@ ipcMain.on('imprimir', (event, htmlContent) => {
   printWin.webContents.on('did-finish-load', () => {
     setTimeout(() => {
       printWin.webContents.executeJavaScript('window.print()');
-    }, 500);
+    }, 800);
     try { event.reply('impresion-terminada'); } catch(e) {}
   });
 
   printWin.on('closed', () => {
     try { fs.unlinkSync(tmpHtml); } catch(e) {}
     if (win && !win.isDestroyed()) win.focus();
+  });
+});
   });
 });
 
