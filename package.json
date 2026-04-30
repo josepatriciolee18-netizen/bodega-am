@@ -1,6 +1,6 @@
 {
   "name": "bodega-am",
-  "version": "1.1.8",
+  "version": "1.1.9",
   "description": "Sistema de Bodega A&M",
   "main": "main.js",
   "scripts": {
@@ -38,7 +38,6 @@
       "oneClick": true,
       "allowToChangeInstallationDirectory": false,
       "perMachine": false,
-      "allowSilentUpdate": true,
       "runAfterFinish": true
     },
     "publish": {
