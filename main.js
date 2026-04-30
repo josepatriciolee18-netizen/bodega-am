@@ -28,9 +28,11 @@ autoUpdater.on('download-progress', (progress) => {
 
 autoUpdater.on('update-downloaded', (info) => {
   enviarEstadoUpdate('ready', `Versión ${info.version} lista. Reiniciando...`, 100);
-  // Reiniciar automáticamente después de 2 segundos
+  // Forzar cierre completo antes de instalar
   setTimeout(() => {
-    autoUpdater.quitAndInstall();
+    autoUpdater.autoInstallOnAppQuit = true;
+    app.isQuiting = true;
+    autoUpdater.quitAndInstall(false, true);
   }, 2000);
 });
 
@@ -97,7 +99,7 @@ ipcMain.on('check-for-updates', () => {
 ipcMain.on('get-version', (event) => {
   event.reply('app-version', app.getVersion());
 });
-app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });
+app.on('window-all-closed', () => { if (process.platform !== 'darwin' || app.isQuiting) app.quit(); });
 app.on('activate', () => { if (BrowserWindow.getAllWindows().length === 0) createWindow(); });
 
 ipcMain.on('recargar', () => {
