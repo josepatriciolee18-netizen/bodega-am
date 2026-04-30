@@ -154,12 +154,12 @@ function mostrarApp() {
   // Mostrar versión automáticamente
   try {
     if (window.require) {
-      const { app } = window.require('@electron/remote') || {};
-      const ver = window.require('electron').ipcRenderer.sendSync && null;
+      const { ipcRenderer } = window.require('electron');
+      ipcRenderer.send('get-version');
+      ipcRenderer.once('app-version', (event, version) => {
+        document.getElementById('appVersion').textContent = 'v' + version;
+      });
     }
-    // Leer versión del package.json via require
-    const pkg = window.require ? window.require('./package.json') : null;
-    if (pkg) document.getElementById('appVersion').textContent = 'v' + pkg.version;
   } catch(e) {}
 
   const p = usuarioActivo.permisos;

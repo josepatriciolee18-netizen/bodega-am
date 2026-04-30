@@ -92,6 +92,11 @@ app.whenReady().then(createWindow);
 ipcMain.on('check-for-updates', () => {
   autoUpdater.checkForUpdatesAndNotify();
 });
+
+// Enviar versión de la app al renderer
+ipcMain.on('get-version', (event) => {
+  event.reply('app-version', app.getVersion());
+});
 app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });
 app.on('activate', () => { if (BrowserWindow.getAllWindows().length === 0) createWindow(); });
 
