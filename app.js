@@ -315,7 +315,7 @@ async function cargarDesdeFirebase() {
           const nrosActuales = recepciones.map(r => r.nro);
           const recNuevas = nuevos.filter(n => !nrosActuales.includes(n.nro));
           recNuevas.forEach(rec => {
-            mostrarNotificacion('📥 Orden Recibida', `${rec.nro} — Orden ${rec.nroOrden} recibida por ${rec.recibidoPor}`);
+            mostrarNotificacion('📥 Orden Recibida por Bodega', `${rec.nro} — Orden ${rec.nroOrden} recibida por ${rec.recibidoPor}`);
           });
         }
         recepciones = merged;
