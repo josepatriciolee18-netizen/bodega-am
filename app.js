@@ -300,7 +300,16 @@ async function cargarDesdeFirebase() {
     let recepcionesCargadoInicial = false;
     fbEscuchar('recepciones', (datos) => {
       const nuevos = datos.sort((a,b) => b.nro.localeCompare(a.nro));
-      if (nuevos.length !== recepciones.length) {
+      
+      // Merge: mantener recepciones locales que aún no están en Firebase
+      const nrosNuevos = nuevos.map(n => n.nro);
+      const localesPendientes = recepciones.filter(r => !nrosNuevos.includes(r.nro));
+      const merged = [...localesPendientes, ...nuevos].sort((a,b) => b.nro.localeCompare(a.nro));
+      
+      const jsonMerged = JSON.stringify(merged);
+      const jsonActual = JSON.stringify(recepciones);
+      
+      if (jsonMerged !== jsonActual) {
         // Detectar recepciones nuevas para notificar (solo después de la carga inicial)
         if (recepcionesCargadoInicial && nuevos.length > recepciones.length) {
           const nrosActuales = recepciones.map(r => r.nro);
@@ -309,15 +318,13 @@ async function cargarDesdeFirebase() {
             mostrarNotificacion('📥 Orden Recibida', `${rec.nro} — Orden ${rec.nroOrden} recibida por ${rec.recibidoPor}`);
           });
         }
-        recepciones = nuevos;
+        recepciones = merged;
         localStorage.setItem('recepcionesBodega', JSON.stringify(recepciones));
         renderRecepciones();
         renderOrdenesEmitidas();
         buscarOrdenAntigua();
-        recepcionesCargadoInicial = true;
-      } else {
-        recepcionesCargadoInicial = true;
       }
+      recepcionesCargadoInicial = true;
     });
 
     fbEscuchar('catalogo', (datos) => {
