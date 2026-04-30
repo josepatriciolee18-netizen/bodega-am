@@ -130,25 +130,23 @@ ipcMain.on('imprimir', (event, htmlContent) => {
     show: true,
     title: 'Imprimir - Bodega A&M',
     alwaysOnTop: true,
-    webPreferences: { nodeIntegration: false, contextIsolation: true }
+    webPreferences: { nodeIntegration: true, contextIsolation: false }
   });
 
   printWin.setMenuBarVisibility(false);
   printWin.loadFile(tmpHtml);
 
   printWin.webContents.on('did-finish-load', () => {
-    // Abre el diálogo de impresión del sistema
-    printWin.webContents.executeJavaScript(`
-      setTimeout(() => {
+    setTimeout(() => {
+      printWin.webContents.executeJavaScript(`
         window.print();
-        // Cerrar ventana después de imprimir
-        window.onafterprint = function() {
-          window.close();
-        };
-        // Fallback: cerrar después de 30 segundos si no se detecta el evento
-        setTimeout(() => { window.close(); }, 30000);
-      }, 500);
-    `);
+      `).then(() => {
+        // window.print() es síncrono — cuando termina, el usuario ya imprimió o canceló
+        setTimeout(() => {
+          if (!printWin.isDestroyed()) printWin.close();
+        }, 500);
+      });
+    }, 500);
     try { event.reply('impresion-terminada'); } catch(e) {}
   });
 
