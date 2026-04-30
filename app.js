@@ -963,8 +963,11 @@ function imprimirOrden() {
   document.getElementById('campoNroDoc').style.display = s.tipoDocumento === 'Sin Documento' ? 'none' : '';
   productos = [...s.productos];
   renderTabla();
+  // Guardar referencia antes de cerrar modal (cerrarModal pone ordenImpresion = null)
+  const ordenParaImprimir = s;
   cerrarModal();
-  setTimeout(() => { imprimirPagina(); resetForm(); }, 300);
+  ordenImpresion = ordenParaImprimir;
+  setTimeout(() => { imprimirPagina(); ordenImpresion = null; resetForm(); }, 300);
 }
 
 function cerrarModal() {
