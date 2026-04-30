@@ -1,6 +1,6 @@
 {
   "name": "bodega-am",
-  "version": "1.1.5",
+  "version": "1.1.6",
   "description": "Sistema de Bodega A&M",
   "main": "main.js",
   "scripts": {
@@ -41,7 +41,8 @@
     "publish": {
       "provider": "github",
       "owner": "josepatriciolee18-netizen",
-      "repo": "bodega-am"
+      "repo": "bodega-am",
+      "releaseType": "release"
     }
   },
   "dependencies": {
