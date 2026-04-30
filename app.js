@@ -1,53 +1,86 @@
 // ── Estado ────────────────────────────────────────────────
 // ── Auto-Update listener ──────────────────────────────────
-if (window.require) {
-  const { ipcRenderer } = window.require('electron');
-
-  // Mostrar pantalla de actualización al iniciar
-  document.getElementById('updateScreen').style.display = 'flex';
-  document.getElementById('loginScreen').style.display = 'none';
-
-  ipcRenderer.on('update-status', (event, data) => {
-    const updateScreen = document.getElementById('updateScreen');
-    const loginScreen  = document.getElementById('loginScreen');
-    const msg          = document.getElementById('updateMsg');
-    const progress     = document.getElementById('updateProgress');
-    const progressFill = document.getElementById('updateProgressFill');
-    const detail       = document.getElementById('updateDetail');
-
-    if (data.status === 'checking') {
-      msg.textContent = '🔍 Buscando actualizaciones...';
-      detail.textContent = 'Espera un momento';
-    } else if (data.status === 'downloading') {
-      msg.textContent = '⬇ Actualizando...';
-      progress.style.display = 'block';
-      progressFill.style.width = data.percent + '%';
-      detail.textContent = data.percent + '% descargado';
-    } else if (data.status === 'ready') {
-      msg.textContent = '✔ Actualización lista';
-      progress.style.display = 'block';
-      progressFill.style.width = '100%';
-      detail.textContent = 'Reiniciando aplicación...';
-    } else if (data.status === 'no-update' || data.status === 'error') {
-      // No hay actualización o hubo error → mostrar login
-      updateScreen.style.display = 'none';
-      loginScreen.style.display = 'flex';
-    }
+function verificarInternet() {
+  return new Promise((resolve) => {
+    // Intentar hacer fetch a un recurso confiable
+    fetch('https://www.google.com/favicon.ico', { mode: 'no-cors', cache: 'no-store' })
+      .then(() => resolve(true))
+      .catch(() => resolve(false));
+    // Timeout de 5 segundos
+    setTimeout(() => resolve(false), 5000);
   });
-
-  // Si después de 10 segundos no hay respuesta del updater, mostrar login
-  setTimeout(() => {
-    const updateScreen = document.getElementById('updateScreen');
-    if (updateScreen.style.display !== 'none') {
-      updateScreen.style.display = 'none';
-      document.getElementById('loginScreen').style.display = 'flex';
-    }
-  }, 10000);
-
-} else {
-  // No es Electron, mostrar login directo
-  document.getElementById('loginScreen').style.display = 'flex';
 }
+
+async function iniciarApp() {
+  const hayInternet = await verificarInternet();
+
+  if (!hayInternet) {
+    // Sin internet → mostrar pantalla de error
+    document.getElementById('updateScreen').style.display = 'none';
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('noInternetScreen').style.display = 'flex';
+    return;
+  }
+
+  // Hay internet → continuar con verificación de updates
+  if (window.require) {
+    const { ipcRenderer } = window.require('electron');
+
+    document.getElementById('updateScreen').style.display = 'flex';
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('noInternetScreen').style.display = 'none';
+
+    ipcRenderer.on('update-status', (event, data) => {
+      const updateScreen = document.getElementById('updateScreen');
+      const loginScreen  = document.getElementById('loginScreen');
+      const msg          = document.getElementById('updateMsg');
+      const progress     = document.getElementById('updateProgress');
+      const progressFill = document.getElementById('updateProgressFill');
+      const detail       = document.getElementById('updateDetail');
+
+      if (data.status === 'checking') {
+        msg.textContent = '🔍 Buscando actualizaciones...';
+        detail.textContent = 'Espera un momento';
+      } else if (data.status === 'downloading') {
+        msg.textContent = '⬇ Actualizando...';
+        progress.style.display = 'block';
+        progressFill.style.width = data.percent + '%';
+        detail.textContent = data.percent + '% descargado';
+      } else if (data.status === 'ready') {
+        msg.textContent = '✔ Actualización lista';
+        progress.style.display = 'block';
+        progressFill.style.width = '100%';
+        detail.textContent = 'Reiniciando aplicación...';
+      } else if (data.status === 'no-update' || data.status === 'error') {
+        updateScreen.style.display = 'none';
+        loginScreen.style.display = 'flex';
+      }
+    });
+
+    // Si después de 10 segundos no hay respuesta del updater, mostrar login
+    setTimeout(() => {
+      const updateScreen = document.getElementById('updateScreen');
+      if (updateScreen.style.display !== 'none') {
+        updateScreen.style.display = 'none';
+        document.getElementById('loginScreen').style.display = 'flex';
+      }
+    }, 10000);
+
+  } else {
+    document.getElementById('loginScreen').style.display = 'flex';
+  }
+}
+
+// Botón reintentar
+document.getElementById('btnReintentar').addEventListener('click', () => {
+  document.getElementById('noInternetScreen').style.display = 'none';
+  document.getElementById('updateScreen').style.display = 'flex';
+  document.getElementById('updateMsg').textContent = '🔍 Verificando conexión...';
+  iniciarApp();
+});
+
+// Iniciar
+iniciarApp();
 
 let productos = [];
 let historial    = JSON.parse(localStorage.getItem('historialSalidas')    || '[]');
