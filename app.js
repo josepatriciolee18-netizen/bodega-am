@@ -1866,8 +1866,10 @@ function numeroAPalabras(n) {
 // ── Utilidades ────────────────────────────────────────────
 function fechaHoraLocal() {
   const now = new Date();
-  const pad = n => String(n).padStart(2, '0');
-  return `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
+  const opciones = { timeZone: 'America/Santiago', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false };
+  const partes = new Intl.DateTimeFormat('sv-SE', opciones).formatToParts(now);
+  const get = (type) => partes.find(p => p.type === type).value;
+  return `${get('year')}-${get('month')}-${get('day')}T${get('hour')}:${get('minute')}`;
 }
 
 function formatFecha(f) {
