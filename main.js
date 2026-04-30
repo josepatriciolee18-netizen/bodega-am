@@ -174,8 +174,6 @@ ipcMain.on('imprimir', (event, htmlContent) => {
     if (win && !win.isDestroyed()) win.focus();
   });
 });
-  });
-});
 
 // Impresión carta - usa ventana Electron directamente
 ipcMain.on('imprimirCarta', (event, htmlContent) => {
