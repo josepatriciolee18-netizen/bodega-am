@@ -2,19 +2,51 @@
 // ── Auto-Update listener ──────────────────────────────────
 if (window.require) {
   const { ipcRenderer } = window.require('electron');
-  ipcRenderer.on('update-status', (event, msg) => {
-    const bar = document.getElementById('updateBar');
-    if (!msg) { bar.style.display = 'none'; return; }
-    bar.textContent = msg;
-    bar.style.display = 'block';
-    if (msg.includes('Descargando')) bar.className = 'update-bar downloading';
-    else if (msg.includes('lista') || msg.includes('descargó')) bar.className = 'update-bar ready';
-    else bar.className = 'update-bar';
-    // Ocultar mensajes informativos después de 5 segundos
-    if (msg.includes('actualizada')) {
-      setTimeout(() => { bar.style.display = 'none'; }, 5000);
+
+  // Mostrar pantalla de actualización al iniciar
+  document.getElementById('updateScreen').style.display = 'flex';
+  document.getElementById('loginScreen').style.display = 'none';
+
+  ipcRenderer.on('update-status', (event, data) => {
+    const updateScreen = document.getElementById('updateScreen');
+    const loginScreen  = document.getElementById('loginScreen');
+    const msg          = document.getElementById('updateMsg');
+    const progress     = document.getElementById('updateProgress');
+    const progressFill = document.getElementById('updateProgressFill');
+    const detail       = document.getElementById('updateDetail');
+
+    if (data.status === 'checking') {
+      msg.textContent = '🔍 Buscando actualizaciones...';
+      detail.textContent = 'Espera un momento';
+    } else if (data.status === 'downloading') {
+      msg.textContent = '⬇ Actualizando...';
+      progress.style.display = 'block';
+      progressFill.style.width = data.percent + '%';
+      detail.textContent = data.percent + '% descargado';
+    } else if (data.status === 'ready') {
+      msg.textContent = '✔ Actualización lista';
+      progress.style.display = 'block';
+      progressFill.style.width = '100%';
+      detail.textContent = 'Reiniciando aplicación...';
+    } else if (data.status === 'no-update' || data.status === 'error') {
+      // No hay actualización o hubo error → mostrar login
+      updateScreen.style.display = 'none';
+      loginScreen.style.display = 'flex';
     }
   });
+
+  // Si después de 10 segundos no hay respuesta del updater, mostrar login
+  setTimeout(() => {
+    const updateScreen = document.getElementById('updateScreen');
+    if (updateScreen.style.display !== 'none') {
+      updateScreen.style.display = 'none';
+      document.getElementById('loginScreen').style.display = 'flex';
+    }
+  }, 10000);
+
+} else {
+  // No es Electron, mostrar login directo
+  document.getElementById('loginScreen').style.display = 'flex';
 }
 
 let productos = [];
@@ -65,7 +97,19 @@ function verificarSesion() {
   const sesion = sessionStorage.getItem('sesionActiva');
   if (sesion) {
     usuarioActivo = JSON.parse(sesion);
-    mostrarApp();
+    // Solo mostrar app si no estamos en pantalla de actualización
+    const updateScreen = document.getElementById('updateScreen');
+    if (!updateScreen || updateScreen.style.display === 'none') {
+      mostrarApp();
+    } else {
+      // Esperar a que termine la verificación de updates
+      const checkInterval = setInterval(() => {
+        if (updateScreen.style.display === 'none') {
+          clearInterval(checkInterval);
+          mostrarApp();
+        }
+      }, 500);
+    }
   }
 }
 

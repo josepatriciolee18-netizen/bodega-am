@@ -11,46 +11,37 @@ autoUpdater.autoDownload = true;
 autoUpdater.autoInstallOnAppQuit = true;
 
 autoUpdater.on('checking-for-update', () => {
-  enviarEstadoUpdate('Buscando actualizaciones...');
+  enviarEstadoUpdate('checking', 'Buscando actualizaciones...', 0);
 });
 
 autoUpdater.on('update-available', (info) => {
-  enviarEstadoUpdate(`Nueva versión ${info.version} disponible. Descargando...`);
+  enviarEstadoUpdate('downloading', `Descargando versión ${info.version}...`, 0);
 });
 
 autoUpdater.on('update-not-available', () => {
-  enviarEstadoUpdate('La aplicación está actualizada.');
+  enviarEstadoUpdate('no-update', 'Aplicación actualizada', 0);
 });
 
 autoUpdater.on('download-progress', (progress) => {
-  enviarEstadoUpdate(`Descargando actualización: ${Math.round(progress.percent)}%`);
+  enviarEstadoUpdate('downloading', `Descargando actualización...`, Math.round(progress.percent));
 });
 
 autoUpdater.on('update-downloaded', (info) => {
-  // Notificar al usuario y reiniciar
-  if (win && !win.isDestroyed()) {
-    dialog.showMessageBox(win, {
-      type: 'info',
-      title: 'Actualización lista',
-      message: `La versión ${info.version} se descargó correctamente.`,
-      detail: 'La aplicación se reiniciará para aplicar la actualización.',
-      buttons: ['Reiniciar ahora', 'Más tarde']
-    }).then((result) => {
-      if (result.response === 0) {
-        autoUpdater.quitAndInstall();
-      }
-    });
-  }
+  enviarEstadoUpdate('ready', `Versión ${info.version} lista. Reiniciando...`, 100);
+  // Reiniciar automáticamente después de 2 segundos
+  setTimeout(() => {
+    autoUpdater.quitAndInstall();
+  }, 2000);
 });
 
 autoUpdater.on('error', (err) => {
-  enviarEstadoUpdate('');
+  enviarEstadoUpdate('error', '', 0);
   console.error('Error en auto-updater:', err);
 });
 
-function enviarEstadoUpdate(msg) {
+function enviarEstadoUpdate(status, msg, percent) {
   if (win && !win.isDestroyed()) {
-    win.webContents.send('update-status', msg);
+    win.webContents.send('update-status', { status, msg, percent });
   }
 }
 
@@ -84,10 +75,10 @@ function createWindow() {
     win.webContents.executeJavaScript('document.body.style.zoom = "1"');
   });
 
-  // Buscar actualizaciones al iniciar (después de 5 segundos)
-  setTimeout(() => {
-    autoUpdater.checkForUpdatesAndNotify();
-  }, 5000);
+  // Buscar actualizaciones inmediatamente al iniciar
+  win.webContents.once('did-finish-load', () => {
+    autoUpdater.checkForUpdates();
+  });
 
   // Revisar cada 30 minutos
   setInterval(() => {

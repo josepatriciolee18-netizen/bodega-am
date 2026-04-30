@@ -8,8 +8,21 @@
 </head>
 <body>
 
+  <!-- ── PANTALLA DE ACTUALIZACIÓN ── -->
+  <div id="updateScreen" class="login-screen" style="display:none">
+    <div class="login-box">
+      <div class="login-logo">🔄</div>
+      <h2>Bodega A&amp;M</h2>
+      <p id="updateMsg" class="login-sub" style="margin-top:16px;font-size:1rem;color:#1a56db;font-weight:600">Buscando actualizaciones...</p>
+      <div id="updateProgress" class="update-progress-bar" style="display:none">
+        <div id="updateProgressFill" class="update-progress-fill" style="width:0%"></div>
+      </div>
+      <p id="updateDetail" class="login-sub" style="margin-top:8px;font-size:0.8rem;color:#888"></p>
+    </div>
+  </div>
+
   <!-- ── PANTALLA DE LOGIN ── -->
-  <div id="loginScreen" class="login-screen">
+  <div id="loginScreen" class="login-screen" style="display:none">
     <div class="login-box">
       <div class="login-logo">📦</div>
       <h2>Bodega A&amp;M</h2>
