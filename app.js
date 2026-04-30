@@ -170,6 +170,7 @@ function mostrarApp() {
   document.querySelector('[data-tab="formulario"]').style.display  = (esAdmin || !p || p.crearOrden)   ? '' : 'none';
   document.querySelector('[data-tab="reportes"]').style.display    = (esAdmin || !p || p.reportes)     ? '' : 'none';
   document.querySelector('[data-tab="productos"]').style.display   = (esAdmin || !p || p.productos)    ? '' : 'none';
+  document.querySelector('[data-tab="clientes"]').style.display    = (esAdmin || !p || p.clientes)     ? '' : 'none';
   document.querySelector('[data-tab="recepciones"]').style.display = (esAdmin || !p || p.recepciones)  ? '' : 'none';
   document.querySelector('[data-tab="usuarios"]').style.display    = (esAdmin || !p || p.usuarios)     ? '' : 'none';
 
@@ -1537,6 +1538,7 @@ document.getElementById('btnGuardarUsuario').addEventListener('click', () => {
     reportes:         document.getElementById('permReportes').checked,
     eliminarReporte:  document.getElementById('permEliminarReporte').checked,
     productos:        document.getElementById('permProductos').checked,
+    clientes:         document.getElementById('permClientes').checked,
     recepciones:      document.getElementById('permRecepciones').checked,
     usuarios:         document.getElementById('permUsuarios').checked,
   };
@@ -1574,6 +1576,7 @@ document.getElementById('btnGuardarUsuario').addEventListener('click', () => {
   document.getElementById('permReportes').checked        = true;
   document.getElementById('permEliminarReporte').checked = false;
   document.getElementById('permProductos').checked       = true;
+  document.getElementById('permClientes').checked        = true;
   document.getElementById('permRecepciones').checked     = true;
   document.getElementById('permUsuarios').checked        = false;
 });
@@ -1590,6 +1593,7 @@ function editarUsuario(i) {
   document.getElementById('permReportes').checked        = p.reportes        ?? true;
   document.getElementById('permEliminarReporte').checked = p.eliminarReporte ?? false;
   document.getElementById('permProductos').checked       = p.productos       ?? true;
+  document.getElementById('permClientes').checked        = p.clientes        ?? true;
   document.getElementById('permRecepciones').checked     = p.recepciones     ?? true;
   document.getElementById('permUsuarios').checked        = p.usuarios        ?? false;
   const btn = document.getElementById('btnGuardarUsuario');
@@ -1615,6 +1619,7 @@ function renderUsuarios() {
           p.reportes        ? '<span class="badge badge-bodeguero">Reportes</span>' : '',
           p.eliminarReporte ? '<span class="badge badge-supervisor">Elim. Reporte</span>' : '',
           p.productos       ? '<span class="badge badge-bodeguero">Productos</span>' : '',
+          p.clientes        ? '<span class="badge badge-bodeguero">Clientes</span>' : '',
           p.recepciones     ? '<span class="badge badge-bodeguero">Recepciones</span>' : '',
           p.usuarios        ? '<span class="badge badge-supervisor">Usuarios</span>' : '',
         ].filter(Boolean).join(' ') || '<span class="badge badge-inactivo">Sin permisos</span>'
