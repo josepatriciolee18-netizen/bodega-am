@@ -1,6 +1,6 @@
 {
   "name": "bodega-am",
-  "version": "1.1.7",
+  "version": "1.1.8",
   "description": "Sistema de Bodega A&M",
   "main": "main.js",
   "scripts": {
@@ -37,7 +37,9 @@
     "nsis": {
       "oneClick": true,
       "allowToChangeInstallationDirectory": false,
-      "perMachine": false
+      "perMachine": false,
+      "allowSilentUpdate": true,
+      "runAfterFinish": true
     },
     "publish": {
       "provider": "github",
