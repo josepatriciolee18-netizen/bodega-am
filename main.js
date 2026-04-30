@@ -137,21 +137,24 @@ ipcMain.on('imprimir', (event, htmlContent) => {
   printWin.loadFile(tmpHtml);
 
   printWin.webContents.on('did-finish-load', () => {
-    // Mostrar vista previa y luego abrir diálogo de impresión
-    setTimeout(() => {
-      printWin.webContents.print(
-        { silent: false, printBackground: true, color: false },
-        (success, failureReason) => {
-          // Cerrar ventana automáticamente después de imprimir o cancelar
-          setTimeout(() => {
-            if (!printWin.isDestroyed()) printWin.close();
-            try { fs.unlinkSync(tmpHtml); } catch(e) {}
-            if (win && !win.isDestroyed()) win.focus();
-          }, 500);
-          try { event.reply('impresion-terminada'); } catch(e) {}
-        }
-      );
-    }, 800);
+    // Abre el diálogo de impresión del sistema
+    printWin.webContents.executeJavaScript(`
+      setTimeout(() => {
+        window.print();
+        // Cerrar ventana después de imprimir
+        window.onafterprint = function() {
+          window.close();
+        };
+        // Fallback: cerrar después de 30 segundos si no se detecta el evento
+        setTimeout(() => { window.close(); }, 30000);
+      }, 500);
+    `);
+    try { event.reply('impresion-terminada'); } catch(e) {}
+  });
+
+  printWin.on('closed', () => {
+    try { fs.unlinkSync(tmpHtml); } catch(e) {}
+    if (win && !win.isDestroyed()) win.focus();
   });
 });
 
