@@ -257,36 +257,51 @@ async function cargarDesdeFirebase() {
     showToast('✔ Conectado a la nube');
 
     // Escuchar cambios en tiempo real - solo se activa cuando hay cambios
+    let historialCargadoInicial = false;
     fbEscuchar('historial', (datos) => {
       const nuevos = datos.sort((a,b) => b.nro.localeCompare(a.nro));
       const jsonNuevo = JSON.stringify(nuevos);
       const jsonActual = JSON.stringify(historial);
       if (jsonNuevo !== jsonActual) {
-        // Detectar órdenes nuevas para notificar
-        if (historial.length > 0 && nuevos.length > historial.length) {
-          const ordenNueva = nuevos[0];
-          mostrarNotificacion('📦 Nueva Orden', `Orden ${ordenNueva.nro} — Cliente: ${ordenNueva.solicitante || 'Sin nombre'}`);
+        // Detectar órdenes nuevas para notificar (solo después de la carga inicial)
+        if (historialCargadoInicial && nuevos.length > historial.length) {
+          // Buscar las órdenes que no existían antes
+          const nrosActuales = historial.map(h => h.nro);
+          const ordenesNuevas = nuevos.filter(n => !nrosActuales.includes(n.nro));
+          ordenesNuevas.forEach(orden => {
+            mostrarNotificacion('📦 Nueva Orden', `Orden ${orden.nro} — Cliente: ${orden.solicitante || 'Sin nombre'}`);
+          });
         }
         historial = nuevos;
         localStorage.setItem('historialSalidas', JSON.stringify(historial));
         renderReportes();
         buscarOrdenAntigua();
+        historialCargadoInicial = true;
+      } else {
+        historialCargadoInicial = true;
       }
     });
 
+    let recepcionesCargadoInicial = false;
     fbEscuchar('recepciones', (datos) => {
       const nuevos = datos.sort((a,b) => b.nro.localeCompare(a.nro));
       if (nuevos.length !== recepciones.length) {
-        // Detectar recepciones nuevas para notificar
-        if (recepciones.length > 0 && nuevos.length > recepciones.length) {
-          const recNueva = nuevos[0];
-          mostrarNotificacion('📥 Orden Recibida', `Recepción ${recNueva.nro} — Orden ${recNueva.nroOrden} recibida por ${recNueva.recibidoPor}`);
+        // Detectar recepciones nuevas para notificar (solo después de la carga inicial)
+        if (recepcionesCargadoInicial && nuevos.length > recepciones.length) {
+          const nrosActuales = recepciones.map(r => r.nro);
+          const recNuevas = nuevos.filter(n => !nrosActuales.includes(n.nro));
+          recNuevas.forEach(rec => {
+            mostrarNotificacion('📥 Orden Recibida', `${rec.nro} — Orden ${rec.nroOrden} recibida por ${rec.recibidoPor}`);
+          });
         }
         recepciones = nuevos;
         localStorage.setItem('recepcionesBodega', JSON.stringify(recepciones));
         renderRecepciones();
         renderOrdenesEmitidas();
         buscarOrdenAntigua();
+        recepcionesCargadoInicial = true;
+      } else {
+        recepcionesCargadoInicial = true;
       }
     });
 
@@ -1925,13 +1940,20 @@ function showToast(msg, error = false) {
 // ── Notificaciones de escritorio ──────────────────────────
 function mostrarNotificacion(titulo, mensaje) {
   // Notificación nativa de Windows
-  if (window.require) {
-    const { ipcRenderer } = window.require('electron');
-    new Notification(titulo, {
+  try {
+    const notif = new Notification(titulo, {
       body: mensaje,
-      icon: '📦',
       silent: false
     });
+    // Al hacer click en la notificación, traer la app al frente
+    notif.onclick = () => {
+      if (window.require) {
+        const { ipcRenderer } = window.require('electron');
+        ipcRenderer.send('forzarFoco');
+      }
+    };
+  } catch(e) {
+    console.error('Error en notificación:', e);
   }
   // También mostrar toast en la app
   showToast(`${titulo}: ${mensaje}`);
