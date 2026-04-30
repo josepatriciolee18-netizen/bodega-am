@@ -992,6 +992,21 @@ async function imprimirPagina() {
       const cliente  = document.getElementById('solicitante').value;
       const obs      = document.getElementById('observaciones').value;
 
+      // Obtener creador de la orden
+      let creadoPor = '';
+      let rolCreador = '';
+      if (ordenImpresion && ordenImpresion.creadoPor) {
+        creadoPor = ordenImpresion.creadoPor;
+        rolCreador = ordenImpresion.rolCreador || '';
+      } else if (usuarioActivo) {
+        // Buscar la orden en el historial por número
+        const ordenEnHistorial = historial.find(s => s.nro === nro);
+        if (ordenEnHistorial && ordenEnHistorial.creadoPor) {
+          creadoPor = ordenEnHistorial.creadoPor;
+          rolCreador = ordenEnHistorial.rolCreador || '';
+        }
+      }
+
       // Construye filas de productos
       const filasProductos = productos.map((p, i) => `
         <tr>
@@ -1050,7 +1065,7 @@ async function imprimirPagina() {
         ${nrodoc ? `<div class="row"><label>N° Documento:</label><span>${nrodoc}</span></div>` : ''}
         <div class="row"><label>Cliente:</label><span>${cliente||'-'}</span></div>
         ${obs ? `<div class="row"><label>Observaciones:</label><span>${obs}</span></div>` : ''}
-        ${ordenImpresion && ordenImpresion.creadoPor ? `<div class="row"><label>Creada por:</label><span>${ordenImpresion.creadoPor} (${ordenImpresion.rolCreador || '-'})</span></div>` : ''}
+        ${creadoPor ? `<div class="row"><label>Creada por:</label><span>${creadoPor} (${rolCreador})</span></div>` : ''}
         <table>
           <thead><tr><th>#</th><th>Código</th><th>Descripción</th><th>Unid.</th><th>Cant.</th><th>En Palabras</th></tr></thead>
           <tbody>${filasProductos}</tbody>
