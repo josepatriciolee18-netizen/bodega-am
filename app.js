@@ -151,6 +151,17 @@ function mostrarApp() {
   document.getElementById('appMain').style.display = 'block';
   document.getElementById('headerUsuario').textContent = `👤 ${usuarioActivo.nombre} (${usuarioActivo.rol})`;
 
+  // Mostrar versión automáticamente
+  try {
+    if (window.require) {
+      const { app } = window.require('@electron/remote') || {};
+      const ver = window.require('electron').ipcRenderer.sendSync && null;
+    }
+    // Leer versión del package.json via require
+    const pkg = window.require ? window.require('./package.json') : null;
+    if (pkg) document.getElementById('appVersion').textContent = 'v' + pkg.version;
+  } catch(e) {}
+
   const p = usuarioActivo.permisos;
   // Admin tiene todo, otros según permisos
   const esAdmin = usuarioActivo.rol === 'Admin';
