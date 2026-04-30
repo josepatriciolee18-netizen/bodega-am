@@ -979,7 +979,7 @@ async function imprimirPagina() {
 
       const qrHtml = qrDataUrl ? `
         <div class="footer" style="text-align:center; margin-top:12px; border-top:1px dashed #000; padding-top:8px;">
-          <p style="font-size:10px; margin-bottom:4px;">Escanea para ver la orden</p>
+          <p style="font-size:10px; margin-bottom:4px;">Orden recibida por Bodega</p>
           <img src="${qrDataUrl}" style="width:130px; height:130px;" />
           <p style="font-size:9px; margin-top:4px;">${nro}</p>
         </div>` : '';

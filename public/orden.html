@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Orden Bodega A&M</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; padding: 16px; color: #333; }
+    .card { max-width: 480px; margin: 0 auto; background: white; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.1); overflow: hidden; }
+    .header { background: #1a56db; color: white; padding: 20px; text-align: center; }
+    .header h1 { font-size: 1.4rem; }
+    .header p { font-size: 0.9rem; opacity: 0.9; margin-top: 4px; }
+    .estado-box { padding: 14px; text-align: center; font-weight: 700; font-size: 1rem; }
+    .estado-box.recibida { background: #def7ec; color: #03543f; }
+    .estado-box.activa { background: #fef3c7; color: #92400e; }
+    .estado-box.anulada { background: #fde8e8; color: #c81e1e; }
+    .row { display: flex; justify-content: space-between; padding: 10px 20px; border-bottom: 1px solid #f0f0f0; font-size: 0.9rem; }
+    .row strong { color: #555; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    thead th { background: #1a56db; color: white; padding: 8px 12px; text-align: left; }
+    tbody td { padding: 8px 12px; border-bottom: 1px solid #eee; }
+    tbody tr:nth-child(even) { background: #f8f9ff; }
+    .recepcion-info { background: #def7ec; padding: 14px 20px; font-size: 0.88rem; color: #03543f; border-top: 2px solid #84e1bc; }
+    .error { padding: 40px; text-align: center; color: #c81e1e; font-size: 1.1rem; font-weight: 600; }
+    .loading { padding: 40px; text-align: center; color: #888; font-size: 1rem; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div id="contenido" class="loading">⏳ Cargando orden...</div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js';
+    import { getFirestore, doc, getDoc, collection, query, where, getDocs } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js';
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCAhkMvXqzljcMJZaTBsxMTBucuDDM7srg",
+      authDomain: "bodega-am.firebaseapp.com",
+      projectId: "bodega-am",
+      storageBucket: "bodega-am.firebasestorage.app",
+      messagingSenderId: "745836673567",
+      appId: "1:745836673567:web:fac41f15ee7c47c85a732a"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const params = new URLSearchParams(window.location.search);
+    const nro = params.get('nro');
+    const div = document.getElementById('contenido');
+
+    if (!nro) {
+      div.innerHTML = '<div class="error">❌ No se especificó número de orden</div>';
+    } else {
+      try {
+        const snap = await getDoc(doc(db, 'historial', nro));
+        if (!snap.exists()) {
+          div.innerHTML = '<div class="error">❌ Orden no encontrada</div>';
+        } else {
+          const s = snap.data();
+          const recSnap = await getDocs(query(collection(db, 'recepciones'), where('nroOrden', '==', nro)));
+          const recepcion = recSnap.empty ? null : recSnap.docs[0].data();
+
+          let estadoHtml, estadoClase;
+          if (s.anulada) {
+            estadoHtml = '🚫 ORDEN ANULADA';
+            estadoClase = 'anulada';
+          } else if (recepcion) {
+            estadoHtml = '✅ ORDEN RECIBIDA POR BODEGA';
+            estadoClase = 'recibida';
+          } else {
+            estadoHtml = '🟡 ORDEN ACTIVA — PENDIENTE DE RECEPCIÓN';
+            estadoClase = 'activa';
+          }
+
+          const fecha = s.fecha ? s.fecha.replace('T',' ').slice(0,16) : '-';
+
+          div.innerHTML = `
+            <div class="header">
+              <h1>📦 Bodega A&M</h1>
+              <p>Detalle de Orden</p>
+            </div>
+            <div class="estado-box ${estadoClase}">${estadoHtml}</div>
+            <div class="row"><strong>N° Orden</strong><span>${s.nro}</span></div>
+            <div class="row"><strong>Fecha</strong><span>${fecha}</span></div>
+            <div class="row"><strong>Tipo Doc.</strong><span>${s.tipoDocumento||'-'}</span></div>
+            <div class="row"><strong>N° Documento</strong><span>${s.nroDocumento||'-'}</span></div>
+            <div class="row"><strong>Cliente</strong><span>${s.solicitante||'-'}</span></div>
+            ${s.observaciones ? `<div class="row"><strong>Observaciones</strong><span>${s.observaciones}</span></div>` : ''}
+            <table>
+              <thead><tr><th>#</th><th>Producto</th><th>Unid.</th><th>Cant.</th></tr></thead>
+              <tbody>
+                ${s.productos.map((p,i) => `
+                  <tr>
+                    <td>${i+1}</td>
+                    <td>${p.descripcion}</td>
+                    <td>${p.unidad}</td>
+                    <td>${p.cantidad}</td>
+                  </tr>`).join('')}
+              </tbody>
+            </table>
+            ${recepcion ? `
+              <div class="recepcion-info">
+                <strong>Recepción confirmada por Bodega</strong><br>
+                Recibido por: ${recepcion.recibidoPor}<br>
+                Fecha: ${recepcion.fecha ? recepcion.fecha.replace('T',' ').slice(0,16) : '-'}
+              </div>` : ''}`;
+        }
+      } catch(e) {
+        div.innerHTML = `<div class="error">❌ Error al cargar: ${e.message}</div>`;
+      }
+    }
+  </script>
+</body>
+</html>
