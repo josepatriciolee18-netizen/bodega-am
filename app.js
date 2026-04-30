@@ -1785,6 +1785,27 @@ function confirmarRecepcion() {
 
 function verRecepcion(i) {
   const r = recepciones[i];
+  // Setear ordenImpresion con los datos de la recepción para poder imprimir
+  ordenImpresion = {
+    nro: r.nroOrden,
+    fecha: r.fecha,
+    tipoDocumento: '',
+    nroDocumento: '',
+    solicitante: r.solicitante || r.Cliente || '',
+    observaciones: r.observaciones || '',
+    productos: r.productos || [],
+    _esRecepcion: true,
+    _nroRecepcion: r.nro,
+    _recibidoPor: r.recibidoPor
+  };
+  // Buscar datos originales de la orden
+  const ordenOriginal = historial.find(s => s.nro === r.nroOrden);
+  if (ordenOriginal) {
+    ordenImpresion.tipoDocumento = ordenOriginal.tipoDocumento || '';
+    ordenImpresion.nroDocumento = ordenOriginal.nroDocumento || '';
+    ordenImpresion.solicitante = ordenOriginal.solicitante || r.solicitante || '';
+    ordenImpresion.observaciones = ordenOriginal.observaciones || '';
+  }
   document.getElementById('modalTitulo').textContent = `Recepción ${r.nro}`;
   document.getElementById('modalBody').innerHTML = `
     <div class="detail-row"><strong>N° Recepción:</strong> ${r.nro}</div>
