@@ -1046,6 +1046,7 @@ async function imprimirPagina() {
         ${nrodoc ? `<div class="row"><label>N° Documento:</label><span>${nrodoc}</span></div>` : ''}
         <div class="row"><label>Cliente:</label><span>${cliente||'-'}</span></div>
         ${obs ? `<div class="row"><label>Observaciones:</label><span>${obs}</span></div>` : ''}
+        ${ordenImpresion && ordenImpresion.creadoPor ? `<div class="row"><label>Creada por:</label><span>${ordenImpresion.creadoPor} (${ordenImpresion.rolCreador || '-'})</span></div>` : (usuarioActivo ? `<div class="row"><label>Creada por:</label><span>${usuarioActivo.nombre} (${usuarioActivo.rol})</span></div>` : '')}
         <table>
           <thead><tr><th>#</th><th>Código</th><th>Descripción</th><th>Unid.</th><th>Cant.</th><th>En Palabras</th></tr></thead>
           <tbody>${filasProductos}</tbody>
