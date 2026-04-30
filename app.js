@@ -185,10 +185,25 @@ document.getElementById('loginClave').addEventListener('keydown', e => {
   if (e.key === 'Enter') hacerLogin();
 });
 
-function hacerLogin() {
+async function hacerLogin() {
   const login = document.getElementById('loginUsuario').value.trim().toLowerCase();
   const clave = document.getElementById('loginClave').value;
   const errEl = document.getElementById('loginError');
+
+  // Intentar cargar usuarios desde Firebase antes de validar
+  if (window.fbListo) {
+    try {
+      const fbUsuarios = await fbCargar('usuarios');
+      if (fbUsuarios.length > 0) {
+        fbUsuarios.forEach(fbUser => {
+          const idx = usuarios.findIndex(u => u.login === fbUser.login);
+          if (idx === -1) usuarios.push(fbUser);
+          else usuarios[idx] = fbUser;
+        });
+        localStorage.setItem('usuariosBodega', JSON.stringify(usuarios));
+      }
+    } catch(e) { console.error('Error cargando usuarios:', e); }
+  }
 
   const usuario = usuarios.find(u => u.login === login && u.password === clave && u.activo);
   if (!usuario) {
