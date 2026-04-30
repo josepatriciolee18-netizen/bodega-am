@@ -1598,7 +1598,7 @@ function renderUsuarios() {
     return `<tr>
       <td>${u.nombre}</td>
       <td>${u.login}</td>
-      <td><span class="badge badge-${u.rol.toLowerCase()}">${u.rol}</span></td>
+      <td><span class="badge badge-${u.rol.toLowerCase().replace(/\s+/g,'-').normalize('NFD').replace(/[\u0300-\u036f]/g,'')}">${u.rol}</span></td>
       <td style="font-size:0.8rem">${permTexto}</td>
       <td><span class="badge ${u.activo ? 'badge-activo' : 'badge-inactivo'}">${u.activo ? 'Activo' : 'Inactivo'}</span></td>
       <td>

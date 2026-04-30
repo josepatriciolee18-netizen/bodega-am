@@ -251,6 +251,8 @@ tbody td, tfoot td { padding: 9px 12px; border-bottom: 1px solid #e5e7eb; }
 .badge-supervisor { background: #fef3c7; color: #92400e; }
 .badge-bodeguero  { background: #e8f0fe; color: #1a56db; }
 .badge-cajero     { background: #e0f2fe; color: #0369a1; }
+.badge-cajero-bodega { background: #dbeafe; color: #1e40af; }
+.badge-cajero-ferreteria { background: #fce7f3; color: #9d174d; }
 .badge-activo     { background: #def7ec; color: #03543f; }
 .badge-inactivo   { background: #f3f4f6; color: #6b7280; }
 .badge-pendiente  { background: #fef3c7; color: #92400e; }
