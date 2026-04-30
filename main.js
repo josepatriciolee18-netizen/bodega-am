@@ -1,45 +1,49 @@
 const { app, BrowserWindow, ipcMain, dialog } = require('electron');
-const { autoUpdater } = require('electron-updater');
 const path = require('path');
 const fs = require('fs');
 const os = require('os');
 
 let win;
+let autoUpdater;
 
-// ── Auto-Updater ──────────────────────────────────────────
-autoUpdater.autoDownload = true;
-autoUpdater.autoInstallOnAppQuit = true;
+// ── Auto-Updater (con protección contra errores) ──────────
+try {
+  autoUpdater = require('electron-updater').autoUpdater;
+  autoUpdater.autoDownload = true;
+  autoUpdater.autoInstallOnAppQuit = true;
 
-autoUpdater.on('checking-for-update', () => {
-  enviarEstadoUpdate('checking', 'Buscando actualizaciones...', 0);
-});
+  autoUpdater.on('checking-for-update', () => {
+    enviarEstadoUpdate('checking', 'Buscando actualizaciones...', 0);
+  });
 
-autoUpdater.on('update-available', (info) => {
-  enviarEstadoUpdate('downloading', `Descargando versión ${info.version}...`, 0);
-});
+  autoUpdater.on('update-available', (info) => {
+    enviarEstadoUpdate('downloading', `Descargando versión ${info.version}...`, 0);
+  });
 
-autoUpdater.on('update-not-available', () => {
-  enviarEstadoUpdate('no-update', 'Aplicación actualizada', 0);
-});
+  autoUpdater.on('update-not-available', () => {
+    enviarEstadoUpdate('no-update', 'Aplicación actualizada', 0);
+  });
 
-autoUpdater.on('download-progress', (progress) => {
-  enviarEstadoUpdate('downloading', `Descargando actualización...`, Math.round(progress.percent));
-});
+  autoUpdater.on('download-progress', (progress) => {
+    enviarEstadoUpdate('downloading', `Descargando actualización...`, Math.round(progress.percent));
+  });
 
-autoUpdater.on('update-downloaded', (info) => {
-  enviarEstadoUpdate('ready', `Versión ${info.version} lista. Reiniciando...`, 100);
-  // Forzar cierre completo antes de instalar
-  setTimeout(() => {
-    autoUpdater.autoInstallOnAppQuit = true;
-    app.isQuiting = true;
-    autoUpdater.quitAndInstall(false, true);
-  }, 2000);
-});
+  autoUpdater.on('update-downloaded', (info) => {
+    enviarEstadoUpdate('ready', `Versión ${info.version} lista. Reiniciando...`, 100);
+    setTimeout(() => {
+      autoUpdater.autoInstallOnAppQuit = true;
+      app.isQuiting = true;
+      autoUpdater.quitAndInstall(false, true);
+    }, 2000);
+  });
 
-autoUpdater.on('error', (err) => {
-  enviarEstadoUpdate('error', '', 0);
-  console.error('Error en auto-updater:', err);
-});
+  autoUpdater.on('error', (err) => {
+    enviarEstadoUpdate('error', '', 0);
+    console.error('Error en auto-updater:', err);
+  });
+} catch(e) {
+  console.error('Auto-updater no disponible:', e);
+}
 
 function enviarEstadoUpdate(status, msg, percent) {
   if (win && !win.isDestroyed()) {
@@ -79,12 +83,16 @@ function createWindow() {
 
   // Buscar actualizaciones inmediatamente al iniciar
   win.webContents.once('did-finish-load', () => {
-    autoUpdater.checkForUpdates();
+    if (autoUpdater) {
+      try { autoUpdater.checkForUpdates(); } catch(e) { console.error('Update check failed:', e); }
+    }
   });
 
   // Revisar cada 30 minutos
   setInterval(() => {
-    autoUpdater.checkForUpdatesAndNotify();
+    if (autoUpdater) {
+      try { autoUpdater.checkForUpdatesAndNotify(); } catch(e) {}
+    }
   }, 30 * 60 * 1000);
 }
 
@@ -92,7 +100,9 @@ app.whenReady().then(createWindow);
 
 // Permitir que el renderer pida buscar actualizaciones manualmente
 ipcMain.on('check-for-updates', () => {
-  autoUpdater.checkForUpdatesAndNotify();
+  if (autoUpdater) {
+    try { autoUpdater.checkForUpdatesAndNotify(); } catch(e) {}
+  }
 });
 
 // Enviar versión de la app al renderer
