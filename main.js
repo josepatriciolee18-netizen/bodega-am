@@ -125,7 +125,7 @@ ipcMain.on('imprimir', (event, htmlContent) => {
   const printWin = new BrowserWindow({
     width: 350,
     height: 600,
-    show: false,
+    show: true,
     title: 'Imprimir - Bodega A&M',
     alwaysOnTop: true,
     webPreferences: { nodeIntegration: false, contextIsolation: true }
@@ -135,17 +135,21 @@ ipcMain.on('imprimir', (event, htmlContent) => {
   printWin.loadFile(tmpHtml);
 
   printWin.webContents.on('did-finish-load', () => {
-    printWin.webContents.print(
-      { silent: false, printBackground: true, color: false },
-      (success, failureReason) => {
-        setTimeout(() => {
-          if (!printWin.isDestroyed()) printWin.close();
-          try { fs.unlinkSync(tmpHtml); } catch(e) {}
-          if (win && !win.isDestroyed()) win.focus();
-        }, 300);
-        try { event.reply('impresion-terminada'); } catch(e) {}
-      }
-    );
+    // Mostrar vista previa y luego abrir diálogo de impresión
+    setTimeout(() => {
+      printWin.webContents.print(
+        { silent: false, printBackground: true, color: false },
+        (success, failureReason) => {
+          // Cerrar ventana automáticamente después de imprimir o cancelar
+          setTimeout(() => {
+            if (!printWin.isDestroyed()) printWin.close();
+            try { fs.unlinkSync(tmpHtml); } catch(e) {}
+            if (win && !win.isDestroyed()) win.focus();
+          }, 500);
+          try { event.reply('impresion-terminada'); } catch(e) {}
+        }
+      );
+    }, 800);
   });
 });
 
