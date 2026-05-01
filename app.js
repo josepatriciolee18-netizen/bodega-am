@@ -308,6 +308,9 @@ async function cargarDesdeFirebase() {
 
     showToast('✔ Conectado a la nube');
 
+    // Precargar número de orden para registro instantáneo
+    precargarNumeroOrden();
+
     // Cargar log de actividad desde Firebase
     cargarLogFirebase();
 
@@ -624,6 +627,27 @@ function limpiarInputsProducto() {
   document.getElementById('inputUnidad').value = 'unidad';
 }
 
+// ── Precarga de número de orden ────────────────────────────
+let nroPreCargado = null;
+let precargando = false;
+
+async function precargarNumeroOrden() {
+  if (precargando) return;
+  precargando = true;
+  nroPreCargado = null;
+  
+  if (window.fbListo && window.fbIncrementarContador) {
+    const nroDesdeFirebase = await fbIncrementarContador();
+    if (nroDesdeFirebase !== null) {
+      nroPreCargado = nroDesdeFirebase;
+      contador = nroDesdeFirebase + 1;
+      localStorage.setItem('contadorSalidas', contador);
+      nroSalidaEl.value = generarNro(nroPreCargado);
+    }
+  }
+  precargando = false;
+}
+
 // ── Submit salida ─────────────────────────────────────────
 let registrando = false;
 form.addEventListener('submit', async (e) => {
@@ -633,41 +657,47 @@ form.addEventListener('submit', async (e) => {
   if (registrando) return;
   registrando = true;
   document.getElementById('btnRegistrar').disabled = true;
-  document.getElementById('btnRegistrar').textContent = '⏳ Registrando...';
 
   const tipoDocumento = document.getElementById('tipoDocumento').value;
   const solicitante   = document.getElementById('solicitante').value.trim();
   const responsable   = document.getElementById('responsable') ? document.getElementById('responsable').value.trim() : '';
 
-  if (!tipoDocumento) { showToast('Selecciona el Tipo de Documento', true); document.getElementById('tipoDocumento').focus(); registrando = false; document.getElementById('btnRegistrar').disabled = false; document.getElementById('btnRegistrar').textContent = '✔ Registrar Salida'; return; }
+  if (!tipoDocumento) { showToast('Selecciona el Tipo de Documento', true); document.getElementById('tipoDocumento').focus(); registrando = false; document.getElementById('btnRegistrar').disabled = false; return; }
 
   const nroDocumento = document.getElementById('nroDocumento').value.trim();
   const campoNroVisible = document.getElementById('campoNroDoc').style.display !== 'none';
   if (tipoDocumento !== 'Sin Documento' && campoNroVisible && !nroDocumento) {
     showToast('Ingresa el N° de Documento', true);
     document.getElementById('nroDocumento').focus();
-    registrando = false; document.getElementById('btnRegistrar').disabled = false; document.getElementById('btnRegistrar').textContent = '✔ Registrar Salida'; return;
+    registrando = false; document.getElementById('btnRegistrar').disabled = false; return;
   }
-  if (!solicitante) { showToast('Ingresa el nombre del Cliente', true); document.getElementById('solicitante').focus(); registrando = false; document.getElementById('btnRegistrar').disabled = false; document.getElementById('btnRegistrar').textContent = '✔ Registrar Salida'; return; }
-  if (productos.length === 0) { showToast('Agrega al menos un producto', true); registrando = false; document.getElementById('btnRegistrar').disabled = false; document.getElementById('btnRegistrar').textContent = '✔ Registrar Salida'; return; }
+  if (!solicitante) { showToast('Ingresa el nombre del Cliente', true); document.getElementById('solicitante').focus(); registrando = false; document.getElementById('btnRegistrar').disabled = false; return; }
+  if (productos.length === 0) { showToast('Agrega al menos un producto', true); registrando = false; document.getElementById('btnRegistrar').disabled = false; return; }
 
-  // Obtener número de orden atómico desde Firebase (evita duplicados entre PCs)
+  // Usar número precargado o esperar si aún no está listo
   let nroOrden;
-  if (window.fbListo && window.fbIncrementarContador) {
-    const nroDesdeFirebase = await fbIncrementarContador();
-    if (nroDesdeFirebase !== null) {
-      nroOrden = generarNro(nroDesdeFirebase);
-      contador = nroDesdeFirebase + 1;
-      localStorage.setItem('contadorSalidas', contador);
+  if (nroPreCargado !== null) {
+    nroOrden = generarNro(nroPreCargado);
+    nroPreCargado = null;
+  } else {
+    // Si no se precargó, obtener ahora (caso raro)
+    document.getElementById('btnRegistrar').textContent = '⏳ Registrando...';
+    if (window.fbListo && window.fbIncrementarContador) {
+      const nroDesdeFirebase = await fbIncrementarContador();
+      if (nroDesdeFirebase !== null) {
+        nroOrden = generarNro(nroDesdeFirebase);
+        contador = nroDesdeFirebase + 1;
+        localStorage.setItem('contadorSalidas', contador);
+      } else {
+        nroOrden = generarNro(contador);
+        contador++;
+        localStorage.setItem('contadorSalidas', contador);
+      }
     } else {
       nroOrden = generarNro(contador);
       contador++;
       localStorage.setItem('contadorSalidas', contador);
     }
-  } else {
-    nroOrden = generarNro(contador);
-    contador++;
-    localStorage.setItem('contadorSalidas', contador);
   }
 
   const salida = {
@@ -700,6 +730,8 @@ form.addEventListener('submit', async (e) => {
   bloquearFormulario();
   buscarOrdenAntigua();
   registrando = false;
+  // Precargar siguiente número para la próxima orden
+  precargarNumeroOrden();
 });
 
 function bloquearFormulario() {
@@ -743,6 +775,7 @@ function resetForm() {
   renderTabla();
   document.getElementById('fecha').value = fechaHoraLocal();
   nroSalidaEl.value = generarNro(contador);
+  precargarNumeroOrden();
 }
 
 // ── Reportes ──────────────────────────────────────────────
@@ -1366,6 +1399,8 @@ function limpiarFormularioCompleto() {
   renderTabla();
   document.getElementById('fecha').value = fechaHoraLocal();
   nroSalidaEl.value = generarNro(contador);
+  // Precargar siguiente número para registro instantáneo
+  precargarNumeroOrden();
   setTimeout(() => {
     document.getElementById('tipoDocumento').focus();
     if (window.require) {
