@@ -278,17 +278,26 @@ document.getElementById('btnLogout').addEventListener('click', () => {
   registrarActividad('Cierre de sesión', `${usuarioActivo ? usuarioActivo.nombre : ''}`);
   sessionStorage.removeItem('sesionActiva');
   usuarioActivo = null;
-  document.getElementById('loginUsuario').value = '';
-  document.getElementById('loginClave').value   = '';
-  document.getElementById('loginError').style.display = 'none';
   document.getElementById('appMain').style.display = 'none';
   document.getElementById('updateScreen').style.display = 'none';
   document.getElementById('noInternetScreen').style.display = 'none';
   document.getElementById('loginScreen').style.display = 'flex';
-  // Forzar foco en el campo de usuario
-  setTimeout(() => {
-    document.getElementById('loginUsuario').focus();
-  }, 100);
+  // Forzar que los campos del login estén habilitados y limpios
+  const loginUser = document.getElementById('loginUsuario');
+  const loginPass = document.getElementById('loginClave');
+  loginUser.value = '';
+  loginPass.value = '';
+  loginUser.disabled = false;
+  loginPass.disabled = false;
+  loginUser.style.pointerEvents = '';
+  loginPass.style.pointerEvents = '';
+  loginUser.style.background = '';
+  loginPass.style.background = '';
+  loginUser.style.color = '';
+  loginPass.style.color = '';
+  document.getElementById('loginError').style.display = 'none';
+  document.getElementById('btnLogin').disabled = false;
+  setTimeout(() => { loginUser.focus(); }, 200);
 });
 
 verificarSesion();
