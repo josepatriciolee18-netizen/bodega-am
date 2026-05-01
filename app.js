@@ -593,7 +593,7 @@ function limpiarInputsProducto() {
 
 // ── Submit salida ─────────────────────────────────────────
 let registrando = false;
-form.addEventListener('submit', async (e) => {
+form.addEventListener('submit', (e) => {
   e.preventDefault();
 
   // Evitar doble registro
@@ -617,24 +617,10 @@ form.addEventListener('submit', async (e) => {
   if (!solicitante)   { showToast('Ingresa el nombre del Cliente', true); document.getElementById('solicitante').focus(); registrando = false; document.getElementById('btnRegistrar').disabled = false; return; }
   if (productos.length === 0) { showToast('Agrega al menos un producto', true); registrando = false; document.getElementById('btnRegistrar').disabled = false; return; }
 
-  // Obtener número de orden atómico desde Firebase
-  let nroOrden;
-  if (window.fbListo && window.fbIncrementarContador) {
-    const nroDesdeFirebase = await fbIncrementarContador();
-    if (nroDesdeFirebase !== null) {
-      nroOrden = generarNro(nroDesdeFirebase);
-      contador = nroDesdeFirebase + 1;
-      localStorage.setItem('contadorSalidas', contador);
-    } else {
-      nroOrden = nroSalidaEl.value;
-      contador++;
-      localStorage.setItem('contadorSalidas', contador);
-    }
-  } else {
-    nroOrden = nroSalidaEl.value;
-    contador++;
-    localStorage.setItem('contadorSalidas', contador);
-  }
+  // Usar contador local para registro inmediato
+  const nroOrden = generarNro(contador);
+  contador++;
+  localStorage.setItem('contadorSalidas', contador);
 
   const salida = {
     nro:           nroOrden,
@@ -657,9 +643,11 @@ form.addEventListener('submit', async (e) => {
   }
   ordenImpresion = salida;
   localStorage.setItem('historialSalidas', JSON.stringify(historial));
-  // Sincronizar con Firebase
+  // Sincronizar con Firebase en segundo plano
   if (window.fbListo) {
     fbGuardar('historial', salida.nro, salida);
+    // Sincronizar contador atómicamente en segundo plano
+    if (window.fbIncrementarContador) fbIncrementarContador();
   }
 
   showToast(`✔ Salida ${salida.nro} registrada correctamente`);
