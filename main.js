@@ -115,8 +115,32 @@ app.on('window-all-closed', () => { if (process.platform !== 'darwin' || app.isQ
 app.on('activate', () => { if (BrowserWindow.getAllWindows().length === 0) createWindow(); });
 
 ipcMain.on('recargar', () => {
-  win.webContents.reload();
-  win.webContents.once('did-finish-load', () => {
+  // Destruir ventana actual y crear una nueva (soluciona bug de foco)
+  const bounds = win.getBounds();
+  const wasMaximized = win.isMaximized();
+  win.destroy();
+  win = new BrowserWindow({
+    width: bounds.width,
+    height: bounds.height,
+    x: bounds.x,
+    y: bounds.y,
+    minWidth: 800,
+    minHeight: 600,
+    title: 'Bodega A&M',
+    show: false,
+    webPreferences: {
+      nodeIntegration: true,
+      contextIsolation: false,
+      webSecurity: false,
+      allowRunningInsecureContent: true
+    }
+  });
+  win.loadFile('index.html');
+  win.setMenuBarVisibility(false);
+  if (wasMaximized) win.maximize();
+  win.show();
+  win.webContents.on('did-finish-load', () => {
+    win.webContents.executeJavaScript('document.body.style.zoom = "1"');
     win.focus();
     win.webContents.focus();
   });
