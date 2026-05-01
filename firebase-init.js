@@ -2,7 +2,7 @@
 (async function() {
   try {
     const { initializeApp } = require('firebase/app');
-    const { getFirestore, collection, doc, setDoc, getDocs, onSnapshot, deleteDoc } = require('firebase/firestore');
+    const { getFirestore, collection, doc, setDoc, getDocs, onSnapshot, deleteDoc, runTransaction, getDoc } = require('firebase/firestore');
 
     const firebaseConfig = {
       apiKey: "AIzaSyCAhkMvXqzljcMJZaTBsxMTBucuDDM7srg",
@@ -28,6 +28,25 @@
     window.fbEscuchar = (col, cb) => {
       return onSnapshot(collection(db, col), s => cb(s.docs.map(d => d.data())));
     };
+
+    // Incremento atómico del contador — evita números duplicados
+    window.fbIncrementarContador = async () => {
+      try {
+        const contadorRef = doc(db, 'config', 'contador');
+        const nuevoValor = await runTransaction(db, async (transaction) => {
+          const snap = await transaction.get(contadorRef);
+          const actual = snap.exists() ? snap.data().valor : 1;
+          const nuevo = actual + 1;
+          transaction.set(contadorRef, { valor: nuevo });
+          return actual;
+        });
+        return nuevoValor;
+      } catch(e) {
+        console.error('fbIncrementarContador:', e);
+        return null;
+      }
+    };
+
     window.fbListo = true;
     console.log('✔ Firebase conectado correctamente');
   } catch(e) {

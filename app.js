@@ -568,7 +568,7 @@ function limpiarInputsProducto() {
 }
 
 // ── Submit salida ─────────────────────────────────────────
-form.addEventListener('submit', (e) => {
+form.addEventListener('submit', async (e) => {
   e.preventDefault();
 
   const tipoDocumento = document.getElementById('tipoDocumento').value;
@@ -587,8 +587,27 @@ form.addEventListener('submit', (e) => {
   if (!solicitante)   { showToast('Ingresa el nombre del Cliente', true); document.getElementById('solicitante').focus(); return; }
   if (productos.length === 0) { showToast('Agrega al menos un producto', true); return; }
 
+  // Obtener número de orden atómico desde Firebase
+  let nroOrden;
+  if (window.fbListo && window.fbIncrementarContador) {
+    const nroDesdeFirebase = await fbIncrementarContador();
+    if (nroDesdeFirebase !== null) {
+      nroOrden = generarNro(nroDesdeFirebase);
+      contador = nroDesdeFirebase + 1;
+      localStorage.setItem('contadorSalidas', contador);
+    } else {
+      nroOrden = nroSalidaEl.value;
+      contador++;
+      localStorage.setItem('contadorSalidas', contador);
+    }
+  } else {
+    nroOrden = nroSalidaEl.value;
+    contador++;
+    localStorage.setItem('contadorSalidas', contador);
+  }
+
   const salida = {
-    nro:           nroSalidaEl.value,
+    nro:           nroOrden,
     fecha:         document.getElementById('fecha').value,
     tipoDocumento: document.getElementById('tipoDocumento').value,
     nroDocumento:  document.getElementById('nroDocumento').value.trim(),
@@ -601,15 +620,13 @@ form.addEventListener('submit', (e) => {
     rolCreador:    usuarioActivo ? usuarioActivo.rol : ''
   };
 
+  nroSalidaEl.value = salida.nro;
   historial.unshift(salida);
   ordenImpresion = salida;
   localStorage.setItem('historialSalidas', JSON.stringify(historial));
-  contador++;
-  localStorage.setItem('contadorSalidas', contador);
   // Sincronizar con Firebase
   if (window.fbListo) {
     fbGuardar('historial', salida.nro, salida);
-    fbGuardar('config', 'contador', { valor: contador });
   }
 
   showToast(`✔ Salida ${salida.nro} registrada correctamente`);
