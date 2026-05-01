@@ -161,6 +161,11 @@ function mostrarApp() {
   document.getElementById('appMain').style.display = 'block';
   document.getElementById('headerUsuario').textContent = `👤 ${usuarioActivo.nombre} (${usuarioActivo.rol})`;
 
+  // Mostrar fecha en formato "30 Abril 2026"
+  const ahora = new Date();
+  const opcFecha = { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'America/Santiago' };
+  document.getElementById('headerFecha').textContent = `📅 ${ahora.toLocaleDateString('es-CL', opcFecha)}`;
+
   // Mostrar versión automáticamente
   try {
     if (window.require) {
