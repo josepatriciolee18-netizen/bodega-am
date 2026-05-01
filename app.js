@@ -167,6 +167,8 @@ function verificarSesion() {
 
 function mostrarApp() {
   document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('updateScreen').style.display = 'none';
+  document.getElementById('noInternetScreen').style.display = 'none';
   document.getElementById('appMain').style.display = 'block';
   document.getElementById('headerUsuario').textContent = `👤 ${usuarioActivo.nombre} (${usuarioActivo.rol})`;
 
@@ -228,10 +230,16 @@ async function hacerLogin() {
   const clave = document.getElementById('loginClave').value;
   const errEl = document.getElementById('loginError');
 
-  // Intentar cargar usuarios desde Firebase antes de validar
+  if (!login || !clave) {
+    errEl.style.display = 'block';
+    return;
+  }
+
+  // Intentar cargar usuarios desde Firebase con timeout de 3 segundos
   if (window.fbListo) {
     try {
-      const fbUsuarios = await fbCargar('usuarios');
+      const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject('timeout'), 3000));
+      const fbUsuarios = await Promise.race([fbCargar('usuarios'), timeoutPromise]).catch(() => []);
       if (fbUsuarios.length > 0) {
         fbUsuarios.forEach(fbUser => {
           const idx = usuarios.findIndex(u => u.login === fbUser.login);
