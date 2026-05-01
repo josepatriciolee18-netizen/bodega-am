@@ -600,6 +600,7 @@ form.addEventListener('submit', async (e) => {
   if (registrando) return;
   registrando = true;
   document.getElementById('btnRegistrar').disabled = true;
+  document.getElementById('btnRegistrar').textContent = '⏳ Registrando...';
 
   const tipoDocumento = document.getElementById('tipoDocumento').value;
   const solicitante   = document.getElementById('solicitante').value.trim();
