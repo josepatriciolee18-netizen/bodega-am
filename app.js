@@ -278,13 +278,7 @@ document.getElementById('btnLogout').addEventListener('click', () => {
   registrarActividad('Cierre de sesión', `${usuarioActivo ? usuarioActivo.nombre : ''}`);
   sessionStorage.removeItem('sesionActiva');
   usuarioActivo = null;
-  // Recargar la página para resetear todo limpiamente
-  if (window.require) {
-    const { ipcRenderer } = window.require('electron');
-    ipcRenderer.send('recargar');
-  } else {
-    window.location.reload();
-  }
+  window.location.reload();
 });
 
 verificarSesion();
