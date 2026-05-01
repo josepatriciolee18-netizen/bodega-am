@@ -188,6 +188,7 @@ function mostrarApp() {
   document.querySelector('[data-tab="clientes"]').style.display    = (esAdmin || !p || p.clientes)     ? '' : 'none';
   document.querySelector('[data-tab="recepciones"]').style.display = (esAdmin || !p || p.recepciones)  ? '' : 'none';
   document.querySelector('[data-tab="usuarios"]').style.display    = (esAdmin || !p || p.usuarios)     ? '' : 'none';
+  document.querySelector('[data-tab="actividad"]').style.display   = esAdmin ? '' : 'none';
 
   // Botón eliminar en reportes
   window._puedeEliminarReporte = esAdmin || !p || p.eliminarReporte;
@@ -239,11 +240,13 @@ async function hacerLogin() {
   errEl.style.display = 'none';
   usuarioActivo = usuario;
   sessionStorage.setItem('sesionActiva', JSON.stringify(usuario));
+  registrarActividad('Inicio de sesión', `${usuario.nombre} (${usuario.rol})`);
   mostrarApp();
 }
 
 document.getElementById('btnLogout').addEventListener('click', () => {
   if (!confirm('¿Cerrar sesión?')) return;
+  registrarActividad('Cierre de sesión', `${usuarioActivo ? usuarioActivo.nombre : ''}`);
   sessionStorage.removeItem('sesionActiva');
   usuarioActivo = null;
   document.getElementById('loginUsuario').value = '';
@@ -295,6 +298,9 @@ async function cargarDesdeFirebase() {
     }
 
     showToast('✔ Conectado a la nube');
+
+    // Cargar log de actividad desde Firebase
+    cargarLogFirebase();
 
     // Escuchar cambios en tiempo real - solo se activa cuando hay cambios
     let historialCargadoInicial = false;
@@ -433,6 +439,7 @@ document.querySelectorAll('.tab').forEach(btn => {
       renderTopMes(mesActual);
     }
     if (btn.dataset.tab === 'recepciones') { renderOrdenesEmitidas(); renderRecepciones(); }
+    if (btn.dataset.tab === 'actividad') { renderActividad(); }
   });
 });
 
@@ -635,6 +642,7 @@ form.addEventListener('submit', async (e) => {
   }
 
   showToast(`✔ Salida ${salida.nro} registrada correctamente`);
+  registrarActividad('Orden creada', `${salida.nro} — Cliente: ${salida.solicitante} — ${salida.total} producto(s)`);
   bloquearFormulario();
   buscarOrdenAntigua(); // actualiza la última orden
 });
@@ -1374,6 +1382,7 @@ function anularOrden(btn) {
   // Sincronizar anulación con Firebase
   if (window.fbListo) fbGuardar('historial', nro, historial[idx]);
   showToast(`Orden ${nro} anulada`);
+  registrarActividad('Orden anulada', `${nro}`);
   buscarOrdenAntigua();
 }
 
@@ -1598,6 +1607,7 @@ document.getElementById('btnGuardarUsuario').addEventListener('click', async () 
     localStorage.setItem('usuariosBodega', JSON.stringify(usuarios));
     if (window.fbListo) fbGuardar('usuarios', login, usuarios[editandoUsuarioIdx]);
     showToast(`Usuario "${login}" actualizado`);
+    registrarActividad('Usuario editado', `${nombre} (${login}) — Rol: ${rol}`);
     editandoUsuarioIdx = null;
     const btn = document.getElementById('btnGuardarUsuario');
     btn.textContent = '+ Agregar';
@@ -1612,6 +1622,7 @@ document.getElementById('btnGuardarUsuario').addEventListener('click', async () 
     };
     guardarUsuarioFb();
     showToast(`Usuario "${login}" creado correctamente`);
+    registrarActividad('Usuario creado', `${nombre} (${login}) — Rol: ${rol}`);
   }
 
   renderUsuarios();
@@ -1741,6 +1752,7 @@ document.getElementById('btnEliminarHistorial').addEventListener('click', async 
   renderOrdenesEmitidas();
   buscarOrdenAntigua();
   showToast('Historial eliminado y contador reiniciado');
+  registrarActividad('Historial eliminado', 'Se eliminaron todas las órdenes y recepciones');
 });
 
 // ── Recepciones ───────────────────────────────────────────
@@ -1897,6 +1909,7 @@ function confirmarRecepcion() {
   renderRecepciones();
   buscarOrdenAntigua();
   showToast(`✔ Recepción ${recepcion.nro} confirmada`);
+  registrarActividad('Recepción confirmada', `${recepcion.nro} — Orden ${recepcion.nroOrden} — Recibido por: ${recepcion.recibidoPor}`);
 }
 
 function verRecepcion(i) {
@@ -2029,6 +2042,88 @@ function formatFecha(f) {
   }
   const [y, m, d] = f.split('-');
   return `${d}/${m}/${y}`;
+}
+
+// ── Log de Actividad ──────────────────────────────────────
+let logActividad = JSON.parse(localStorage.getItem('logActividad') || '[]');
+
+function registrarActividad(accion, detalle) {
+  const entrada = {
+    id: Date.now().toString(36) + Math.random().toString(36).substr(2, 5),
+    fecha: fechaHoraLocal(),
+    usuario: usuarioActivo ? usuarioActivo.nombre : 'Sistema',
+    rol: usuarioActivo ? usuarioActivo.rol : '-',
+    accion,
+    detalle
+  };
+  logActividad.unshift(entrada);
+  // Mantener máximo 500 registros locales
+  if (logActividad.length > 500) logActividad = logActividad.slice(0, 500);
+  localStorage.setItem('logActividad', JSON.stringify(logActividad));
+  if (window.fbListo) fbGuardar('actividad', entrada.id, entrada);
+}
+
+function renderActividad(filtro = '') {
+  const tbody = document.getElementById('tbodyActividad');
+  if (!tbody) return;
+  const desde = document.getElementById('actDesde').value;
+  const hasta = document.getElementById('actHasta').value;
+  let datos = logActividad;
+
+  if (filtro) {
+    const q = filtro.toLowerCase();
+    datos = datos.filter(a =>
+      a.usuario.toLowerCase().includes(q) ||
+      a.accion.toLowerCase().includes(q) ||
+      a.detalle.toLowerCase().includes(q) ||
+      a.rol.toLowerCase().includes(q)
+    );
+  }
+  if (desde) datos = datos.filter(a => a.fecha.slice(0, 10) >= desde);
+  if (hasta) datos = datos.filter(a => a.fecha.slice(0, 10) <= hasta);
+
+  datos = datos.slice(0, 100);
+
+  if (datos.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" class="empty-msg">No hay actividad registrada</td></tr>';
+    return;
+  }
+  tbody.innerHTML = datos.map(a => `
+    <tr>
+      <td>${formatFecha(a.fecha)}</td>
+      <td><strong>${a.usuario}</strong></td>
+      <td><span class="badge badge-${a.rol.toLowerCase().replace(/\s+/g,'-').normalize('NFD').replace(/[\u0300-\u036f]/g,'')}">${a.rol}</span></td>
+      <td>${a.accion}</td>
+      <td style="font-size:0.82rem;color:#555">${a.detalle}</td>
+    </tr>`).join('');
+}
+
+// Filtros de actividad
+document.getElementById('btnFiltrarActividad').addEventListener('click', () => {
+  renderActividad(document.getElementById('buscarActividad').value.trim());
+});
+document.getElementById('btnLimpiarActividad').addEventListener('click', () => {
+  document.getElementById('buscarActividad').value = '';
+  document.getElementById('actDesde').value = '';
+  document.getElementById('actHasta').value = '';
+  renderActividad();
+});
+document.getElementById('buscarActividad').addEventListener('keydown', e => {
+  if (e.key === 'Enter') renderActividad(document.getElementById('buscarActividad').value.trim());
+});
+
+// Cargar log desde Firebase
+function cargarLogFirebase() {
+  if (window.fbListo) {
+    fbEscuchar('actividad', (datos) => {
+      const nuevos = datos.sort((a, b) => b.fecha > a.fecha ? 1 : -1);
+      if (nuevos.length > logActividad.length) {
+        logActividad = nuevos.slice(0, 500);
+        localStorage.setItem('logActividad', JSON.stringify(logActividad));
+        renderActividad();
+      }
+    });
+  }
 }
 
 function showToast(msg, error = false) {

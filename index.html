@@ -80,6 +80,7 @@
       <button class="tab" data-tab="clientes">👥 Clientes</button>
       <button class="tab" data-tab="recepciones">📥 Recepción de Órdenes</button>
       <button class="tab" data-tab="usuarios">👤 Usuarios</button>
+      <button class="tab" data-tab="actividad">📋 Actividad</button>
     </nav>
 
     <!-- ── PESTAÑA: FORMULARIO ── -->
@@ -642,6 +643,45 @@
         </div>
 
 
+      </section>
+    </div>
+
+    <!-- ── PESTAÑA: ACTIVIDAD ── -->
+    <div id="tab-actividad" class="tab-content">
+      <section class="section">
+        <h2>📋 Log de Actividad</h2>
+        <div class="filtros" style="margin-bottom:12px">
+          <div class="field" style="flex:2">
+            <label>Buscar</label>
+            <input type="text" id="buscarActividad" placeholder="Usuario, acción, orden..." />
+          </div>
+          <div class="field">
+            <label>Desde</label>
+            <input type="date" id="actDesde" />
+          </div>
+          <div class="field">
+            <label>Hasta</label>
+            <input type="date" id="actHasta" />
+          </div>
+          <button type="button" id="btnFiltrarActividad" class="btn-add">🔍 Filtrar</button>
+          <button type="button" id="btnLimpiarActividad" class="btn-secondary" style="align-self:flex-end">✕ Limpiar</button>
+        </div>
+        <div style="overflow-x:auto">
+          <table id="tablaActividad">
+            <thead>
+              <tr>
+                <th>Fecha y Hora</th>
+                <th>Usuario</th>
+                <th>Rol</th>
+                <th>Acción</th>
+                <th>Detalle</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyActividad">
+              <tr><td colspan="5" class="empty-msg">No hay actividad registrada</td></tr>
+            </tbody>
+          </table>
+        </div>
       </section>
     </div>
 
