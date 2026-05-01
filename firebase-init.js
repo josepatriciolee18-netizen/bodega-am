@@ -30,15 +30,30 @@
     };
 
     // Incremento atómico del contador — evita números duplicados
+    // Busca el número más alto en el historial y usa el siguiente
     window.fbIncrementarContador = async () => {
       try {
         const contadorRef = doc(db, 'config', 'contador');
+        
+        // También verificar el historial para obtener el número más alto real
+        const historialSnap = await getDocs(collection(db, 'historial'));
+        let maxNro = 0;
+        historialSnap.docs.forEach(d => {
+          const data = d.data();
+          if (data.nro) {
+            const num = parseInt(data.nro.replace('SAL-', ''));
+            if (!isNaN(num) && num > maxNro) maxNro = num;
+          }
+        });
+
         const nuevoValor = await runTransaction(db, async (transaction) => {
           const snap = await transaction.get(contadorRef);
-          const actual = snap.exists() ? snap.data().valor : 1;
-          const nuevo = actual + 1;
+          const contadorActual = snap.exists() ? snap.data().valor : 1;
+          // Usar el mayor entre el contador guardado y el máximo del historial + 1
+          const valorReal = Math.max(contadorActual, maxNro + 1);
+          const nuevo = valorReal + 1;
           transaction.set(contadorRef, { valor: nuevo });
-          return actual;
+          return valorReal;
         });
         return nuevoValor;
       } catch(e) {
