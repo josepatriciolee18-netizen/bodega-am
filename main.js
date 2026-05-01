@@ -76,9 +76,11 @@ function createWindow() {
   win.setMenuBarVisibility(false);
   win.maximize();
   win.show();
-  // Forzar repintado para que los estilos carguen correctamente
-  win.webContents.once('did-finish-load', () => {
+  // Forzar foco en cada carga de página (incluyendo reloads por logout)
+  win.webContents.on('did-finish-load', () => {
     win.webContents.executeJavaScript('document.body.style.zoom = "1"');
+    win.focus();
+    win.webContents.focus();
   });
 
   // Buscar actualizaciones inmediatamente al iniciar
