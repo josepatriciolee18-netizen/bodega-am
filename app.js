@@ -393,7 +393,7 @@ async function cargarDesdeFirebase() {
     // Escuchar cambios en el contador en tiempo real
     fbEscuchar('config', (datos) => {
       const cfg = datos.find(c => c.valor !== undefined);
-      if (cfg && cfg.valor !== contador) {
+      if (cfg && cfg.valor !== contador && nroPreCargado === null) {
         contador = cfg.valor;
         localStorage.setItem('contadorSalidas', contador);
         nroSalidaEl.value = generarNro(contador);
@@ -632,9 +632,8 @@ let nroPreCargado = null;
 let precargando = false;
 
 async function precargarNumeroOrden() {
-  if (precargando) return;
+  if (precargando || nroPreCargado !== null) return;
   precargando = true;
-  nroPreCargado = null;
   
   if (window.fbListo && window.fbIncrementarContador) {
     const nroDesdeFirebase = await fbIncrementarContador();
@@ -730,8 +729,6 @@ form.addEventListener('submit', async (e) => {
   bloquearFormulario();
   buscarOrdenAntigua();
   registrando = false;
-  // Precargar siguiente número para la próxima orden
-  precargarNumeroOrden();
 });
 
 function bloquearFormulario() {
@@ -775,7 +772,6 @@ function resetForm() {
   renderTabla();
   document.getElementById('fecha').value = fechaHoraLocal();
   nroSalidaEl.value = generarNro(contador);
-  precargarNumeroOrden();
 }
 
 // ── Reportes ──────────────────────────────────────────────
