@@ -22,6 +22,15 @@ function verificarInternet() {
 }
 
 async function iniciarApp() {
+  // Si es un reload por logout, ir directo al login
+  if (sessionStorage.getItem('esReload')) {
+    sessionStorage.removeItem('esReload');
+    document.getElementById('updateScreen').style.display = 'none';
+    document.getElementById('noInternetScreen').style.display = 'none';
+    document.getElementById('loginScreen').style.display = 'flex';
+    return;
+  }
+
   const hayInternet = await verificarInternet();
 
   if (!hayInternet) {
@@ -277,6 +286,7 @@ document.getElementById('btnLogout').addEventListener('click', () => {
   if (!confirm('¿Cerrar sesión?')) return;
   registrarActividad('Cierre de sesión', `${usuarioActivo ? usuarioActivo.nombre : ''}`);
   sessionStorage.removeItem('sesionActiva');
+  sessionStorage.setItem('esReload', 'true');
   usuarioActivo = null;
   window.location.reload();
 });
