@@ -306,14 +306,19 @@ async function cargarDesdeFirebase() {
     let historialCargadoInicial = false;
     fbEscuchar('historial', (datos) => {
       const nuevos = datos.sort((a,b) => b.nro.localeCompare(a.nro));
-      const jsonNuevo = JSON.stringify(nuevos);
-      const jsonActual = JSON.stringify(historial);
-      if (jsonNuevo !== jsonActual) {
+      
+      // Usar números de orden como clave para evitar duplicados
+      const nrosNuevos = new Set(nuevos.map(n => n.nro));
+      const nrosActuales = new Set(historial.map(h => h.nro));
+      
+      // Verificar si hay cambios reales (nuevas órdenes o diferente cantidad)
+      const hayNuevos = nuevos.some(n => !nrosActuales.has(n.nro));
+      const hayEliminados = historial.some(h => !nrosNuevos.has(h.nro));
+      
+      if (hayNuevos || hayEliminados || nuevos.length !== historial.length) {
         // Detectar órdenes nuevas para notificar (solo después de la carga inicial)
-        if (historialCargadoInicial && nuevos.length > historial.length) {
-          // Buscar las órdenes que no existían antes
-          const nrosActuales = historial.map(h => h.nro);
-          const ordenesNuevas = nuevos.filter(n => !nrosActuales.includes(n.nro));
+        if (historialCargadoInicial) {
+          const ordenesNuevas = nuevos.filter(n => !nrosActuales.has(n.nro));
           ordenesNuevas.forEach(orden => {
             const quien = orden.rolCreador ? ` — Enviada por ${orden.rolCreador}` : '';
             mostrarNotificacion('📦 Nueva Orden', `Orden ${orden.nro} — Cliente: ${orden.solicitante || 'Sin nombre'}${quien}`, orden.nro);
@@ -323,10 +328,8 @@ async function cargarDesdeFirebase() {
         localStorage.setItem('historialSalidas', JSON.stringify(historial));
         renderReportes();
         buscarOrdenAntigua();
-        historialCargadoInicial = true;
-      } else {
-        historialCargadoInicial = true;
       }
+      historialCargadoInicial = true;
     });
 
     let recepcionesCargadoInicial = false;
@@ -648,7 +651,10 @@ form.addEventListener('submit', async (e) => {
   };
 
   nroSalidaEl.value = salida.nro;
-  historial.unshift(salida);
+  // Solo agregar si no existe ya (evitar duplicados)
+  if (!historial.some(h => h.nro === salida.nro)) {
+    historial.unshift(salida);
+  }
   ordenImpresion = salida;
   localStorage.setItem('historialSalidas', JSON.stringify(historial));
   // Sincronizar con Firebase
