@@ -139,13 +139,22 @@ function verificarSesion() {
   }
   const sesion = sessionStorage.getItem('sesionActiva');
   if (sesion) {
-    usuarioActivo = JSON.parse(sesion);
+    const sesionGuardada = JSON.parse(sesion);
+    // Siempre cargar permisos frescos desde la lista de usuarios actual
+    const usuarioFresco = usuarios.find(u => u.login === sesionGuardada.login && u.activo);
+    if (usuarioFresco) {
+      usuarioActivo = usuarioFresco;
+      sessionStorage.setItem('sesionActiva', JSON.stringify(usuarioFresco));
+    } else {
+      // Usuario no existe o fue desactivado — cerrar sesión
+      sessionStorage.removeItem('sesionActiva');
+      return;
+    }
     // Solo mostrar app si no estamos en pantalla de actualización
     const updateScreen = document.getElementById('updateScreen');
     if (!updateScreen || updateScreen.style.display === 'none') {
       mostrarApp();
     } else {
-      // Esperar a que termine la verificación de updates
       const checkInterval = setInterval(() => {
         if (updateScreen.style.display === 'none') {
           clearInterval(checkInterval);
@@ -391,15 +400,39 @@ async function cargarDesdeFirebase() {
     // Escuchar cambios en usuarios - reemplaza lista completa
     fbEscuchar('usuarios', (datos) => {
       if (datos.length >= 0) {
-        // Siempre mantener el admin local
         const adminLocal = usuarios.find(u => u.login === 'admin');
         usuarios = datos;
-        // Si admin no está en Firebase, agregarlo
         if (adminLocal && !usuarios.some(u => u.login === 'admin')) {
           usuarios.push(adminLocal);
         }
         localStorage.setItem('usuariosBodega', JSON.stringify(usuarios));
         renderUsuarios();
+
+        // Refrescar permisos del usuario activo si está logeado
+        if (usuarioActivo) {
+          const usuarioFresco = usuarios.find(u => u.login === usuarioActivo.login && u.activo);
+          if (usuarioFresco) {
+            usuarioActivo = usuarioFresco;
+            sessionStorage.setItem('sesionActiva', JSON.stringify(usuarioFresco));
+            // Reaplicar permisos en las pestañas
+            const p = usuarioFresco.permisos;
+            const esAdmin = usuarioFresco.rol === 'Admin';
+            document.querySelector('[data-tab="formulario"]').style.display  = (esAdmin || !p || p.crearOrden)   ? '' : 'none';
+            document.querySelector('[data-tab="reportes"]').style.display    = (esAdmin || !p || p.reportes)     ? '' : 'none';
+            document.querySelector('[data-tab="productos"]').style.display   = (esAdmin || !p || p.productos)    ? '' : 'none';
+            document.querySelector('[data-tab="clientes"]').style.display    = (esAdmin || !p || p.clientes)     ? '' : 'none';
+            document.querySelector('[data-tab="recepciones"]').style.display = (esAdmin || !p || p.recepciones)  ? '' : 'none';
+            document.querySelector('[data-tab="usuarios"]').style.display    = (esAdmin || !p || p.usuarios)     ? '' : 'none';
+            document.querySelector('[data-tab="actividad"]').style.display   = esAdmin ? '' : 'none';
+          } else if (usuarioActivo.login !== 'admin') {
+            // Usuario desactivado — cerrar sesión
+            sessionStorage.removeItem('sesionActiva');
+            usuarioActivo = null;
+            document.getElementById('appMain').style.display = 'none';
+            document.getElementById('loginScreen').style.display = 'flex';
+            showToast('Tu cuenta fue desactivada', true);
+          }
+        }
       }
     });
 
