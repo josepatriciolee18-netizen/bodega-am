@@ -106,7 +106,10 @@
                 <strong>Recepción confirmada por Bodega</strong><br>
                 Recibido por: ${recepcion.recibidoPor}<br>
                 Fecha: ${recepcion.fecha ? recepcion.fecha.replace('T',' ').slice(0,16) : '-'}
-              </div>` : ''}`;
+              </div>` : `
+              <div style="background:#fef3c7;color:#92400e;padding:14px 20px;font-size:0.9rem;border-top:2px solid #fbbf24;text-align:center;font-weight:600">
+                ⚠ Son 3 días hábiles para el retiro de los productos
+              </div>`}`;
         }
       } catch(e) {
         div.innerHTML = `<div class="error">❌ Error al cargar: ${e.message}</div>`;

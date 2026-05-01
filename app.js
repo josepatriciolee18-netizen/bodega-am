@@ -589,24 +589,30 @@ function limpiarInputsProducto() {
 }
 
 // ── Submit salida ─────────────────────────────────────────
+let registrando = false;
 form.addEventListener('submit', async (e) => {
   e.preventDefault();
+
+  // Evitar doble registro
+  if (registrando) return;
+  registrando = true;
+  document.getElementById('btnRegistrar').disabled = true;
 
   const tipoDocumento = document.getElementById('tipoDocumento').value;
   const solicitante   = document.getElementById('solicitante').value.trim();
   const responsable   = document.getElementById('responsable') ? document.getElementById('responsable').value.trim() : '';
 
-  if (!tipoDocumento) { showToast('Selecciona el Tipo de Documento', true); document.getElementById('tipoDocumento').focus(); return; }
+  if (!tipoDocumento) { showToast('Selecciona el Tipo de Documento', true); document.getElementById('tipoDocumento').focus(); registrando = false; document.getElementById('btnRegistrar').disabled = false; return; }
 
   const nroDocumento = document.getElementById('nroDocumento').value.trim();
   const campoNroVisible = document.getElementById('campoNroDoc').style.display !== 'none';
   if (tipoDocumento !== 'Sin Documento' && campoNroVisible && !nroDocumento) {
     showToast('Ingresa el N° de Documento', true);
     document.getElementById('nroDocumento').focus();
-    return;
+    registrando = false; document.getElementById('btnRegistrar').disabled = false; return;
   }
-  if (!solicitante)   { showToast('Ingresa el nombre del Cliente', true); document.getElementById('solicitante').focus(); return; }
-  if (productos.length === 0) { showToast('Agrega al menos un producto', true); return; }
+  if (!solicitante)   { showToast('Ingresa el nombre del Cliente', true); document.getElementById('solicitante').focus(); registrando = false; document.getElementById('btnRegistrar').disabled = false; return; }
+  if (productos.length === 0) { showToast('Agrega al menos un producto', true); registrando = false; document.getElementById('btnRegistrar').disabled = false; return; }
 
   // Obtener número de orden atómico desde Firebase
   let nroOrden;
@@ -653,7 +659,8 @@ form.addEventListener('submit', async (e) => {
   showToast(`✔ Salida ${salida.nro} registrada correctamente`);
   registrarActividad('Orden creada', `${salida.nro} — Cliente: ${salida.solicitante} — ${salida.total} producto(s)`);
   bloquearFormulario();
-  buscarOrdenAntigua(); // actualiza la última orden
+  buscarOrdenAntigua();
+  registrando = false;
 });
 
 function bloquearFormulario() {
