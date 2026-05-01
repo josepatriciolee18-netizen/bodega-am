@@ -606,17 +606,17 @@ form.addEventListener('submit', async (e) => {
   const solicitante   = document.getElementById('solicitante').value.trim();
   const responsable   = document.getElementById('responsable') ? document.getElementById('responsable').value.trim() : '';
 
-  if (!tipoDocumento) { showToast('Selecciona el Tipo de Documento', true); document.getElementById('tipoDocumento').focus(); registrando = false; document.getElementById('btnRegistrar').disabled = false; return; }
+  if (!tipoDocumento) { showToast('Selecciona el Tipo de Documento', true); document.getElementById('tipoDocumento').focus(); registrando = false; document.getElementById('btnRegistrar').disabled = false; document.getElementById('btnRegistrar').textContent = '✔ Registrar Salida'; return; }
 
   const nroDocumento = document.getElementById('nroDocumento').value.trim();
   const campoNroVisible = document.getElementById('campoNroDoc').style.display !== 'none';
   if (tipoDocumento !== 'Sin Documento' && campoNroVisible && !nroDocumento) {
     showToast('Ingresa el N° de Documento', true);
     document.getElementById('nroDocumento').focus();
-    registrando = false; document.getElementById('btnRegistrar').disabled = false; return;
+    registrando = false; document.getElementById('btnRegistrar').disabled = false; document.getElementById('btnRegistrar').textContent = '✔ Registrar Salida'; return;
   }
-  if (!solicitante)   { showToast('Ingresa el nombre del Cliente', true); document.getElementById('solicitante').focus(); registrando = false; document.getElementById('btnRegistrar').disabled = false; return; }
-  if (productos.length === 0) { showToast('Agrega al menos un producto', true); registrando = false; document.getElementById('btnRegistrar').disabled = false; return; }
+  if (!solicitante) { showToast('Ingresa el nombre del Cliente', true); document.getElementById('solicitante').focus(); registrando = false; document.getElementById('btnRegistrar').disabled = false; document.getElementById('btnRegistrar').textContent = '✔ Registrar Salida'; return; }
+  if (productos.length === 0) { showToast('Agrega al menos un producto', true); registrando = false; document.getElementById('btnRegistrar').disabled = false; document.getElementById('btnRegistrar').textContent = '✔ Registrar Salida'; return; }
 
   // Obtener número de orden atómico desde Firebase (evita duplicados entre PCs)
   let nroOrden;
@@ -627,7 +627,6 @@ form.addEventListener('submit', async (e) => {
       contador = nroDesdeFirebase + 1;
       localStorage.setItem('contadorSalidas', contador);
     } else {
-      // Fallback si falla Firebase
       nroOrden = generarNro(contador);
       contador++;
       localStorage.setItem('contadorSalidas', contador);
@@ -653,7 +652,6 @@ form.addEventListener('submit', async (e) => {
   };
 
   nroSalidaEl.value = salida.nro;
-  // Solo agregar si no existe ya (evitar duplicados)
   if (!historial.some(h => h.nro === salida.nro)) {
     historial.unshift(salida);
   }
