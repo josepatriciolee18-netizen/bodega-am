@@ -175,6 +175,18 @@ function mostrarApp() {
   const opcFecha = { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'America/Santiago' };
   document.getElementById('headerFecha').textContent = `📅 ${ahora.toLocaleDateString('es-CL', opcFecha)}`;
 
+  // Actualizar número de salida desde Firebase
+  if (window.fbListo) {
+    fbCargar('config').then(datos => {
+      const cfg = datos.find(c => c.valor !== undefined);
+      if (cfg) {
+        contador = cfg.valor;
+        localStorage.setItem('contadorSalidas', contador);
+        nroSalidaEl.value = generarNro(contador);
+      }
+    });
+  }
+
   // Mostrar versión automáticamente
   try {
     if (window.require) {
