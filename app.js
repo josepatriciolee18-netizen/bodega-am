@@ -701,6 +701,8 @@ function resetForm() {
   document.getElementById('btnAgregar').disabled  = false;
   document.getElementById('btnRegistrar').disabled = false;
   document.getElementById('btnRegistrar').style.display = '';
+  document.getElementById('btnRegistrar').textContent = '✔ Registrar Salida';
+  registrando = false;
   document.getElementById('btnImprimir').style.display = 'none';
   document.getElementById('btnNuevaOrden').style.display = 'none';
   document.getElementById('ordenRegistradaBanner').style.display = 'none';
@@ -1322,6 +1324,8 @@ function limpiarFormularioCompleto() {
   document.getElementById('btnAgregar').disabled = false;
   document.getElementById('btnRegistrar').disabled = false;
   document.getElementById('btnRegistrar').style.display = '';
+  document.getElementById('btnRegistrar').textContent = '✔ Registrar Salida';
+  registrando = false;
   document.getElementById('btnImprimir').style.display = 'none';
   document.getElementById('btnNuevaOrden').style.display = 'none';
   document.getElementById('ordenRegistradaBanner').style.display = 'none';
