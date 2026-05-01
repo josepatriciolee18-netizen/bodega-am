@@ -1450,12 +1450,18 @@ function buscarOrdenAntigua() {
       <td>${s.solicitante || '-'}</td>
       <td>${estado}</td>
       <td>
+        <button class="btn-ver" onclick="verOrdenAntigua('${s.nro}')" style="margin-right:4px">Ver</button>
         ${!anulada && !recibida ? `<button class="btn-add" style="padding:4px 10px;font-size:0.8rem" onclick="reimprimirOrden(this)" data-nro="${s.nro}">🖨 Reimprimir</button>` : ''}
         ${!anulada && !recibida ? `<button class="btn-delete" style="margin-left:4px" onclick="anularOrden(this)" data-nro="${s.nro}" title="Anular">🚫 Anular</button>` : ''}
         ${recibida ? `<button class="btn-add" style="padding:4px 10px;font-size:0.8rem" onclick="reimprimirOrden(this)" data-nro="${s.nro}">🖨 Reimprimir</button>` : ''}
       </td>
     </tr>`;
   }).join('');
+}
+
+function verOrdenAntigua(nro) {
+  const idx = historial.findIndex(s => s.nro === nro);
+  if (idx !== -1) abrirModal(idx);
 }
 
 function anularOrden(btn) {
