@@ -536,6 +536,15 @@ document.addEventListener('click', (e) => {
 
 // ── Agregar producto a la salida ──────────────────────────
 document.getElementById('btnAgregar').addEventListener('click', () => {
+  // Validar que los datos generales estén llenos antes de agregar productos
+  const tipoDoc = document.getElementById('tipoDocumento').value;
+  const cliente = document.getElementById('solicitante').value.trim();
+  if (!tipoDoc) { showToast('Primero selecciona el Tipo de Documento', true); document.getElementById('tipoDocumento').focus(); return; }
+  const campoNroVisible = document.getElementById('campoNroDoc').style.display !== 'none';
+  const nroDoc = document.getElementById('nroDocumento').value.trim();
+  if (tipoDoc !== 'Sin Documento' && campoNroVisible && !nroDoc) { showToast('Primero ingresa el N° de Documento', true); document.getElementById('nroDocumento').focus(); return; }
+  if (!cliente) { showToast('Primero ingresa el nombre del Cliente', true); document.getElementById('solicitante').focus(); return; }
+
   const codigo      = document.getElementById('inputCodigo').value.trim();
   const descripcion = document.getElementById('inputDescripcion').value.trim();
   const unidad      = document.getElementById('inputUnidad').value;
