@@ -1,4 +1,14 @@
 // ── Estado ────────────────────────────────────────────────
+
+// ── Función de hash para contraseñas ──────────────────────
+async function hashPassword(password) {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(password);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
 // ── Auto-Update listener ──────────────────────────────────
 function verificarInternet() {
   return new Promise((resolve) => {
@@ -206,12 +216,21 @@ async function hacerLogin() {
     } catch(e) { console.error('Error cargando usuarios:', e); }
   }
 
-  const usuario = usuarios.find(u => u.login === login && u.password === clave && u.activo);
+  const claveHash = await hashPassword(clave);
+  const usuario = usuarios.find(u => u.login === login && (u.password === claveHash || u.password === clave) && u.activo);
   if (!usuario) {
     errEl.style.display = 'block';
     document.getElementById('loginClave').value = '';
     return;
   }
+
+  // Migrar contraseña a hash si aún está en texto plano
+  if (usuario.password === clave) {
+    usuario.password = claveHash;
+    localStorage.setItem('usuariosBodega', JSON.stringify(usuarios));
+    if (window.fbListo) fbGuardar('usuarios', usuario.login, usuario);
+  }
+
   errEl.style.display = 'none';
   usuarioActivo = usuario;
   sessionStorage.setItem('sesionActiva', JSON.stringify(usuario));
@@ -1523,7 +1542,7 @@ document.getElementById('btnDescargarPlantilla').addEventListener('click', (e) =
 // ── Usuarios ──────────────────────────────────────────────
 let editandoUsuarioIdx = null;
 
-document.getElementById('btnGuardarUsuario').addEventListener('click', () => {
+document.getElementById('btnGuardarUsuario').addEventListener('click', async () => {
   const nombre   = document.getElementById('usuNombre').value.trim();
   const login    = document.getElementById('usuLogin').value.trim().toLowerCase();
   const password = document.getElementById('usuPassword').value;
@@ -1531,7 +1550,14 @@ document.getElementById('btnGuardarUsuario').addEventListener('click', () => {
 
   if (!nombre)   { showToast('Ingresa el nombre del usuario', true); return; }
   if (!login)    { showToast('Ingresa el nombre de usuario', true); return; }
-  if (!password) { showToast('Ingresa una contraseña', true); return; }
+  if (!password && editandoUsuarioIdx === null) { showToast('Ingresa una contraseña', true); return; }
+
+  let passwordHash;
+  if (password) {
+    passwordHash = await hashPassword(password);
+  } else if (editandoUsuarioIdx !== null) {
+    passwordHash = usuarios[editandoUsuarioIdx].password;
+  }
 
   const permisos = {
     crearOrden:       document.getElementById('permCrearOrden').checked,
@@ -1546,7 +1572,7 @@ document.getElementById('btnGuardarUsuario').addEventListener('click', () => {
   if (editandoUsuarioIdx !== null) {
     const loginExiste = usuarios.some((u, i) => u.login === login && i !== editandoUsuarioIdx);
     if (loginExiste) { showToast('Ya existe un usuario con ese nombre', true); return; }
-    usuarios[editandoUsuarioIdx] = { ...usuarios[editandoUsuarioIdx], nombre, login, password, rol, permisos };
+    usuarios[editandoUsuarioIdx] = { ...usuarios[editandoUsuarioIdx], nombre, login, password: passwordHash, rol, permisos };
     localStorage.setItem('usuariosBodega', JSON.stringify(usuarios));
     if (window.fbListo) fbGuardar('usuarios', login, usuarios[editandoUsuarioIdx]);
     showToast(`Usuario "${login}" actualizado`);
@@ -1556,11 +1582,10 @@ document.getElementById('btnGuardarUsuario').addEventListener('click', () => {
     btn.style.background = '';
   } else {
     if (usuarios.some(u => u.login === login)) { showToast('Ya existe un usuario con ese nombre', true); return; }
-    usuarios.push({ nombre, login, password, rol, activo: true, permisos });
+    usuarios.push({ nombre, login, password: passwordHash, rol, activo: true, permisos });
     localStorage.setItem('usuariosBodega', JSON.stringify(usuarios));
-    // Guardar en Firebase con reintento si no está listo
     const guardarUsuarioFb = () => {
-      if (window.fbListo) fbGuardar('usuarios', login, { nombre, login, password, rol, activo: true, permisos });
+      if (window.fbListo) fbGuardar('usuarios', login, { nombre, login, password: passwordHash, rol, activo: true, permisos });
       else setTimeout(guardarUsuarioFb, 500);
     };
     guardarUsuarioFb();
@@ -1571,6 +1596,7 @@ document.getElementById('btnGuardarUsuario').addEventListener('click', () => {
   document.getElementById('usuNombre').value   = '';
   document.getElementById('usuLogin').value    = '';
   document.getElementById('usuPassword').value = '';
+  document.getElementById('usuPassword').placeholder = '••••••';
   document.getElementById('usuRol').value      = 'Bodeguero';
   document.getElementById('permCrearOrden').checked      = true;
   document.getElementById('permReportes').checked        = true;
@@ -1586,7 +1612,8 @@ function editarUsuario(i) {
   editandoUsuarioIdx = i;
   document.getElementById('usuNombre').value   = u.nombre;
   document.getElementById('usuLogin').value    = u.login;
-  document.getElementById('usuPassword').value = u.password;
+  document.getElementById('usuPassword').value = '';
+  document.getElementById('usuPassword').placeholder = '(dejar vacío para mantener)';
   document.getElementById('usuRol').value      = u.rol;
   const p = u.permisos || {};
   document.getElementById('permCrearOrden').checked      = p.crearOrden      ?? true;
