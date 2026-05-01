@@ -278,35 +278,13 @@ document.getElementById('btnLogout').addEventListener('click', () => {
   registrarActividad('Cierre de sesión', `${usuarioActivo ? usuarioActivo.nombre : ''}`);
   sessionStorage.removeItem('sesionActiva');
   usuarioActivo = null;
-  // Ocultar TODAS las pantallas y modales
-  document.getElementById('appMain').style.display = 'none';
-  document.getElementById('updateScreen').style.display = 'none';
-  document.getElementById('noInternetScreen').style.display = 'none';
-  document.getElementById('modalOverlay').style.display = 'none';
-  document.getElementById('modalRecepcion').style.display = 'none';
-  document.getElementById('updateBar').style.display = 'none';
-  // Mostrar login
-  document.getElementById('loginScreen').style.display = 'flex';
-  // Forzar que los campos del login estén habilitados y limpios
-  const loginUser = document.getElementById('loginUsuario');
-  const loginPass = document.getElementById('loginClave');
-  loginUser.value = '';
-  loginPass.value = '';
-  loginUser.disabled = false;
-  loginPass.disabled = false;
-  loginUser.removeAttribute('disabled');
-  loginPass.removeAttribute('disabled');
-  loginUser.style.cssText = '';
-  loginPass.style.cssText = '';
-  document.getElementById('loginError').style.display = 'none';
-  document.getElementById('btnLogin').disabled = false;
-  document.getElementById('btnLogin').removeAttribute('disabled');
-  setTimeout(() => { loginUser.click(); loginUser.focus();
-    if (window.require) {
-      const { ipcRenderer } = window.require('electron');
-      ipcRenderer.send('forzarFoco');
-    }
-  }, 300);
+  // Recargar la página para resetear todo limpiamente
+  if (window.require) {
+    const { ipcRenderer } = window.require('electron');
+    ipcRenderer.send('recargar');
+  } else {
+    window.location.reload();
+  }
 });
 
 verificarSesion();
