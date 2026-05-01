@@ -1954,7 +1954,9 @@ function abrirModalRec(btn) {
   if (!orden) return;
   ordenEnRecepcion = orden;
   document.getElementById('modalRecTitulo').textContent = `Recibir Orden ${nroOrden}`;
-  document.getElementById('recibidoPor').value = '';
+  const selectRec = document.getElementById('recibidoPor');
+  selectRec.innerHTML = `<option value="">-- Seleccionar --</option><option value="${usuarioActivo.nombre}">${usuarioActivo.nombre} (${usuarioActivo.rol})</option>`;
+  selectRec.value = '';
   document.getElementById('modalRecBody').innerHTML = `
     <div class="detail-row"><strong>N° Orden:</strong> ${orden.nro}</div>
     <div class="detail-row"><strong>Fecha Emisión:</strong> ${formatFecha(orden.fecha)}</div>

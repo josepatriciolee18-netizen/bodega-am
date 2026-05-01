@@ -569,7 +569,9 @@
         <div class="modal-footer">
           <div class="field" style="flex:1; margin-right:12px">
             <label>Recibido por</label>
-            <input type="text" id="recibidoPor" placeholder="Nombre de quien recibe" />
+            <select id="recibidoPor">
+              <option value="">-- Seleccionar --</option>
+            </select>
           </div>
           <button onclick="cerrarModalRec()" class="btn-secondary">Cancelar</button>
           <button onclick="confirmarRecepcion()" class="btn-primary">✔ Confirmar Recepción</button>
