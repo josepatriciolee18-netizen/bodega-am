@@ -272,8 +272,15 @@ document.getElementById('btnLogout').addEventListener('click', () => {
   usuarioActivo = null;
   document.getElementById('loginUsuario').value = '';
   document.getElementById('loginClave').value   = '';
-  document.getElementById('appMain').style.display   = 'none';
+  document.getElementById('loginError').style.display = 'none';
+  document.getElementById('appMain').style.display = 'none';
+  document.getElementById('updateScreen').style.display = 'none';
+  document.getElementById('noInternetScreen').style.display = 'none';
   document.getElementById('loginScreen').style.display = 'flex';
+  // Forzar foco en el campo de usuario
+  setTimeout(() => {
+    document.getElementById('loginUsuario').focus();
+  }, 100);
 });
 
 verificarSesion();
