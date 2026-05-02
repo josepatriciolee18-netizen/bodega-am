@@ -431,9 +431,17 @@ async function cargarDesdeFirebase() {
         // Firebase es la fuente de verdad
         recepciones = nuevos;
         localStorage.setItem('recepcionesBodega', JSON.stringify(recepciones));
-        renderRecepciones();
-        renderOrdenesEmitidas();
-        buscarOrdenAntigua();
+        // También recargar historial desde Firebase para mantener sincronizado
+        fbCargar('historial').then(fbHist => {
+          if (fbHist.length > 0) {
+            historial = fbHist.sort((a,b) => b.nro.localeCompare(a.nro));
+            localStorage.setItem('historialSalidas', JSON.stringify(historial));
+          }
+          renderRecepciones();
+          renderOrdenesEmitidas();
+          buscarOrdenAntigua();
+          renderReportes();
+        });
       }
       recepcionesCargadoInicial = true;
     }));
