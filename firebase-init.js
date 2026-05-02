@@ -2,7 +2,7 @@
 (async function() {
   try {
     const { initializeApp } = require('firebase/app');
-    const { getFirestore, collection, doc, setDoc, getDocs, onSnapshot, deleteDoc, getDoc } = require('firebase/firestore');
+    const { getFirestore, collection, doc, setDoc, getDocs, onSnapshot, deleteDoc, getDoc, runTransaction } = require('firebase/firestore');
 
     const firebaseConfig = {
       apiKey: "AIzaSyCAhkMvXqzljcMJZaTBsxMTBucuDDM7srg",
@@ -29,10 +29,12 @@
       return onSnapshot(collection(db, col), s => cb(s.docs.map(d => d.data())));
     };
 
-    // Obtener siguiente número de orden — lee historial real y usa el siguiente
+    // Obtener siguiente número de orden — atómico con transacción
     window.fbObtenerSiguienteNumero = async () => {
       try {
-        // Leer todas las órdenes y encontrar el número más alto
+        const contadorRef = doc(db, 'config', 'contador');
+        
+        // Primero sincronizar contador con historial real
         const historialSnap = await getDocs(collection(db, 'historial'));
         let maxNro = 0;
         historialSnap.docs.forEach(d => {
@@ -42,18 +44,36 @@
             if (!isNaN(num) && num > maxNro) maxNro = num;
           }
         });
-        // También verificar el contador guardado
-        const contadorRef = doc(db, 'config', 'contador');
-        const contadorSnap = await getDoc(contadorRef);
-        const contadorActual = contadorSnap.exists() ? contadorSnap.data().valor : 1;
-        // Usar el mayor
-        const siguiente = Math.max(maxNro + 1, contadorActual);
-        // Guardar el nuevo contador
-        await setDoc(contadorRef, { valor: siguiente + 1 });
-        return siguiente;
+
+        // Transacción atómica para incrementar
+        const resultado = await runTransaction(db, async (transaction) => {
+          const contadorSnap = await transaction.get(contadorRef);
+          const contadorActual = contadorSnap.exists() ? contadorSnap.data().valor : 1;
+          const siguiente = Math.max(maxNro + 1, contadorActual);
+          transaction.set(contadorRef, { valor: siguiente + 1 });
+          return siguiente;
+        });
+        return resultado;
       } catch(e) {
-        console.error('fbObtenerSiguienteNumero:', e);
-        return null;
+        console.error('fbObtenerSiguienteNumero error:', e.message);
+        // Fallback: leer historial y usar siguiente sin transacción
+        try {
+          const historialSnap = await getDocs(collection(db, 'historial'));
+          let maxNro = 0;
+          historialSnap.docs.forEach(d => {
+            const data = d.data();
+            if (data.nro) {
+              const num = parseInt(data.nro.replace('SAL-', ''));
+              if (!isNaN(num) && num > maxNro) maxNro = num;
+            }
+          });
+          const siguiente = maxNro + 1;
+          await setDoc(doc(db, 'config', 'contador'), { valor: siguiente + 1 });
+          return siguiente;
+        } catch(e2) {
+          console.error('fbObtenerSiguienteNumero fallback error:', e2.message);
+          return null;
+        }
       }
     };
 

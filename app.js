@@ -1304,6 +1304,8 @@ function renderCatalogo(filtro = '') {
 
 function eliminarDelCatalogo(i) {
   if (!confirm(`¿Eliminar "${catalogo[i].nombre}" del catálogo?`)) return;
+  const producto = catalogo[i];
+  if (window.fbListo) fbEliminar('catalogo', producto.codigo || producto.nombre);
   catalogo.splice(i, 1);
   localStorage.setItem('catalogoProductos', JSON.stringify(catalogo));
   renderCatalogo();
@@ -1625,6 +1627,8 @@ function renderClientes(filtro = '') {
 
 function eliminarCliente(i) {
   if (!confirm(`¿Eliminar al cliente "${clientes[i].nombre}"?`)) return;
+  const cliente = clientes[i];
+  if (window.fbListo) fbEliminar('clientes', cliente.rut || cliente.nombre);
   clientes.splice(i, 1);
   localStorage.setItem('clientesBodega', JSON.stringify(clientes));
   renderClientes();
