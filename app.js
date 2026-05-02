@@ -860,11 +860,9 @@ function renderReportes(filtro = null) {
     </tr>`).join('');
 }
 
-// ── Exportar reportes a Excel ──────────────────────────────
+// ── Exportar reportes a Excel (CSV) ──────────────────────────
 document.getElementById('btnExportarExcel').addEventListener('click', () => {
   try {
-    if (typeof XLSX === 'undefined') { showToast('Error: librería Excel no disponible', true); return; }
-
     const conteo = {};
     historial.forEach(s => {
       s.productos.forEach(p => {
@@ -873,40 +871,33 @@ document.getElementById('btnExportarExcel').addEventListener('click', () => {
         conteo[key].total += parseFloat(p.cantidad) || 0;
       });
     });
+
+    // CSV de órdenes
+    let csv = '\uFEFF'; // BOM para Excel
+    csv += 'N° Salida;Fecha;Tipo Doc.;N° Documento;Cliente;Creada por;Rol;Estado;Productos\n';
+    historial.forEach(s => {
+      csv += `${s.nro};${formatFecha(s.fecha)};${s.tipoDocumento||'-'};${s.nroDocumento||'-'};${s.solicitante||'-'};${s.creadoPor||'-'};${s.rolCreador||'-'};${s.anulada?'Anulada':'Activa'};${s.total}\n`;
+    });
+    csv += '\n\nTop Productos Despachados\n';
+    csv += '#;Código;Producto;Unidad;Total Despachado\n';
     const topProductos = Object.values(conteo).sort((a,b) => b.total - a.total);
-
-    const datosOrdenes = historial.map(s => ({
-      'N° Salida': s.nro,
-      'Fecha': formatFecha(s.fecha),
-      'Tipo Doc.': s.tipoDocumento || '-',
-      'N° Documento': s.nroDocumento || '-',
-      'Cliente': s.solicitante || '-',
-      'Creada por': s.creadoPor || '-',
-      'Rol': s.rolCreador || '-',
-      'Estado': s.anulada ? 'Anulada' : 'Activa',
-      'Productos': s.total
-    }));
-
-    const datosTop = topProductos.map((p, i) => ({
-      '#': i + 1,
-      'Código': p.codigo,
-      'Producto': p.descripcion,
-      'Unidad': p.unidad,
-      'Total Despachado': p.total
-    }));
-
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(datosOrdenes), 'Órdenes');
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(datosTop), 'Top Productos');
+    topProductos.forEach((p, i) => {
+      csv += `${i+1};${p.codigo};${p.descripcion};${p.unidad};${p.total}\n`;
+    });
 
     const hoy = fechaHoraLocal().slice(0, 10);
-    const nombreArchivo = `Reporte_BodegaAM_${hoy}.xlsx`;
-    XLSX.writeFile(wb, nombreArchivo);
-    showToast(`✔ Excel guardado: ${nombreArchivo}`);
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Reporte_BodegaAM_${hoy}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('✔ Reporte exportado a Excel (CSV)');
     registrarActividad('Exportar Excel', 'Reporte de órdenes exportado');
   } catch(e) {
-    console.error('Error exportando Excel:', e);
-    showToast('Error al exportar Excel: ' + e.message, true);
+    console.error('Error exportando:', e);
+    showToast('Error al exportar: ' + e.message, true);
   }
 });
 
@@ -976,10 +967,7 @@ document.getElementById('btnExportarPDF').addEventListener('click', () => {
 
   if (window.require) {
     const { ipcRenderer } = window.require('electron');
-    ipcRenderer.send('imprimirCarta', html);
-    ipcRenderer.once('pdf-guardado', (event, ruta) => {
-      showToast(`✔ PDF guardado en Escritorio`);
-    });
+    ipcRenderer.send('vistaPreviewPDF', html);
   }
   registrarActividad('Exportar PDF', 'Reporte de órdenes exportado');
 });

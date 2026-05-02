@@ -219,6 +219,45 @@ ipcMain.on('imprimir', (event, htmlContent) => {
   });
 });
 
+// Vista previa PDF - muestra ventana con el reporte y abre diálogo de impresión
+ipcMain.on('vistaPreviewPDF', (event, htmlContent) => {
+  const tmpFile = path.join(os.tmpdir(), 'bodega_reporte_preview.html');
+  fs.writeFileSync(tmpFile, htmlContent, 'utf-8');
+
+  const previewWin = new BrowserWindow({
+    width: 900,
+    height: 700,
+    show: true,
+    title: 'Reporte - Bodega A&M',
+    webPreferences: { nodeIntegration: false, contextIsolation: true }
+  });
+
+  previewWin.setMenuBarVisibility(false);
+  previewWin.loadURL('file:///' + tmpFile.replace(/\\/g, '/'));
+
+  let printDialogOpen = false;
+
+  previewWin.on('blur', () => { printDialogOpen = true; });
+  previewWin.on('focus', () => {
+    if (printDialogOpen) {
+      setTimeout(() => {
+        if (!previewWin.isDestroyed()) previewWin.close();
+      }, 300);
+    }
+  });
+
+  previewWin.webContents.on('did-finish-load', () => {
+    setTimeout(() => {
+      previewWin.webContents.executeJavaScript('window.print()');
+    }, 800);
+  });
+
+  previewWin.on('closed', () => {
+    try { fs.unlinkSync(tmpFile); } catch(e) {}
+    if (win && !win.isDestroyed()) win.focus();
+  });
+});
+
 // Impresión carta - genera PDF o imprime en formato carta
 ipcMain.on('imprimirCarta', (event, htmlContent) => {
   const tmpFile = path.join(os.tmpdir(), 'bodega_reporte.html');
