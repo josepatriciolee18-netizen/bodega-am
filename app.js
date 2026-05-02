@@ -2211,6 +2211,7 @@ function renderActividad(filtro = '') {
   const desde = document.getElementById('actDesde').value;
   const hasta = document.getElementById('actHasta').value;
   let datos = logActividad;
+  const hayFiltro = filtro || desde || hasta;
 
   if (filtro) {
     const q = filtro.toLowerCase();
@@ -2224,7 +2225,8 @@ function renderActividad(filtro = '') {
   if (desde) datos = datos.filter(a => a.fecha.slice(0, 10) >= desde);
   if (hasta) datos = datos.filter(a => a.fecha.slice(0, 10) <= hasta);
 
-  datos = datos.slice(0, 100);
+  // Sin filtro: mostrar solo 5. Con filtro: mostrar hasta 100
+  datos = datos.slice(0, hayFiltro ? 100 : 5);
 
   if (datos.length === 0) {
     tbody.innerHTML = '<tr><td colspan="5" class="empty-msg">No hay actividad registrada</td></tr>';
