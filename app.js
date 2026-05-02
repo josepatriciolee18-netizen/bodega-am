@@ -350,15 +350,23 @@ async function cargarDesdeFirebase() {
 
     showToast('✔ Conectado a la nube');
 
-    // Cargar recepciones desde Firebase al conectar
+    // Cargar TODO desde Firebase al conectar
+    const fbHistorial = await fbCargar('historial');
+    if (fbHistorial.length > 0) {
+      historial = fbHistorial.sort((a,b) => b.nro.localeCompare(a.nro));
+      localStorage.setItem('historialSalidas', JSON.stringify(historial));
+    }
+    
     const fbRecepciones = await fbCargar('recepciones');
-    if (fbRecepciones.length > 0) {
+    if (fbRecepciones.length >= 0) {
       recepciones = fbRecepciones.sort((a,b) => b.nro.localeCompare(a.nro));
       localStorage.setItem('recepcionesBodega', JSON.stringify(recepciones));
-      renderRecepciones();
-      renderOrdenesEmitidas();
-      buscarOrdenAntigua();
     }
+    
+    renderReportes();
+    renderRecepciones();
+    renderOrdenesEmitidas();
+    buscarOrdenAntigua();
 
     // Sincronizar contador con el historial real
     if (window.fbSincronizarContador) {
