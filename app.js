@@ -380,24 +380,21 @@ async function cargarDesdeFirebase() {
     fbEscuchar('recepciones', (datos) => {
       const nuevos = datos.sort((a,b) => b.nro.localeCompare(a.nro));
       
-      // Merge: mantener recepciones locales que aún no están en Firebase
-      const nrosNuevos = nuevos.map(n => n.nro);
-      const localesPendientes = recepciones.filter(r => !nrosNuevos.includes(r.nro));
-      const merged = [...localesPendientes, ...nuevos].sort((a,b) => b.nro.localeCompare(a.nro));
+      const nrosNuevos = new Set(nuevos.map(n => n.nro));
+      const nrosActuales = new Set(recepciones.map(r => r.nro));
+      const hayNuevos = nuevos.some(n => !nrosActuales.has(n.nro));
+      const hayCambios = nuevos.length !== recepciones.length || hayNuevos;
       
-      const jsonMerged = JSON.stringify(merged);
-      const jsonActual = JSON.stringify(recepciones);
-      
-      if (jsonMerged !== jsonActual) {
-        // Detectar recepciones nuevas para notificar (solo después de la carga inicial)
-        if (recepcionesCargadoInicial && nuevos.length > recepciones.length) {
-          const nrosActuales = recepciones.map(r => r.nro);
-          const recNuevas = nuevos.filter(n => !nrosActuales.includes(n.nro));
+      if (hayCambios) {
+        // Detectar recepciones nuevas para notificar
+        if (recepcionesCargadoInicial) {
+          const recNuevas = nuevos.filter(n => !nrosActuales.has(n.nro));
           recNuevas.forEach(rec => {
             mostrarNotificacion('📥 Orden Recibida por Bodega', `${rec.nro} — Orden ${rec.nroOrden} recibida por ${rec.recibidoPor}`, rec.nroOrden);
           });
         }
-        recepciones = merged;
+        // Firebase es la fuente de verdad
+        recepciones = nuevos;
         localStorage.setItem('recepcionesBodega', JSON.stringify(recepciones));
         renderRecepciones();
         renderOrdenesEmitidas();
