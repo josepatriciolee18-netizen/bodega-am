@@ -862,49 +862,67 @@ function renderReportes(filtro = null) {
 
 // ── Exportar reportes a Excel ──────────────────────────────
 document.getElementById('btnExportarExcel').addEventListener('click', () => {
-  // Construir datos para Excel
-  const conteo = {};
-  historial.forEach(s => {
-    s.productos.forEach(p => {
-      const key = p.codigo || p.descripcion;
-      if (!conteo[key]) conteo[key] = { codigo: p.codigo||'-', descripcion: p.descripcion, unidad: p.unidad, total: 0 };
-      conteo[key].total += parseFloat(p.cantidad) || 0;
+  try {
+    if (typeof XLSX === 'undefined') { showToast('Error: librería Excel no disponible', true); return; }
+
+    const conteo = {};
+    historial.forEach(s => {
+      s.productos.forEach(p => {
+        const key = p.codigo || p.descripcion;
+        if (!conteo[key]) conteo[key] = { codigo: p.codigo||'-', descripcion: p.descripcion, unidad: p.unidad, total: 0 };
+        conteo[key].total += parseFloat(p.cantidad) || 0;
+      });
     });
-  });
-  const topProductos = Object.values(conteo).sort((a,b) => b.total - a.total);
+    const topProductos = Object.values(conteo).sort((a,b) => b.total - a.total);
 
-  // Hoja 1: Órdenes
-  const datosOrdenes = historial.map(s => ({
-    'N° Salida': s.nro,
-    'Fecha': formatFecha(s.fecha),
-    'Tipo Doc.': s.tipoDocumento || '-',
-    'N° Documento': s.nroDocumento || '-',
-    'Cliente': s.solicitante || '-',
-    'Creada por': s.creadoPor || '-',
-    'Rol': s.rolCreador || '-',
-    'Estado': s.anulada ? 'Anulada' : 'Activa',
-    'Productos': s.total
-  }));
+    const datosOrdenes = historial.map(s => ({
+      'N° Salida': s.nro,
+      'Fecha': formatFecha(s.fecha),
+      'Tipo Doc.': s.tipoDocumento || '-',
+      'N° Documento': s.nroDocumento || '-',
+      'Cliente': s.solicitante || '-',
+      'Creada por': s.creadoPor || '-',
+      'Rol': s.rolCreador || '-',
+      'Estado': s.anulada ? 'Anulada' : 'Activa',
+      'Productos': s.total
+    }));
 
-  // Hoja 2: Top Productos
-  const datosTop = topProductos.map((p, i) => ({
-    '#': i + 1,
-    'Código': p.codigo,
-    'Producto': p.descripcion,
-    'Unidad': p.unidad,
-    'Total Despachado': p.total
-  }));
+    const datosTop = topProductos.map((p, i) => ({
+      '#': i + 1,
+      'Código': p.codigo,
+      'Producto': p.descripcion,
+      'Unidad': p.unidad,
+      'Total Despachado': p.total
+    }));
 
-  const wb = XLSX.utils.book_new();
-  const ws1 = XLSX.utils.json_to_sheet(datosOrdenes);
-  const ws2 = XLSX.utils.json_to_sheet(datosTop);
-  XLSX.utils.book_append_sheet(wb, ws1, 'Órdenes');
-  XLSX.utils.book_append_sheet(wb, ws2, 'Top Productos');
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(datosOrdenes), 'Órdenes');
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(datosTop), 'Top Productos');
 
-  const hoy = fechaHoraLocal().slice(0, 10);
-  XLSX.writeFile(wb, `Reporte_BodegaAM_${hoy}.xlsx`);
-  showToast('✔ Reporte exportado a Excel');
-  registrarActividad('Exportar Excel', 'Reporte de órdenes exportado');
+    const hoy = fechaHoraLocal().slice(0, 10);
+    const nombreArchivo = `Reporte_BodegaAM_${hoy}.xlsx`;
+
+    if (window.require) {
+      // En Electron: guardar con diálogo
+      const { ipcRenderer } = window.require('electron');
+      const datos = XLSX.write(wb, { bookType: 'xlsx', type: 'buffer' });
+      const fs = window.require('fs');
+      const { dialog } = window.require('@electron/remote') || {};
+      // Guardar en escritorio
+      const os = window.require('os');
+      const path = window.require('path');
+      const rutaArchivo = path.join(os.homedir(), 'Desktop', nombreArchivo);
+      fs.writeFileSync(rutaArchivo, datos);
+      showToast(`✔ Excel guardado en Escritorio: ${nombreArchivo}`);
+    } else {
+      XLSX.writeFile(wb, nombreArchivo);
+      showToast('✔ Reporte exportado a Excel');
+    }
+    registrarActividad('Exportar Excel', 'Reporte de órdenes exportado');
+  } catch(e) {
+    console.error('Error exportando Excel:', e);
+    showToast('Error al exportar Excel: ' + e.message, true);
+  }
 });
 
 // ── Exportar reportes a PDF ───────────────────────────────
@@ -974,6 +992,9 @@ document.getElementById('btnExportarPDF').addEventListener('click', () => {
   if (window.require) {
     const { ipcRenderer } = window.require('electron');
     ipcRenderer.send('imprimirCarta', html);
+    ipcRenderer.once('pdf-guardado', (event, ruta) => {
+      showToast(`✔ PDF guardado en Escritorio`);
+    });
   }
   registrarActividad('Exportar PDF', 'Reporte de órdenes exportado');
 });

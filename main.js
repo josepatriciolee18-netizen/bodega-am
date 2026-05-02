@@ -219,7 +219,7 @@ ipcMain.on('imprimir', (event, htmlContent) => {
   });
 });
 
-// Impresión carta - usa ventana Electron directamente
+// Impresión carta - genera PDF o imprime en formato carta
 ipcMain.on('imprimirCarta', (event, htmlContent) => {
   const tmpFile = path.join(os.tmpdir(), 'bodega_reporte.html');
   fs.writeFileSync(tmpFile, htmlContent, 'utf-8');
@@ -233,15 +233,34 @@ ipcMain.on('imprimirCarta', (event, htmlContent) => {
 
   printWin.loadURL('file:///' + tmpFile.replace(/\\/g, '/'));
   printWin.webContents.on('did-finish-load', () => {
-    printWin.webContents.print(
-      { silent: false, printBackground: false, color: false },
-      (success) => {
-        setTimeout(() => {
-          if (!printWin.isDestroyed()) printWin.close();
-          try { fs.unlinkSync(tmpFile); } catch(e) {}
-          if (win && !win.isDestroyed()) win.focus();
-        }, 500);
-      }
-    );
+    // Generar PDF y guardar en escritorio
+    printWin.webContents.printToPDF({
+      pageSize: 'Letter',
+      printBackground: true,
+      margins: { top: 10, bottom: 10, left: 10, right: 10 }
+    }).then(data => {
+      const hoy = new Date().toISOString().slice(0, 10);
+      const pdfPath = path.join(os.homedir(), 'Desktop', `Reporte_BodegaAM_${hoy}.pdf`);
+      fs.writeFileSync(pdfPath, data);
+      event.reply('pdf-guardado', pdfPath);
+      setTimeout(() => {
+        if (!printWin.isDestroyed()) printWin.close();
+        try { fs.unlinkSync(tmpFile); } catch(e) {}
+        if (win && !win.isDestroyed()) win.focus();
+      }, 500);
+    }).catch(err => {
+      console.error('Error generando PDF:', err);
+      // Fallback: abrir diálogo de impresión
+      printWin.webContents.print(
+        { silent: false, printBackground: false, color: false },
+        (success) => {
+          setTimeout(() => {
+            if (!printWin.isDestroyed()) printWin.close();
+            try { fs.unlinkSync(tmpFile); } catch(e) {}
+            if (win && !win.isDestroyed()) win.focus();
+          }, 500);
+        }
+      );
+    });
   });
 });
