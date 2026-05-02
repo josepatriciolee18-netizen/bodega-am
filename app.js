@@ -687,13 +687,13 @@ form.addEventListener('submit', async (e) => {
         contador = nroDesdeFirebase + 1;
         localStorage.setItem('contadorSalidas', contador);
       } else {
-        throw new Error('Firebase devolvió null');
+        nroOrden = generarNro(contador);
+        contador++;
+        localStorage.setItem('contadorSalidas', contador);
       }
     } catch(e) {
       console.error('Error obteniendo número:', e);
-      // Fallback: usar timestamp para garantizar unicidad
-      const ts = Date.now().toString(36).toUpperCase();
-      nroOrden = 'SAL-' + ts;
+      nroOrden = generarNro(contador);
       contador++;
       localStorage.setItem('contadorSalidas', contador);
     }
