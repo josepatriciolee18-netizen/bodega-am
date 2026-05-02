@@ -687,20 +687,36 @@ form.addEventListener('submit', async (e) => {
         contador = nroDesdeFirebase + 1;
         localStorage.setItem('contadorSalidas', contador);
       } else {
-        nroOrden = generarNro(contador);
-        contador++;
-        localStorage.setItem('contadorSalidas', contador);
+        // Firebase falló — reintentar una vez
+        showToast('Reintentando conexión...', true);
+        await new Promise(r => setTimeout(r, 1000));
+        const reintento = await fbIncrementarContador();
+        if (reintento !== null) {
+          nroOrden = generarNro(reintento);
+          contador = reintento + 1;
+          localStorage.setItem('contadorSalidas', contador);
+        } else {
+          showToast('Error de conexión. Intenta de nuevo.', true);
+          registrando = false;
+          document.getElementById('btnRegistrar').disabled = false;
+          document.getElementById('btnRegistrar').textContent = '✔ Registrar Salida';
+          return;
+        }
       }
     } catch(e) {
       console.error('Error obteniendo número:', e);
-      nroOrden = generarNro(contador);
-      contador++;
-      localStorage.setItem('contadorSalidas', contador);
+      showToast('Error de conexión. Intenta de nuevo.', true);
+      registrando = false;
+      document.getElementById('btnRegistrar').disabled = false;
+      document.getElementById('btnRegistrar').textContent = '✔ Registrar Salida';
+      return;
     }
   } else {
-    nroOrden = generarNro(contador);
-    contador++;
-    localStorage.setItem('contadorSalidas', contador);
+    showToast('Sin conexión a Firebase. Intenta de nuevo.', true);
+    registrando = false;
+    document.getElementById('btnRegistrar').disabled = false;
+    document.getElementById('btnRegistrar').textContent = '✔ Registrar Salida';
+    return;
   }
 
   const salida = {
