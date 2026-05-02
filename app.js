@@ -860,20 +860,57 @@ function renderReportes(filtro = null) {
     </tr>`).join('');
 }
 
-document.getElementById('btnImprimirReportesCarta').addEventListener('click', () => {
+// ── Exportar reportes a Excel ──────────────────────────────
+document.getElementById('btnExportarExcel').addEventListener('click', () => {
+  // Construir datos para Excel
+  const conteo = {};
+  historial.forEach(s => {
+    s.productos.forEach(p => {
+      const key = p.codigo || p.descripcion;
+      if (!conteo[key]) conteo[key] = { codigo: p.codigo||'-', descripcion: p.descripcion, unidad: p.unidad, total: 0 };
+      conteo[key].total += parseFloat(p.cantidad) || 0;
+    });
+  });
+  const topProductos = Object.values(conteo).sort((a,b) => b.total - a.total);
+
+  // Hoja 1: Órdenes
+  const datosOrdenes = historial.map(s => ({
+    'N° Salida': s.nro,
+    'Fecha': formatFecha(s.fecha),
+    'Tipo Doc.': s.tipoDocumento || '-',
+    'N° Documento': s.nroDocumento || '-',
+    'Cliente': s.solicitante || '-',
+    'Creada por': s.creadoPor || '-',
+    'Rol': s.rolCreador || '-',
+    'Estado': s.anulada ? 'Anulada' : 'Activa',
+    'Productos': s.total
+  }));
+
+  // Hoja 2: Top Productos
+  const datosTop = topProductos.map((p, i) => ({
+    '#': i + 1,
+    'Código': p.codigo,
+    'Producto': p.descripcion,
+    'Unidad': p.unidad,
+    'Total Despachado': p.total
+  }));
+
+  const wb = XLSX.utils.book_new();
+  const ws1 = XLSX.utils.json_to_sheet(datosOrdenes);
+  const ws2 = XLSX.utils.json_to_sheet(datosTop);
+  XLSX.utils.book_append_sheet(wb, ws1, 'Órdenes');
+  XLSX.utils.book_append_sheet(wb, ws2, 'Top Productos');
+
+  const hoy = fechaHoraLocal().slice(0, 10);
+  XLSX.writeFile(wb, `Reporte_BodegaAM_${hoy}.xlsx`);
+  showToast('✔ Reporte exportado a Excel');
+  registrarActividad('Exportar Excel', 'Reporte de órdenes exportado');
+});
+
+// ── Exportar reportes a PDF ───────────────────────────────
+document.getElementById('btnExportarPDF').addEventListener('click', () => {
   const hoy = new Date().toLocaleDateString('es-CL');
 
-  // Construye tabla de órdenes
-  const filasOrdenes = historial.map((s, i) => `
-    <tr>
-      <td>${s.nro}</td>
-      <td>${s.tipoDocumento || '-'}</td>
-      <td>${formatFecha(s.fecha)}</td>
-      <td>${s.solicitante || '-'}</td>
-      <td>${s.anulada ? 'Anulada' : 'Activa'}</td>
-    </tr>`).join('');
-
-  // Construye top productos
   const conteo = {};
   historial.forEach(s => {
     s.productos.forEach(p => {
@@ -885,6 +922,16 @@ document.getElementById('btnImprimirReportesCarta').addEventListener('click', ()
   const top = Object.values(conteo).sort((a,b) => b.total - a.total).slice(0,10);
   const filasTop = top.map((p,i) => `
     <tr><td>${i+1}</td><td>${p.codigo}</td><td>${p.descripcion}</td><td>${p.unidad}</td><td>${p.total}</td></tr>`).join('');
+
+  const filasOrdenes = historial.map(s => `
+    <tr>
+      <td>${s.nro}</td>
+      <td>${s.tipoDocumento || '-'}</td>
+      <td>${formatFecha(s.fecha)}</td>
+      <td>${s.solicitante || '-'}</td>
+      <td>${s.creadoPor || '-'}</td>
+      <td>${s.anulada ? 'Anulada' : 'Activa'}</td>
+    </tr>`).join('');
 
   const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
     <style>
@@ -906,37 +953,29 @@ document.getElementById('btnImprimirReportesCarta').addEventListener('click', ()
     <body>
       <h1>Bodega A&M — Reporte de Órdenes</h1>
       <p class="fecha">Generado el ${hoy}</p>
-
       <div class="stats">
         <div class="stat"><div class="stat-num">${historial.length}</div><div class="stat-label">Total Órdenes</div></div>
         <div class="stat"><div class="stat-num">${historial.filter(s=>s.fecha&&s.fecha.slice(0,10)===new Date().toISOString().slice(0,10)).length}</div><div class="stat-label">Órdenes Hoy</div></div>
         <div class="stat"><div class="stat-num">${historial.reduce((a,s)=>a+s.total,0)}</div><div class="stat-label">Ítems Despachados</div></div>
         <div class="stat"><div class="stat-num">${historial.filter(s=>s.fecha&&s.fecha.slice(0,7)===new Date().toISOString().slice(0,7)).length}</div><div class="stat-label">Órdenes este Mes</div></div>
       </div>
-
       <h2>Top 10 Productos Más Despachados</h2>
       <table>
         <thead><tr><th>#</th><th>Código</th><th>Producto</th><th>Unidad</th><th>Total</th></tr></thead>
         <tbody>${filasTop || '<tr><td colspan="5" style="text-align:center">Sin datos</td></tr>'}</tbody>
       </table>
-
       <h2>Historial de Órdenes</h2>
       <table>
-        <thead><tr><th>N° Salida</th><th>Tipo Doc.</th><th>Fecha</th><th>Cliente</th><th>Estado</th></tr></thead>
-        <tbody>${filasOrdenes || '<tr><td colspan="5" style="text-align:center">Sin órdenes</td></tr>'}</tbody>
+        <thead><tr><th>N° Salida</th><th>Tipo Doc.</th><th>Fecha</th><th>Cliente</th><th>Creada por</th><th>Estado</th></tr></thead>
+        <tbody>${filasOrdenes || '<tr><td colspan="6" style="text-align:center">Sin órdenes</td></tr>'}</tbody>
       </table>
-
-      <script>window.onload=function(){window.print();window.onafterprint=function(){window.close();};};<\/script>
     </body></html>`;
 
   if (window.require) {
     const { ipcRenderer } = window.require('electron');
     ipcRenderer.send('imprimirCarta', html);
-  } else {
-    const w = window.open('', '_blank');
-    w.document.write(html);
-    w.document.close();
   }
+  registrarActividad('Exportar PDF', 'Reporte de órdenes exportado');
 });
 
 document.getElementById('btnBuscarProductoFecha').addEventListener('click', buscarProductoFecha);
