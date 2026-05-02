@@ -2,7 +2,7 @@
 (async function() {
   try {
     const { initializeApp } = require('firebase/app');
-    const { getFirestore, collection, doc, setDoc, getDocs, onSnapshot, deleteDoc, runTransaction, getDoc } = require('firebase/firestore');
+    const { getFirestore, collection, doc, setDoc, getDocs, onSnapshot, deleteDoc, getDoc } = require('firebase/firestore');
 
     const firebaseConfig = {
       apiKey: "AIzaSyCAhkMvXqzljcMJZaTBsxMTBucuDDM7srg",
@@ -29,26 +29,35 @@
       return onSnapshot(collection(db, col), s => cb(s.docs.map(d => d.data())));
     };
 
-    // Incremento atómico del contador — evita números duplicados
-    // Incremento atómico del contador — garantiza números únicos entre PCs
-    window.fbIncrementarContador = async () => {
+    // Obtener siguiente número de orden — lee historial real y usa el siguiente
+    window.fbObtenerSiguienteNumero = async () => {
       try {
-        const contadorRef = doc(db, 'config', 'contador');
-        const nuevoValor = await runTransaction(db, async (transaction) => {
-          const snap = await transaction.get(contadorRef);
-          const actual = snap.exists() ? snap.data().valor : 1;
-          const nuevo = actual + 1;
-          transaction.set(contadorRef, { valor: nuevo });
-          return actual;
+        // Leer todas las órdenes y encontrar el número más alto
+        const historialSnap = await getDocs(collection(db, 'historial'));
+        let maxNro = 0;
+        historialSnap.docs.forEach(d => {
+          const data = d.data();
+          if (data.nro) {
+            const num = parseInt(data.nro.replace('SAL-', ''));
+            if (!isNaN(num) && num > maxNro) maxNro = num;
+          }
         });
-        return nuevoValor;
+        // También verificar el contador guardado
+        const contadorRef = doc(db, 'config', 'contador');
+        const contadorSnap = await getDoc(contadorRef);
+        const contadorActual = contadorSnap.exists() ? contadorSnap.data().valor : 1;
+        // Usar el mayor
+        const siguiente = Math.max(maxNro + 1, contadorActual);
+        // Guardar el nuevo contador
+        await setDoc(contadorRef, { valor: siguiente + 1 });
+        return siguiente;
       } catch(e) {
-        console.error('fbIncrementarContador:', e);
+        console.error('fbObtenerSiguienteNumero:', e);
         return null;
       }
     };
 
-    // Sincronizar contador con el historial real (corregir si está desincronizado)
+    // Sincronizar contador con el historial real
     window.fbSincronizarContador = async () => {
       try {
         const historialSnap = await getDocs(collection(db, 'historial'));

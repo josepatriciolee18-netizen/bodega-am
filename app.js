@@ -679,9 +679,9 @@ form.addEventListener('submit', async (e) => {
   // Obtener siguiente número de orden (transacción atómica - nunca se duplica)
   let nroOrden;
   document.getElementById('btnRegistrar').textContent = '⏳ Registrando...';
-  if (window.fbListo && window.fbIncrementarContador) {
+  if (window.fbListo && window.fbObtenerSiguienteNumero) {
     try {
-      const nroDesdeFirebase = await fbIncrementarContador();
+      const nroDesdeFirebase = await fbObtenerSiguienteNumero();
       if (nroDesdeFirebase !== null) {
         nroOrden = generarNro(nroDesdeFirebase);
         contador = nroDesdeFirebase + 1;
@@ -690,7 +690,7 @@ form.addEventListener('submit', async (e) => {
         // Firebase falló — reintentar una vez
         showToast('Reintentando conexión...', true);
         await new Promise(r => setTimeout(r, 1000));
-        const reintento = await fbIncrementarContador();
+        const reintento = await fbObtenerSiguienteNumero();
         if (reintento !== null) {
           nroOrden = generarNro(reintento);
           contador = reintento + 1;
