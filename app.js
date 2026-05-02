@@ -1419,6 +1419,22 @@ function limpiarFormularioCompleto() {
       ipcRenderer.send('forzarFoco');
     }
   }, 150);
+  // Reaplicar permisos de pestañas
+  aplicarPermisos();
+}
+
+function aplicarPermisos() {
+  if (!usuarioActivo) return;
+  const p = usuarioActivo.permisos;
+  const esAdmin = usuarioActivo.rol === 'Admin';
+  document.querySelector('[data-tab="formulario"]').style.display  = (esAdmin || !p || p.crearOrden)   ? '' : 'none';
+  document.querySelector('[data-tab="reportes"]').style.display    = (esAdmin || !p || p.reportes)     ? '' : 'none';
+  document.querySelector('[data-tab="productos"]').style.display   = (esAdmin || !p || p.productos)    ? '' : 'none';
+  document.querySelector('[data-tab="clientes"]').style.display    = (esAdmin || !p || p.clientes)     ? '' : 'none';
+  document.querySelector('[data-tab="recepciones"]').style.display = (esAdmin || !p || p.recepciones)  ? '' : 'none';
+  document.querySelector('[data-tab="usuarios"]').style.display    = (esAdmin || !p || p.usuarios)     ? '' : 'none';
+  document.querySelector('[data-tab="actividad"]').style.display   = esAdmin ? '' : 'none';
+  document.querySelector('[data-tab="papelera"]').style.display    = esAdmin ? '' : 'none';
 }
 
 document.getElementById('btnImprimir').addEventListener('click', () => imprimirPagina());
