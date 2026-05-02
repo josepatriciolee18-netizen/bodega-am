@@ -231,13 +231,13 @@ ipcMain.on('imprimirCarta', (event, htmlContent) => {
     webPreferences: { nodeIntegration: false, contextIsolation: true }
   });
 
-  printWin.loadFile(tmpFile);
+  printWin.loadURL('file:///' + tmpFile.replace(/\\/g, '/'));
   printWin.webContents.on('did-finish-load', () => {
     printWin.webContents.print(
       { silent: false, printBackground: false, color: false },
       (success) => {
         setTimeout(() => {
-          printWin.close();
+          if (!printWin.isDestroyed()) printWin.close();
           try { fs.unlinkSync(tmpFile); } catch(e) {}
           if (win && !win.isDestroyed()) win.focus();
         }, 500);
