@@ -168,10 +168,6 @@ ipcMain.on('mostrar-notificacion', (event, { titulo, mensaje, nroOrden }) => {
     if (win && !win.isDestroyed()) {
       win.show();
       win.focus();
-      // Enviar al renderer para que abra la orden
-      if (nroOrden) {
-        win.webContents.send('abrir-orden', nroOrden);
-      }
     }
   });
   notif.show();
