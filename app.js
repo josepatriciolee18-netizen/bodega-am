@@ -711,8 +711,6 @@ form.addEventListener('submit', async (e) => {
     contador++;
     localStorage.setItem('contadorSalidas', contador);
   }
-    localStorage.setItem('contadorSalidas', contador);
-  }
 
   const salida = {
     nro:           nroOrden,
