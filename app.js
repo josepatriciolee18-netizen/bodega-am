@@ -976,12 +976,40 @@ document.getElementById('btnBuscarProductoFecha').addEventListener('click', busc
 document.getElementById('buscarProductoFecha').addEventListener('keydown', e => {
   if (e.key === 'Enter') buscarProductoFecha();
 });
-document.getElementById('btnImprimirProductoFecha').addEventListener('click', () => {
-  document.body.classList.add('print-producto-fecha');
-  setTimeout(() => {
-    imprimirPagina();
-    setTimeout(() => document.body.classList.remove('print-producto-fecha'), 1000);
-  }, 100);
+// Exportar Producto Fecha a Excel
+document.getElementById('btnExcelProductoFecha').addEventListener('click', () => {
+  if (!window._productoFechaData) return;
+  let csv = '\uFEFFFecha;N° Orden;Código;Producto;Unid.;Cant.;Cliente\n';
+  window._productoFechaData.forEach(r => {
+    csv += `${formatFecha(r.fecha)};${r.nro};${r.codigo};${r.descripcion};${r.unidad};${r.cantidad};${r.cliente||'-'}\n`;
+  });
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `BusquedaProducto_${fechaHoraLocal().slice(0,10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('✔ Excel exportado');
+});
+
+// Exportar Producto Fecha a PDF
+document.getElementById('btnPdfProductoFecha').addEventListener('click', () => {
+  if (!window._productoFechaData) return;
+  const filas = window._productoFechaData.map(r => `<tr><td>${formatFecha(r.fecha)}</td><td>${r.nro}</td><td>${r.codigo}</td><td>${r.descripcion}</td><td>${r.unidad}</td><td>${r.cantidad}</td><td>${r.cliente||'-'}</td></tr>`).join('');
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>
+    @page{size:letter;margin:15mm}*{font-family:Arial,sans-serif;font-size:11px;color:#000;margin:0;padding:0}
+    body{padding:10px}h1{font-size:16px;text-align:center;margin-bottom:12px}
+    table{width:100%;border-collapse:collapse}thead th{background:#333;color:#fff;padding:5px 8px;text-align:left}
+    tbody td{padding:4px 8px;border-bottom:1px solid #ddd}tbody tr:nth-child(even){background:#f5f5f5}
+  </style></head><body>
+    <h1>Bodega A&M — Búsqueda de Salidas por Producto</h1>
+    <table><thead><tr><th>Fecha</th><th>N° Orden</th><th>Código</th><th>Producto</th><th>Unid.</th><th>Cant.</th><th>Cliente</th></tr></thead>
+    <tbody>${filas}</tbody></table></body></html>`;
+  if (window.require) {
+    const { ipcRenderer } = window.require('electron');
+    ipcRenderer.send('vistaPreviewPDF', html);
+  }
 });
 
 function buscarProductoFecha() {
@@ -990,9 +1018,10 @@ function buscarProductoFecha() {
   const hasta  = document.getElementById('prodFechaHasta').value;
   const tabla  = document.getElementById('tablaProductoFechas');
   const tbody  = document.getElementById('tbodyProductoFechas');
-  const btnImp = document.getElementById('btnImprimirProductoFecha');
+  const btnExcel = document.getElementById('btnExcelProductoFecha');
+  const btnPdf = document.getElementById('btnPdfProductoFecha');
 
-  if (!q && !desde && !hasta) { tabla.style.display = 'none'; btnImp.style.display = 'none'; return; }
+  if (!q && !desde && !hasta) { tabla.style.display = 'none'; btnExcel.style.display = 'none'; btnPdf.style.display = 'none'; return; }
 
   const resultados = [];
   historial.forEach(s => {
@@ -1022,7 +1051,8 @@ function buscarProductoFecha() {
 
   if (resultados.length === 0) {
     tbody.innerHTML = '<tr><td colspan="7" class="empty-msg">No se encontraron salidas</td></tr>';
-    btnImp.style.display = 'none';
+    btnExcel.style.display = 'none';
+    btnPdf.style.display = 'none';
     return;
   }
 
@@ -1037,7 +1067,9 @@ function buscarProductoFecha() {
       <td>${r.cliente || '-'}</td>
     </tr>`).join('');
 
-  btnImp.style.display = '';
+  btnExcel.style.display = '';
+  btnPdf.style.display = '';
+  window._productoFechaData = resultados;
 }
 
 // Filtros órdenes
@@ -1048,26 +1080,57 @@ document.getElementById('btnFiltroMes').addEventListener('click', () => {
   renderTopMes(mes);
 });
 
-document.getElementById('btnImprimirTopMes').addEventListener('click', () => {
-  document.body.classList.add('print-top-mes');
-  setTimeout(() => {
-    imprimirPagina();
-    setTimeout(() => document.body.classList.remove('print-top-mes'), 1000);
-  }, 100);
+// Exportar Top Mes a Excel
+document.getElementById('btnExcelTopMes').addEventListener('click', () => {
+  if (!window._topMesData) return;
+  let csv = '\uFEFF#;Código;Producto;Unidad;Total Despachado\n';
+  window._topMesData.forEach((p, i) => {
+    csv += `${i+1};${p.codigo};${p.descripcion};${p.unidad};${p.total}\n`;
+  });
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `TopProductos_${window._topMesTitulo}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('✔ Excel exportado');
+});
+
+// Exportar Top Mes a PDF
+document.getElementById('btnPdfTopMes').addEventListener('click', () => {
+  if (!window._topMesData) return;
+  const filas = window._topMesData.map((p, i) => `<tr><td>${i+1}</td><td>${p.codigo}</td><td>${p.descripcion}</td><td>${p.unidad}</td><td>${p.total}</td></tr>`).join('');
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>
+    @page{size:letter;margin:15mm}*{font-family:Arial,sans-serif;font-size:11px;color:#000;margin:0;padding:0}
+    body{padding:10px}h1{font-size:16px;text-align:center;margin-bottom:12px}
+    table{width:100%;border-collapse:collapse}thead th{background:#333;color:#fff;padding:5px 8px;text-align:left}
+    tbody td{padding:4px 8px;border-bottom:1px solid #ddd}tbody tr:nth-child(even){background:#f5f5f5}
+  </style></head><body>
+    <h1>Bodega A&M — Productos Más Despachados (${window._topMesTitulo})</h1>
+    <table><thead><tr><th>#</th><th>Código</th><th>Producto</th><th>Unidad</th><th>Total</th></tr></thead>
+    <tbody>${filas}</tbody></table></body></html>`;
+  if (window.require) {
+    const { ipcRenderer } = window.require('electron');
+    ipcRenderer.send('vistaPreviewPDF', html);
+  }
 });
 
 function renderTopMes(mes) {
   const tbody  = document.getElementById('tbodyTopMes');
-  const btnImp = document.getElementById('btnImprimirTopMes');
+  const btnExcel = document.getElementById('btnExcelTopMes');
+  const btnPdf = document.getElementById('btnPdfTopMes');
   if (!mes) {
     tbody.innerHTML = '<tr><td colspan="5" class="empty-msg">Selecciona un mes para ver los datos</td></tr>';
-    btnImp.style.display = 'none';
+    btnExcel.style.display = 'none';
+    btnPdf.style.display = 'none';
     return;
   }
   const ordenesMes = historial.filter(s => s.fecha && s.fecha.slice(0, 7) === mes);
   if (ordenesMes.length === 0) {
     tbody.innerHTML = '<tr><td colspan="5" class="empty-msg">No hay órdenes en ese mes</td></tr>';
-    btnImp.style.display = 'none';
+    btnExcel.style.display = 'none';
+    btnPdf.style.display = 'none';
     return;
   }
   const conteo = {};
@@ -1087,7 +1150,10 @@ function renderTopMes(mes) {
       <td>${p.unidad}</td>
       <td><strong>${p.total}</strong></td>
     </tr>`).join('');
-  btnImp.style.display = '';
+  btnExcel.style.display = '';
+  btnPdf.style.display = '';
+  window._topMesData = top;
+  window._topMesTitulo = mes;
 }
 document.getElementById('btnLimpiarFiltro').addEventListener('click', () => {
   document.getElementById('filtroNroSalida').value  = '';
