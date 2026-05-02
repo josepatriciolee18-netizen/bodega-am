@@ -12,12 +12,25 @@ async function hashPassword(password) {
 // ── Auto-Update listener ──────────────────────────────────
 function verificarInternet() {
   return new Promise((resolve) => {
-    // Intentar hacer fetch a un recurso confiable
-    fetch('https://www.google.com/favicon.ico', { mode: 'no-cors', cache: 'no-store' })
-      .then(() => resolve(true))
-      .catch(() => resolve(false));
-    // Timeout de 5 segundos
-    setTimeout(() => resolve(false), 5000);
+    let resuelto = false;
+    const resolver = (val) => { if (!resuelto) { resuelto = true; resolve(val); } };
+    // Intentar varios sitios
+    const urls = [
+      'https://www.google.com/favicon.ico',
+      'https://www.cloudflare.com/favicon.ico',
+      'https://firestore.googleapis.com'
+    ];
+    urls.forEach(url => {
+      fetch(url, { mode: 'no-cors', cache: 'no-store' })
+        .then(() => resolver(true))
+        .catch(() => {});
+    });
+    // También verificar con navigator.onLine
+    if (navigator.onLine) {
+      setTimeout(() => resolver(true), 2000);
+    }
+    // Timeout de 10 segundos
+    setTimeout(() => resolver(false), 10000);
   });
 }
 
