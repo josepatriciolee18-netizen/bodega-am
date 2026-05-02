@@ -333,6 +333,16 @@ async function cargarDesdeFirebase() {
 
     showToast('✔ Conectado a la nube');
 
+    // Sincronizar contador con el historial real
+    if (window.fbSincronizarContador) {
+      const contadorReal = await fbSincronizarContador();
+      if (contadorReal) {
+        contador = contadorReal;
+        localStorage.setItem('contadorSalidas', contador);
+        nroSalidaEl.value = generarNro(contador);
+      }
+    }
+
     // Cargar log de actividad desde Firebase
     cargarLogFirebase();
 
@@ -678,41 +688,32 @@ form.addEventListener('submit', async (e) => {
   if (!solicitante) { showToast('Ingresa el nombre del Cliente', true); document.getElementById('solicitante').focus(); registrando = false; document.getElementById('btnRegistrar').disabled = false; document.getElementById('btnRegistrar').textContent = '✔ Registrar Salida'; return; }
   if (productos.length === 0) { showToast('Agrega al menos un producto', true); registrando = false; document.getElementById('btnRegistrar').disabled = false; document.getElementById('btnRegistrar').textContent = '✔ Registrar Salida'; return; }
 
-  // Obtener siguiente número de orden seguro
+  // Obtener siguiente número de orden (transacción atómica - nunca se duplica)
   let nroOrden;
-  if (window.fbListo) {
+  document.getElementById('btnRegistrar').textContent = '⏳ Registrando...';
+  if (window.fbListo && window.fbIncrementarContador) {
     try {
-      // Leer todas las órdenes de Firebase y encontrar el número más alto
-      const todasOrdenes = await fbCargar('historial');
-      let maxNro = 0;
-      todasOrdenes.forEach(o => {
-        if (o.nro) {
-          const num = parseInt(o.nro.replace('SAL-', ''));
-          if (!isNaN(num) && num > maxNro) maxNro = num;
-        }
-      });
-      // También comparar con el historial local
-      historial.forEach(o => {
-        if (o.nro) {
-          const num = parseInt(o.nro.replace('SAL-', ''));
-          if (!isNaN(num) && num > maxNro) maxNro = num;
-        }
-      });
-      const siguienteNro = maxNro + 1;
-      nroOrden = generarNro(siguienteNro);
-      contador = siguienteNro + 1;
-      localStorage.setItem('contadorSalidas', contador);
-      // Guardar contador en Firebase
-      fbGuardar('config', 'contador', { valor: contador });
+      const nroDesdeFirebase = await fbIncrementarContador();
+      if (nroDesdeFirebase !== null) {
+        nroOrden = generarNro(nroDesdeFirebase);
+        contador = nroDesdeFirebase + 1;
+        localStorage.setItem('contadorSalidas', contador);
+      } else {
+        throw new Error('Firebase devolvió null');
+      }
     } catch(e) {
       console.error('Error obteniendo número:', e);
-      nroOrden = generarNro(contador);
+      // Fallback: usar timestamp para garantizar unicidad
+      const ts = Date.now().toString(36).toUpperCase();
+      nroOrden = 'SAL-' + ts;
       contador++;
       localStorage.setItem('contadorSalidas', contador);
     }
   } else {
     nroOrden = generarNro(contador);
     contador++;
+    localStorage.setItem('contadorSalidas', contador);
+  }
     localStorage.setItem('contadorSalidas', contador);
   }
 

@@ -30,12 +30,27 @@
     };
 
     // Incremento atómico del contador — evita números duplicados
-    // Busca el número más alto en el historial y usa el siguiente
+    // Incremento atómico del contador — garantiza números únicos entre PCs
     window.fbIncrementarContador = async () => {
       try {
         const contadorRef = doc(db, 'config', 'contador');
-        
-        // También verificar el historial para obtener el número más alto real
+        const nuevoValor = await runTransaction(db, async (transaction) => {
+          const snap = await transaction.get(contadorRef);
+          const actual = snap.exists() ? snap.data().valor : 1;
+          const nuevo = actual + 1;
+          transaction.set(contadorRef, { valor: nuevo });
+          return actual;
+        });
+        return nuevoValor;
+      } catch(e) {
+        console.error('fbIncrementarContador:', e);
+        return null;
+      }
+    };
+
+    // Sincronizar contador con el historial real (corregir si está desincronizado)
+    window.fbSincronizarContador = async () => {
+      try {
         const historialSnap = await getDocs(collection(db, 'historial'));
         let maxNro = 0;
         historialSnap.docs.forEach(d => {
@@ -45,19 +60,16 @@
             if (!isNaN(num) && num > maxNro) maxNro = num;
           }
         });
-
-        const nuevoValor = await runTransaction(db, async (transaction) => {
-          const snap = await transaction.get(contadorRef);
-          const contadorActual = snap.exists() ? snap.data().valor : 1;
-          // Usar el mayor entre el contador guardado y el máximo del historial + 1
-          const valorReal = Math.max(contadorActual, maxNro + 1);
-          const nuevo = valorReal + 1;
-          transaction.set(contadorRef, { valor: nuevo });
-          return valorReal;
-        });
-        return nuevoValor;
+        const contadorRef = doc(db, 'config', 'contador');
+        const snap = await getDoc(contadorRef);
+        const contadorActual = snap.exists() ? snap.data().valor : 1;
+        if (maxNro + 1 > contadorActual) {
+          await setDoc(contadorRef, { valor: maxNro + 1 });
+          return maxNro + 1;
+        }
+        return contadorActual;
       } catch(e) {
-        console.error('fbIncrementarContador:', e);
+        console.error('fbSincronizarContador:', e);
         return null;
       }
     };
