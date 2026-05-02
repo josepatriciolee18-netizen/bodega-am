@@ -216,6 +216,9 @@ function mostrarApp() {
   // Botón eliminar en reportes
   window._puedeEliminarReporte = esAdmin || !p || p.eliminarReporte;
 
+  // Papelera solo para admin
+  document.querySelector('[data-tab="papelera"]').style.display    = esAdmin ? '' : 'none';
+
   // Sincronizar con Firebase después del login
   setTimeout(() => esperarFirebase(), 500);
 }
@@ -446,6 +449,7 @@ async function cargarDesdeFirebase() {
             document.querySelector('[data-tab="recepciones"]').style.display = (esAdmin || !p || p.recepciones)  ? '' : 'none';
             document.querySelector('[data-tab="usuarios"]').style.display    = (esAdmin || !p || p.usuarios)     ? '' : 'none';
             document.querySelector('[data-tab="actividad"]').style.display   = esAdmin ? '' : 'none';
+            document.querySelector('[data-tab="papelera"]').style.display    = esAdmin ? '' : 'none';
           } else if (usuarioActivo.login !== 'admin') {
             // Usuario desactivado — cerrar sesión
             sessionStorage.removeItem('sesionActiva');
@@ -498,6 +502,7 @@ document.querySelectorAll('.tab').forEach(btn => {
     }
     if (btn.dataset.tab === 'recepciones') { renderOrdenesEmitidas(); renderRecepciones(); }
     if (btn.dataset.tab === 'actividad') { renderActividad(); }
+    if (btn.dataset.tab === 'papelera') { renderPapelera(); }
   });
 });
 
@@ -2233,6 +2238,59 @@ function cargarLogFirebase() {
       }
     });
   }
+}
+
+// ── Papelera de Reciclaje ─────────────────────────────────
+function renderPapelera() {
+  const tbody = document.getElementById('tbodyPapelera');
+  if (!tbody) return;
+  const anuladas = historial.filter(s => s.anulada === true);
+  if (anuladas.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" class="empty-msg">No hay órdenes en la papelera</td></tr>';
+    return;
+  }
+  tbody.innerHTML = anuladas.map(s => {
+    const idx = historial.indexOf(s);
+    return `<tr>
+      <td><strong>${s.nro}</strong></td>
+      <td>${formatFecha(s.fecha)}</td>
+      <td>${s.tipoDocumento || '-'}</td>
+      <td>${s.solicitante || '-'}</td>
+      <td>${s.creadoPor ? `${s.creadoPor} (${s.rolCreador || '-'})` : '-'}</td>
+      <td>
+        <button class="btn-ver" onclick="verOrdenAntigua('${s.nro}')">Ver</button>
+        <button class="btn-add" style="padding:4px 10px;font-size:0.8rem;background:#16a34a" onclick="restaurarOrden(${idx})">♻ Restaurar</button>
+        <button class="btn-delete" style="margin-left:4px" onclick="eliminarDefinitivo(${idx})" title="Eliminar definitivamente">✕ Eliminar</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function restaurarOrden(i) {
+  if (!confirm(`¿Restaurar la orden ${historial[i].nro}? Volverá a aparecer como orden activa.`)) return;
+  historial[i].anulada = false;
+  localStorage.setItem('historialSalidas', JSON.stringify(historial));
+  if (window.fbListo) fbGuardar('historial', historial[i].nro, historial[i]);
+  registrarActividad('Orden restaurada', `${historial[i].nro}`);
+  showToast(`✔ Orden ${historial[i].nro} restaurada`);
+  renderPapelera();
+  renderReportes();
+  buscarOrdenAntigua();
+  renderOrdenesEmitidas();
+}
+
+function eliminarDefinitivo(i) {
+  if (!confirm(`¿Eliminar DEFINITIVAMENTE la orden ${historial[i].nro}? Esta acción no se puede deshacer.`)) return;
+  if (!confirm('¿Estás completamente seguro?')) return;
+  const nro = historial[i].nro;
+  historial.splice(i, 1);
+  localStorage.setItem('historialSalidas', JSON.stringify(historial));
+  if (window.fbListo) fbEliminar('historial', nro);
+  registrarActividad('Orden eliminada definitivamente', nro);
+  showToast(`Orden ${nro} eliminada definitivamente`);
+  renderPapelera();
+  renderReportes();
+  buscarOrdenAntigua();
 }
 
 function showToast(msg, error = false) {
