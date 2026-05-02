@@ -901,23 +901,8 @@ document.getElementById('btnExportarExcel').addEventListener('click', () => {
 
     const hoy = fechaHoraLocal().slice(0, 10);
     const nombreArchivo = `Reporte_BodegaAM_${hoy}.xlsx`;
-
-    if (window.require) {
-      // En Electron: guardar con diálogo
-      const { ipcRenderer } = window.require('electron');
-      const datos = XLSX.write(wb, { bookType: 'xlsx', type: 'buffer' });
-      const fs = window.require('fs');
-      const { dialog } = window.require('@electron/remote') || {};
-      // Guardar en escritorio
-      const os = window.require('os');
-      const path = window.require('path');
-      const rutaArchivo = path.join(os.homedir(), 'Desktop', nombreArchivo);
-      fs.writeFileSync(rutaArchivo, datos);
-      showToast(`✔ Excel guardado en Escritorio: ${nombreArchivo}`);
-    } else {
-      XLSX.writeFile(wb, nombreArchivo);
-      showToast('✔ Reporte exportado a Excel');
-    }
+    XLSX.writeFile(wb, nombreArchivo);
+    showToast(`✔ Excel guardado: ${nombreArchivo}`);
     registrarActividad('Exportar Excel', 'Reporte de órdenes exportado');
   } catch(e) {
     console.error('Error exportando Excel:', e);
