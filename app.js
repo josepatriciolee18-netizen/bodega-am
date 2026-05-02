@@ -2055,6 +2055,8 @@ function verRecepcion(i) {
     <div class="detail-row"><strong>N° Recepción:</strong> ${r.nro}</div>
     <div class="detail-row"><strong>N° Orden:</strong> ${r.nroOrden}</div>
     <div class="detail-row"><strong>Fecha Recepción:</strong> ${formatFecha(r.fecha)}</div>
+    <div class="detail-row"><strong>Tipo Documento:</strong> ${ordenOriginal ? ordenOriginal.tipoDocumento || '-' : '-'}</div>
+    <div class="detail-row"><strong>N° Documento:</strong> ${ordenOriginal ? ordenOriginal.nroDocumento || '-' : '-'}</div>
     <div class="detail-row"><strong>Cliente:</strong> ${r.solicitante || r.Cliente || '-'}</div>
     <div class="detail-row"><strong>Recibido por:</strong> ${r.recibidoPor}</div>
     ${ordenOriginal && ordenOriginal.creadoPor ? `<div class="detail-row"><strong>Orden creada por:</strong> ${ordenOriginal.creadoPor} (${ordenOriginal.rolCreador || '-'})</div>` : ''}
