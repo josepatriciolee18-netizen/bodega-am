@@ -2182,6 +2182,30 @@ function registrarActividad(accion, detalle) {
 }
 
 function renderActividad(filtro = '') {
+  // ── Actividad reciente (última hora) ──
+  const tbodyReciente = document.getElementById('tbodyActividadReciente');
+  if (tbodyReciente) {
+    const ahora = new Date();
+    const haceUnaHora = new Date(ahora.getTime() - 60 * 60 * 1000);
+    const recientes = logActividad.filter(a => {
+      const fechaAct = new Date(a.fecha.replace('T', ' '));
+      return fechaAct >= haceUnaHora;
+    });
+    if (recientes.length === 0) {
+      tbodyReciente.innerHTML = '<tr><td colspan="5" class="empty-msg">No hay actividad en la última hora</td></tr>';
+    } else {
+      tbodyReciente.innerHTML = recientes.map(a => `
+        <tr>
+          <td>${formatFecha(a.fecha)}</td>
+          <td><strong>${a.usuario}</strong></td>
+          <td><span class="badge badge-${a.rol.toLowerCase().replace(/\s+/g,'-').normalize('NFD').replace(/[\u0300-\u036f]/g,'')}">${a.rol}</span></td>
+          <td>${a.accion}</td>
+          <td style="font-size:0.82rem;color:#555">${a.detalle}</td>
+        </tr>`).join('');
+    }
+  }
+
+  // ── Historial completo ──
   const tbody = document.getElementById('tbodyActividad');
   if (!tbody) return;
   const desde = document.getElementById('actDesde').value;
