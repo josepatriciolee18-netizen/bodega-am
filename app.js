@@ -2024,6 +2024,8 @@ function generarNroRec(n) {
 function renderOrdenesEmitidas(filtro = '') {
   const tbody = document.getElementById('tbodyOrdenesEmitidas');
   let datos = historial.filter(s => !s.anulada && !recepciones.some(r => r.nroOrden === s.nro));
+  // Ordenar por fecha más reciente primero
+  datos.sort((a, b) => (b.fecha || '').localeCompare(a.fecha || ''));
   if (filtro) {
     const q = filtro.toLowerCase();
     datos = datos.filter(s =>
@@ -2031,10 +2033,10 @@ function renderOrdenesEmitidas(filtro = '') {
       ((s.solicitante || s.Cliente || '').toLowerCase().includes(q))
     );
   } else {
-    datos = datos.slice(0, 8);
+    datos = datos.slice(0, 20);
   }
   if (datos.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="8" class="empty-msg">No hay órdenes emitidas</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="6" class="empty-msg">No hay órdenes pendientes</td></tr>';
     return;
   }
   tbody.innerHTML = datos.map(s => {
