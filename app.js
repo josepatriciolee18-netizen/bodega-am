@@ -333,6 +333,16 @@ async function cargarDesdeFirebase() {
 
     showToast('✔ Conectado a la nube');
 
+    // Cargar recepciones desde Firebase al conectar
+    const fbRecepciones = await fbCargar('recepciones');
+    if (fbRecepciones.length > 0) {
+      recepciones = fbRecepciones.sort((a,b) => b.nro.localeCompare(a.nro));
+      localStorage.setItem('recepcionesBodega', JSON.stringify(recepciones));
+      renderRecepciones();
+      renderOrdenesEmitidas();
+      buscarOrdenAntigua();
+    }
+
     // Sincronizar contador con el historial real
     if (window.fbSincronizarContador) {
       const contadorReal = await fbSincronizarContador();
@@ -2017,7 +2027,7 @@ function cerrarModalRec() {
   ordenEnRecepcion = null;
 }
 
-function confirmarRecepcion() {
+async function confirmarRecepcion() {
   const recibidoPor = document.getElementById('recibidoPor').value.trim();
   if (!recibidoPor) { showToast('Ingresa quién recibe la orden', true); return; }
 
@@ -2031,13 +2041,20 @@ function confirmarRecepcion() {
     total:       ordenEnRecepcion.total
   };
 
+  // Guardar en Firebase primero y esperar confirmación
+  if (window.fbListo) {
+    try {
+      await fbGuardar('recepciones', recepcion.nro, recepcion);
+    } catch(e) {
+      showToast('Error al guardar recepción. Intenta de nuevo.', true);
+      return;
+    }
+  }
+
   recepciones.unshift(recepcion);
   localStorage.setItem('recepcionesBodega', JSON.stringify(recepciones));
   contadorRec++;
   localStorage.setItem('contadorRecepciones', contadorRec);
-
-  // Sincronizar con Firebase
-  if (window.fbListo) fbGuardar('recepciones', recepcion.nro, recepcion);
 
   cerrarModalRec();
   renderOrdenesEmitidas();

@@ -90,7 +90,7 @@
             <div class="row"><strong>Cliente</strong><span>${s.solicitante||'-'}</span></div>
             ${s.observaciones ? `<div class="row"><strong>Observaciones</strong><span>${s.observaciones}</span></div>` : ''}
             <table>
-              <thead><tr><th>#</th><th>Producto</th><th>Unid.</th><th>Cant.</th></tr></thead>
+              <thead><tr><th>#</th><th>Producto</th><th>Unid.</th><th>Cant.</th><th>En Palabras</th></tr></thead>
               <tbody>
                 ${s.productos.map((p,i) => `
                   <tr>
@@ -98,6 +98,7 @@
                     <td>${p.descripcion}</td>
                     <td>${p.unidad}</td>
                     <td>${p.cantidad}</td>
+                    <td>${p.cantPalabras || '-'}</td>
                   </tr>`).join('')}
               </tbody>
             </table>
