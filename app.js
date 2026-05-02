@@ -200,21 +200,21 @@ function mostrarApp() {
     }
   } catch(e) {}
 
-  const p = usuarioActivo.permisos;
+  const p = usuarioActivo.permisos || {};
   // Admin tiene todo, otros según permisos
   const esAdmin = usuarioActivo.rol === 'Admin';
 
   // Pestañas
-  document.querySelector('[data-tab="formulario"]').style.display  = (esAdmin || !p || p.crearOrden)   ? '' : 'none';
-  document.querySelector('[data-tab="reportes"]').style.display    = (esAdmin || !p || p.reportes)     ? '' : 'none';
-  document.querySelector('[data-tab="productos"]').style.display   = (esAdmin || !p || p.productos)    ? '' : 'none';
-  document.querySelector('[data-tab="clientes"]').style.display    = (esAdmin || !p || p.clientes)     ? '' : 'none';
-  document.querySelector('[data-tab="recepciones"]').style.display = (esAdmin || !p || p.recepciones)  ? '' : 'none';
-  document.querySelector('[data-tab="usuarios"]').style.display    = (esAdmin || !p || p.usuarios)     ? '' : 'none';
+  document.querySelector('[data-tab="formulario"]').style.display  = (esAdmin || p.crearOrden)   ? '' : 'none';
+  document.querySelector('[data-tab="reportes"]').style.display    = (esAdmin || p.reportes)     ? '' : 'none';
+  document.querySelector('[data-tab="productos"]').style.display   = (esAdmin || p.productos)    ? '' : 'none';
+  document.querySelector('[data-tab="clientes"]').style.display    = (esAdmin || p.clientes)     ? '' : 'none';
+  document.querySelector('[data-tab="recepciones"]').style.display = (esAdmin || p.recepciones)  ? '' : 'none';
+  document.querySelector('[data-tab="usuarios"]').style.display    = (esAdmin || p.usuarios)     ? '' : 'none';
   document.querySelector('[data-tab="actividad"]').style.display   = esAdmin ? '' : 'none';
 
   // Botón eliminar en reportes
-  window._puedeEliminarReporte = esAdmin || !p || p.eliminarReporte;
+  window._puedeEliminarReporte = esAdmin || p.eliminarReporte;
 
   // Papelera solo para admin
   document.querySelector('[data-tab="papelera"]').style.display    = esAdmin ? '' : 'none';
@@ -447,16 +447,7 @@ async function cargarDesdeFirebase() {
             usuarioActivo = usuarioFresco;
             sessionStorage.setItem('sesionActiva', JSON.stringify(usuarioFresco));
             // Reaplicar permisos en las pestañas
-            const p = usuarioFresco.permisos;
-            const esAdmin = usuarioFresco.rol === 'Admin';
-            document.querySelector('[data-tab="formulario"]').style.display  = (esAdmin || !p || p.crearOrden)   ? '' : 'none';
-            document.querySelector('[data-tab="reportes"]').style.display    = (esAdmin || !p || p.reportes)     ? '' : 'none';
-            document.querySelector('[data-tab="productos"]').style.display   = (esAdmin || !p || p.productos)    ? '' : 'none';
-            document.querySelector('[data-tab="clientes"]').style.display    = (esAdmin || !p || p.clientes)     ? '' : 'none';
-            document.querySelector('[data-tab="recepciones"]').style.display = (esAdmin || !p || p.recepciones)  ? '' : 'none';
-            document.querySelector('[data-tab="usuarios"]').style.display    = (esAdmin || !p || p.usuarios)     ? '' : 'none';
-            document.querySelector('[data-tab="actividad"]').style.display   = esAdmin ? '' : 'none';
-            document.querySelector('[data-tab="papelera"]').style.display    = esAdmin ? '' : 'none';
+            aplicarPermisos();
           } else if (usuarioActivo.login !== 'admin') {
             // Usuario desactivado — cerrar sesión
             sessionStorage.removeItem('sesionActiva');
@@ -1421,14 +1412,15 @@ function limpiarFormularioCompleto() {
 
 function aplicarPermisos() {
   if (!usuarioActivo) return;
-  const p = usuarioActivo.permisos;
+  const p = usuarioActivo.permisos || {};
   const esAdmin = usuarioActivo.rol === 'Admin';
-  document.querySelector('[data-tab="formulario"]').style.display  = (esAdmin || !p || p.crearOrden)   ? '' : 'none';
-  document.querySelector('[data-tab="reportes"]').style.display    = (esAdmin || !p || p.reportes)     ? '' : 'none';
-  document.querySelector('[data-tab="productos"]').style.display   = (esAdmin || !p || p.productos)    ? '' : 'none';
-  document.querySelector('[data-tab="clientes"]').style.display    = (esAdmin || !p || p.clientes)     ? '' : 'none';
-  document.querySelector('[data-tab="recepciones"]').style.display = (esAdmin || !p || p.recepciones)  ? '' : 'none';
-  document.querySelector('[data-tab="usuarios"]').style.display    = (esAdmin || !p || p.usuarios)     ? '' : 'none';
+
+  document.querySelector('[data-tab="formulario"]').style.display  = (esAdmin || p.crearOrden)   ? '' : 'none';
+  document.querySelector('[data-tab="reportes"]').style.display    = (esAdmin || p.reportes)     ? '' : 'none';
+  document.querySelector('[data-tab="productos"]').style.display   = (esAdmin || p.productos)    ? '' : 'none';
+  document.querySelector('[data-tab="clientes"]').style.display    = (esAdmin || p.clientes)     ? '' : 'none';
+  document.querySelector('[data-tab="recepciones"]').style.display = (esAdmin || p.recepciones)  ? '' : 'none';
+  document.querySelector('[data-tab="usuarios"]').style.display    = (esAdmin || p.usuarios)     ? '' : 'none';
   document.querySelector('[data-tab="actividad"]').style.display   = esAdmin ? '' : 'none';
   document.querySelector('[data-tab="papelera"]').style.display    = esAdmin ? '' : 'none';
 }
