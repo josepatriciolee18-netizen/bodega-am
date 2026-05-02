@@ -304,11 +304,15 @@ document.getElementById('fecha').value = fechaHoraLocal();
 nroSalidaEl.value = generarNro(contador);
 
 // Cargar datos desde Firebase si está disponible
+let _unsubscribers = [];
 async function cargarDesdeFirebase() {
   if (!window.fbListo) {
     setTimeout(cargarDesdeFirebase, 500);
     return;
   }
+  // Limpiar listeners anteriores para evitar duplicados
+  _unsubscribers.forEach(unsub => { try { unsub(); } catch(e) {} });
+  _unsubscribers = [];
   try {
     // Cargar contador desde Firebase - siempre usar el valor de la nube
     const fbContador = await fbCargar('config');
@@ -358,7 +362,7 @@ async function cargarDesdeFirebase() {
 
     // Escuchar cambios en tiempo real - solo se activa cuando hay cambios
     let historialCargadoInicial = false;
-    fbEscuchar('historial', (datos) => {
+    _unsubscribers.push(fbEscuchar('historial', (datos) => {
       const nuevos = datos.sort((a,b) => b.nro.localeCompare(a.nro));
       
       // Usar números de orden como clave para evitar duplicados
@@ -384,10 +388,10 @@ async function cargarDesdeFirebase() {
         buscarOrdenAntigua();
       }
       historialCargadoInicial = true;
-    });
+    }));
 
     let recepcionesCargadoInicial = false;
-    fbEscuchar('recepciones', (datos) => {
+    _unsubscribers.push(fbEscuchar('recepciones', (datos) => {
       const nuevos = datos.sort((a,b) => b.nro.localeCompare(a.nro));
       
       const nrosNuevos = new Set(nuevos.map(n => n.nro));
@@ -411,36 +415,36 @@ async function cargarDesdeFirebase() {
         buscarOrdenAntigua();
       }
       recepcionesCargadoInicial = true;
-    });
+    }));
 
-    fbEscuchar('catalogo', (datos) => {
+    _unsubscribers.push(fbEscuchar('catalogo', (datos) => {
       if (datos.length !== catalogo.length) {
         catalogo = datos;
         localStorage.setItem('catalogoProductos', JSON.stringify(catalogo));
         renderCatalogo();
       }
-    });
+    }));
 
-    fbEscuchar('clientes', (datos) => {
+    _unsubscribers.push(fbEscuchar('clientes', (datos) => {
       if (datos.length !== clientes.length) {
         clientes = datos;
         localStorage.setItem('clientesBodega', JSON.stringify(clientes));
         renderClientes();
       }
-    });
+    }));
 
     // Escuchar cambios en el contador en tiempo real
-    fbEscuchar('config', (datos) => {
+    _unsubscribers.push(fbEscuchar('config', (datos) => {
       const cfg = datos.find(c => c.valor !== undefined);
       if (cfg && cfg.valor !== contador) {
         contador = cfg.valor;
         localStorage.setItem('contadorSalidas', contador);
         nroSalidaEl.value = generarNro(contador);
       }
-    });
+    }));
 
     // Escuchar cambios en usuarios - reemplaza lista completa
-    fbEscuchar('usuarios', (datos) => {
+    _unsubscribers.push(fbEscuchar('usuarios', (datos) => {
       if (datos.length >= 0) {
         const adminLocal = usuarios.find(u => u.login === 'admin');
         usuarios = datos;
@@ -468,7 +472,7 @@ async function cargarDesdeFirebase() {
           }
         }
       }
-    });
+    }));
 
   } catch(e) {
     console.error('Error Firebase:', e);
@@ -672,7 +676,6 @@ form.addEventListener('submit', async (e) => {
 
   const tipoDocumento = document.getElementById('tipoDocumento').value;
   const solicitante   = document.getElementById('solicitante').value.trim();
-  const responsable   = document.getElementById('responsable') ? document.getElementById('responsable').value.trim() : '';
 
   if (!tipoDocumento) { showToast('Selecciona el Tipo de Documento', true); document.getElementById('tipoDocumento').focus(); registrando = false; document.getElementById('btnRegistrar').disabled = false; document.getElementById('btnRegistrar').textContent = '✔ Registrar Salida'; return; }
 
@@ -2300,14 +2303,14 @@ document.getElementById('buscarActividad').addEventListener('keydown', e => {
 // Cargar log desde Firebase
 function cargarLogFirebase() {
   if (window.fbListo) {
-    fbEscuchar('actividad', (datos) => {
+    _unsubscribers.push(fbEscuchar('actividad', (datos) => {
       const nuevos = datos.sort((a, b) => b.fecha > a.fecha ? 1 : -1);
       if (nuevos.length > logActividad.length) {
         logActividad = nuevos.slice(0, 500);
         localStorage.setItem('logActividad', JSON.stringify(logActividad));
         renderActividad();
       }
-    });
+    }));
   }
 }
 
