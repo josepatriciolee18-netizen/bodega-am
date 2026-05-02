@@ -1976,7 +1976,9 @@ function abrirModalRec(btn) {
     <div class="detail-row"><strong>N° Orden:</strong> ${orden.nro}</div>
     <div class="detail-row"><strong>Fecha Emisión:</strong> ${formatFecha(orden.fecha)}</div>
     <div class="detail-row"><strong>Tipo Documento:</strong> ${orden.tipoDocumento || '-'}</div>
+    <div class="detail-row"><strong>N° Documento:</strong> ${orden.nroDocumento || '-'}</div>
     <div class="detail-row"><strong>Cliente:</strong> ${orden.solicitante}</div>
+    ${orden.creadoPor ? `<div class="detail-row"><strong>Creada por:</strong> ${orden.creadoPor} (${orden.rolCreador || '-'})</div>` : ''}
     <table style="margin-top:14px">
       <thead><tr><th>#</th><th>Código</th><th>Descripción</th><th>Unidad</th><th>Cantidad</th></tr></thead>
       <tbody>
