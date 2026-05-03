@@ -2168,8 +2168,34 @@ async function confirmarRecepcion() {
   const recibidoPor = document.getElementById('recibidoPor').value.trim();
   if (!recibidoPor) { showToast('Ingresa quién recibe la orden', true); return; }
 
+  // Obtener siguiente número de recepción desde Firebase
+  let nroRec;
+  if (window.fbListo) {
+    try {
+      const todasRec = await fbCargar('recepciones');
+      let maxRec = 0;
+      todasRec.forEach(r => {
+        if (r.nro) {
+          const num = parseInt(r.nro.replace('REC-', ''));
+          if (!isNaN(num) && num > maxRec) maxRec = num;
+        }
+      });
+      nroRec = 'REC-' + String(maxRec + 1).padStart(4, '0');
+      contadorRec = maxRec + 2;
+      localStorage.setItem('contadorRecepciones', contadorRec);
+    } catch(e) {
+      nroRec = 'REC-' + String(contadorRec).padStart(4, '0');
+      contadorRec++;
+      localStorage.setItem('contadorRecepciones', contadorRec);
+    }
+  } else {
+    nroRec = 'REC-' + String(contadorRec).padStart(4, '0');
+    contadorRec++;
+    localStorage.setItem('contadorRecepciones', contadorRec);
+  }
+
   const recepcion = {
-    nro:         'REC-' + String(contadorRec).padStart(4, '0'),
+    nro:         nroRec,
     nroOrden:    ordenEnRecepcion.nro,
     fecha:       fechaHoraLocal(),
     solicitante: ordenEnRecepcion.solicitante,
@@ -2190,8 +2216,6 @@ async function confirmarRecepcion() {
 
   recepciones.unshift(recepcion);
   localStorage.setItem('recepcionesBodega', JSON.stringify(recepciones));
-  contadorRec++;
-  localStorage.setItem('contadorRecepciones', contadorRec);
 
   cerrarModalRec();
   renderOrdenesEmitidas();
