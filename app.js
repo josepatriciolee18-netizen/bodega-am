@@ -277,12 +277,14 @@ async function hacerLogin() {
       return;
     }
 
-    // Intentar cargar usuarios desde Firebase con timeout de 3 segundos
+    // Intentar cargar usuarios desde Firebase (NO bloquear si falla)
     if (window.fbListo) {
       try {
-        const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject('timeout'), 3000));
-        const fbUsuarios = await Promise.race([fbCargar('usuarios'), timeoutPromise]).catch(() => []);
-        if (fbUsuarios.length > 0) {
+        const fbUsuarios = await Promise.race([
+          fbCargar('usuarios'),
+          new Promise(resolve => setTimeout(() => resolve([]), 2000))
+        ]);
+        if (fbUsuarios && fbUsuarios.length > 0) {
           fbUsuarios.forEach(fbUser => {
             const idx = usuarios.findIndex(u => u.login === fbUser.login);
             if (idx === -1) usuarios.push(fbUser);
@@ -290,7 +292,7 @@ async function hacerLogin() {
           });
           localStorage.setItem('usuariosBodega', JSON.stringify(usuarios));
         }
-      } catch(e) { console.error('Error cargando usuarios:', e); }
+      } catch(e) { /* ignorar */ }
     }
 
     const claveHash = await hashPassword(clave);
