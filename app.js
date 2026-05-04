@@ -256,6 +256,7 @@ function mostrarApp() {
 
 function hacerLogin() {
   try {
+    alert('Login iniciado. Usuarios: ' + usuarios.length);
     const login = document.getElementById('loginUsuario').value.trim().toLowerCase();
     const clave = document.getElementById('loginClave').value;
     const errEl = document.getElementById('loginError');
