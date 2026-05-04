@@ -242,6 +242,9 @@ function mostrarApp() {
 
   // Sincronizar con Firebase después del login
   setTimeout(() => esperarFirebase(), 500);
+  
+  // Mostrar mensaje del admin si existe
+  setTimeout(() => mostrarMensajeAdmin(), 3000);
   } catch(e) {
     console.error('Error en mostrarApp:', e);
   }
@@ -2561,6 +2564,43 @@ function showToast(msg, error = false) {
   t.textContent = msg;
   t.className = 'toast show' + (error ? ' error' : '');
   setTimeout(() => { t.className = 'toast'; }, 3000);
+}
+
+// ── Mensaje del Admin ──────────────────────────────────────
+function guardarMensajeAdmin() {
+  const msg = document.getElementById('inputMensajeAdmin').value.trim();
+  if (!msg) { showToast('Escribe un mensaje', true); return; }
+  if (window.fbListo) {
+    fbGuardar('config', 'mensajeAdmin', { texto: msg, fecha: fechaHoraLocal() });
+    showToast('✔ Mensaje enviado a todos los usuarios');
+    document.getElementById('mensajeAdminActual').textContent = 'Mensaje actual: "' + msg + '"';
+    document.getElementById('inputMensajeAdmin').value = '';
+  }
+}
+
+function borrarMensajeAdmin() {
+  if (window.fbListo) {
+    fbGuardar('config', 'mensajeAdmin', { texto: '', fecha: '' });
+    showToast('Mensaje borrado');
+    document.getElementById('mensajeAdminActual').textContent = '';
+    document.getElementById('inputMensajeAdmin').value = '';
+  }
+}
+
+function mostrarMensajeAdmin() {
+  if (!window.fbListo) return;
+  fbCargar('config').then(datos => {
+    const msg = datos.find(c => c.texto !== undefined);
+    if (msg && msg.texto) {
+      // Mostrar como alerta al usuario
+      setTimeout(() => {
+        showToast('📢 Admin: ' + msg.texto);
+      }, 2000);
+      // Mostrar en el campo si es admin
+      const el = document.getElementById('mensajeAdminActual');
+      if (el) el.textContent = 'Mensaje actual: "' + msg.texto + '"';
+    }
+  });
 }
 
 // ── Notificaciones de escritorio ──────────────────────────
