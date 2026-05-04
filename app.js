@@ -1,31 +1,24 @@
 // ── Estado ────────────────────────────────────────────────
 
 // ── Función de hash para contraseñas ──────────────────────
-async function hashPassword(password) {
-  // Usar Node.js crypto si está disponible (Electron)
+function hashPasswordSync(password) {
   if (window.require) {
     try {
       const crypto = window.require('crypto');
       return crypto.createHash('sha256').update(password).digest('hex');
     } catch(e) {}
   }
-  // Fallback: Web Crypto API
-  try {
-    const encoder = new TextEncoder();
-    const data = encoder.encode(password);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-  } catch(e) {
-    // Último fallback
-    let hash = 0;
-    for (let i = 0; i < password.length; i++) {
-      const char = password.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
-      hash = hash & hash;
-    }
-    return 'hash_' + Math.abs(hash).toString(16);
+  // Fallback simple
+  let hash = 0;
+  for (let i = 0; i < password.length; i++) {
+    const char = password.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash;
   }
+  return 'hash_' + Math.abs(hash).toString(16);
+}
+async function hashPassword(password) {
+  return hashPasswordSync(password);
 }
 
 // ── Auto-Update listener ──────────────────────────────────
@@ -260,13 +253,12 @@ document.getElementById('loginClave').addEventListener('keydown', e => {
   if (e.key === 'Enter') hacerLogin();
 });
 
-async function hacerLogin() {
+function hacerLogin() {
   try {
     const login = document.getElementById('loginUsuario').value.trim().toLowerCase();
     const clave = document.getElementById('loginClave').value;
     const errEl = document.getElementById('loginError');
     
-    // Indicador visual de que se está procesando
     document.getElementById('btnLogin').textContent = 'Ingresando...';
     document.getElementById('btnLogin').disabled = true;
 
@@ -277,26 +269,7 @@ async function hacerLogin() {
       return;
     }
 
-    // Intentar cargar usuarios desde Firebase (NO bloquear si falla)
-    if (window.fbListo) {
-      try {
-        const fbUsuarios = await Promise.race([
-          fbCargar('usuarios'),
-          new Promise(resolve => setTimeout(() => resolve([]), 2000))
-        ]);
-        if (fbUsuarios && fbUsuarios.length > 0) {
-          fbUsuarios.forEach(fbUser => {
-            const idx = usuarios.findIndex(u => u.login === fbUser.login);
-            if (idx === -1) usuarios.push(fbUser);
-            else usuarios[idx] = fbUser;
-          });
-          localStorage.setItem('usuariosBodega', JSON.stringify(usuarios));
-        }
-      } catch(e) { /* ignorar */ }
-    }
-
-    const claveHash = await hashPassword(clave);
-    // Buscar usuario: comparar con hash, texto plano, o contraseña original admin123
+    const claveHash = hashPasswordSync(clave);
     const usuario = usuarios.find(u => {
       if (u.login !== login || !u.activo) return false;
       if (u.password === claveHash) return true;
@@ -323,6 +296,8 @@ async function hacerLogin() {
     usuarioActivo = usuario;
     sessionStorage.setItem('sesionActiva', JSON.stringify(usuario));
     registrarActividad('Inicio de sesión', `${usuario.nombre} (${usuario.rol})`);
+    document.getElementById('btnLogin').textContent = 'Ingresar';
+    document.getElementById('btnLogin').disabled = false;
     mostrarApp();
   } catch(e) {
     console.error('Error en login:', e);
