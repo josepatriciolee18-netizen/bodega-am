@@ -643,7 +643,6 @@ function buscarProductoEnOrden() {
   if (encontrado) seleccionarProducto(catalogo.indexOf(encontrado));
   else showToast(`No se encontró "${inputBuscar.value}" en el catálogo`, true);
 }
-document.getElementById('btnBuscarProductoOrden').addEventListener('click', buscarProductoEnOrden);
 
 document.getElementById('inputCantidad').addEventListener('input', (e) => {
   const n = parseInt(e.target.value);
