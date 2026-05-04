@@ -2255,6 +2255,34 @@ async function confirmarRecepcion() {
   const recibidoPor = document.getElementById('recibidoPor').value.trim();
   if (!recibidoPor) { showToast('Ingresa quién recibe la orden', true); return; }
 
+  // Verificar que no esté ya recibida (en local y en Firebase)
+  if (recepciones.some(r => r.nroOrden === ordenEnRecepcion.nro)) {
+    showToast('Esta orden ya fue recibida', true);
+    cerrarModalRec();
+    renderOrdenesEmitidas();
+    return;
+  }
+  if (window.fbListo) {
+    const fbRecs = await fbCargar('recepciones');
+    if (fbRecs.some(r => r.nroOrden === ordenEnRecepcion.nro)) {
+      showToast('Esta orden ya fue recibida por otro usuario', true);
+      recepciones = fbRecs.sort((a,b) => b.nro.localeCompare(a.nro));
+      localStorage.setItem('recepcionesBodega', JSON.stringify(recepciones));
+      cerrarModalRec();
+      renderOrdenesEmitidas();
+      renderRecepciones();
+      return;
+    }
+  }
+
+  // Verificar que no esté ya recibida
+  if (recepciones.some(r => r.nroOrden === ordenEnRecepcion.nro)) {
+    showToast('Esta orden ya fue recibida', true);
+    cerrarModalRec();
+    renderOrdenesEmitidas();
+    return;
+  }
+
   // Obtener siguiente número de recepción desde Firebase
   let nroRec;
   if (window.fbListo) {
