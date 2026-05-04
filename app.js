@@ -2159,6 +2159,13 @@ function renderOrdenesEmitidas(filtro = '') {
 
 function renderRecepciones(filtro = '') {
   const tbody = document.getElementById('tbodyRecepciones');
+  // Eliminar duplicados por nroOrden
+  const vistos = new Set();
+  recepciones = recepciones.filter(r => {
+    if (vistos.has(r.nroOrden)) return false;
+    vistos.add(r.nroOrden);
+    return true;
+  });
   let datos = recepciones;
   if (filtro) {
     const q = filtro.toLowerCase();
@@ -2329,7 +2336,9 @@ async function confirmarRecepcion() {
     }
   }
 
-  recepciones.unshift(recepcion);
+  if (!recepciones.some(r => r.nro === recepcion.nro)) {
+    recepciones.unshift(recepcion);
+  }
   localStorage.setItem('recepcionesBodega', JSON.stringify(recepciones));
 
   cerrarModalRec();
