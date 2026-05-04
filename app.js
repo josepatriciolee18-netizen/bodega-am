@@ -245,6 +245,37 @@ function mostrarApp() {
   
   // Mostrar mensaje del admin si existe
   setTimeout(() => mostrarMensajeAdmin(), 3000);
+  
+  // Verificar cada 15 segundos si mi sesión sigue activa
+  if (window._checkSesionInterval) clearInterval(window._checkSesionInterval);
+  window._checkSesionInterval = setInterval(async () => {
+    if (!usuarioActivo || !window.fbListo) return;
+    const miSesion = sessionStorage.getItem('sesionId');
+    if (!miSesion) return;
+    try {
+      const sesiones = await fbCargar('sesiones');
+      const miSesionFb = sesiones.find(s => s.sesionId);
+      // Buscar por login - fbGuardar usa login como ID
+      // fbCargar devuelve todos los docs, necesitamos filtrar
+      // Como guardamos con login como ID, el doc tiene sesionId
+      const encontrada = sesiones.find(s => s.sesionId === miSesion);
+      if (!encontrada && sesiones.length > 0) {
+        // Mi sesión fue reemplazada por otra
+        showToast('Tu sesión fue cerrada porque otro dispositivo inició sesión con este usuario', true);
+        setTimeout(() => {
+          sessionStorage.removeItem('sesionActiva');
+          sessionStorage.removeItem('sesionId');
+          usuarioActivo = null;
+          if (window.require) {
+            const { ipcRenderer } = window.require('electron');
+            ipcRenderer.send('recargar');
+          } else {
+            window.location.reload();
+          }
+        }, 3000);
+      }
+    } catch(e) {}
+  }, 15000);
   } catch(e) {
     console.error('Error en mostrarApp:', e);
   }
@@ -292,6 +323,12 @@ function hacerLogin() {
     errEl.style.display = 'none';
     usuarioActivo = usuario;
     sessionStorage.setItem('sesionActiva', JSON.stringify(usuario));
+    
+    // Registrar sesión activa en Firebase
+    const sesionId = Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
+    sessionStorage.setItem('sesionId', sesionId);
+    if (window.fbListo) fbGuardar('sesiones', usuario.login, { sesionId, fecha: fechaHoraLocal() });
+    
     document.getElementById('btnLogin').textContent = 'Ingresar';
     document.getElementById('btnLogin').disabled = false;
     mostrarApp();
