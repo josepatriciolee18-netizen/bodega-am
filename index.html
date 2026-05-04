@@ -765,8 +765,8 @@
       </div>
       <div class="modal-body" style="padding:16px">
         <div style="display:flex; gap:8px; margin-bottom:12px">
-          <input type="text" id="buscadorProductoInput" placeholder="Ingresa código o nombre del producto..." style="flex:1" autocomplete="off" />
-          <button type="button" id="btnEjecutarBusqueda" class="btn-add">🔍 Buscar</button>
+          <input type="text" id="buscadorProductoInput" placeholder="Ingresa código o nombre del producto..." style="flex:1" autocomplete="off" oninput="if(typeof ejecutarBusquedaProducto==='function')ejecutarBusquedaProducto()" onkeydown="if(event.key==='Enter'&&typeof ejecutarBusquedaProducto==='function')ejecutarBusquedaProducto()" />
+          <button type="button" id="btnEjecutarBusqueda" class="btn-add" onclick="if(typeof ejecutarBusquedaProducto==='function')ejecutarBusquedaProducto()">🔍 Buscar</button>
         </div>
         <div style="overflow-x:auto; max-height:300px; overflow-y:auto">
           <table id="tablaBuscadorProducto">
