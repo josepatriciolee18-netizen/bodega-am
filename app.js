@@ -197,6 +197,7 @@ function verificarSesion() {
 }
 
 function mostrarApp() {
+  try {
   document.getElementById('loginScreen').style.display = 'none';
   document.getElementById('updateScreen').style.display = 'none';
   document.getElementById('noInternetScreen').style.display = 'none';
@@ -252,6 +253,9 @@ function mostrarApp() {
 
   // Sincronizar con Firebase después del login
   setTimeout(() => esperarFirebase(), 500);
+  } catch(e) {
+    alert('Error en mostrarApp: ' + e.message);
+  }
 }
 
 function hacerLogin() {
