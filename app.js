@@ -424,6 +424,7 @@ async function cargarDesdeFirebase() {
         historial = nuevos;
         localStorage.setItem('historialSalidas', JSON.stringify(historial));
         renderReportes();
+        renderOrdenesEmitidas();
         buscarOrdenAntigua();
       }
       historialCargadoInicial = true;
