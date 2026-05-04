@@ -606,7 +606,7 @@ inputBuscar.addEventListener('keydown', (e) => {
   else showToast(`No se encontró "${inputBuscar.value}" en el catálogo`, true);
 });
 
-// Botón lupa para buscar producto
+// Botón lupa para buscar producto — abre modal de búsqueda
 function buscarProductoEnOrden() {
   const q = inputBuscar.value.trim().toLowerCase();
   if (!q) { showToast('Escribe un código o nombre para buscar', true); inputBuscar.focus(); return; }
@@ -641,8 +641,59 @@ function seleccionarProducto(i) {
   document.getElementById('inputUnidad').value      = p.unidad;
   inputBuscar.value = '';
   cerrarSugerencias();
+  cerrarBuscadorProducto();
   document.getElementById('inputCantidad').focus();
 }
+
+// ── Modal buscar producto ─────────────────────────────────
+document.getElementById('btnAbrirBuscador').addEventListener('click', () => {
+  document.getElementById('modalBuscarProducto').style.display = 'flex';
+  document.getElementById('buscadorProductoInput').value = '';
+  document.getElementById('tbodyBuscadorProducto').innerHTML = '<tr><td colspan="4" class="empty-msg">Ingresa un código o nombre para buscar</td></tr>';
+  setTimeout(() => document.getElementById('buscadorProductoInput').focus(), 200);
+});
+
+function cerrarBuscadorProducto() {
+  document.getElementById('modalBuscarProducto').style.display = 'none';
+}
+
+document.getElementById('modalBuscarProducto').addEventListener('click', (e) => {
+  if (e.target === document.getElementById('modalBuscarProducto')) cerrarBuscadorProducto();
+});
+
+function ejecutarBusquedaProducto() {
+  const q = document.getElementById('buscadorProductoInput').value.trim().toLowerCase();
+  const tbody = document.getElementById('tbodyBuscadorProducto');
+  if (!q) {
+    tbody.innerHTML = '<tr><td colspan="4" class="empty-msg">Ingresa un código o nombre para buscar</td></tr>';
+    return;
+  }
+  if (catalogo.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="4" class="empty-msg">El catálogo está vacío</td></tr>';
+    return;
+  }
+  const resultados = catalogo.filter(p =>
+    p.nombre.toLowerCase().includes(q) ||
+    (p.codigo && p.codigo.toLowerCase().includes(q))
+  );
+  if (resultados.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="4" class="empty-msg">No se encontraron productos</td></tr>';
+    return;
+  }
+  tbody.innerHTML = resultados.map(p => `
+    <tr>
+      <td>${p.codigo || '-'}</td>
+      <td>${p.nombre}</td>
+      <td>${p.unidad}</td>
+      <td><button class="btn-add" style="padding:4px 12px;font-size:0.8rem" onclick="seleccionarProducto(${catalogo.indexOf(p)})">Seleccionar</button></td>
+    </tr>`).join('');
+}
+
+document.getElementById('btnEjecutarBusqueda').addEventListener('click', ejecutarBusquedaProducto);
+document.getElementById('buscadorProductoInput').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') ejecutarBusquedaProducto();
+});
+document.getElementById('buscadorProductoInput').addEventListener('input', ejecutarBusquedaProducto);
 
 function cerrarSugerencias() {
   sugerencias.innerHTML = '';

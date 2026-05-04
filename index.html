@@ -126,14 +126,14 @@
         </section>
 
         <section class="section">
-          <h2>Detalle de Productos</h2>
+          <h2 style="display:flex; justify-content:space-between; align-items:center">
+            Detalle de Productos
+            <button type="button" id="btnAbrirBuscador" class="btn-add" style="font-size:0.85rem; padding:6px 14px">🔍 Buscar Producto</button>
+          </h2>
           <div class="add-product-row">
             <div class="field" style="flex:2; position:relative">
               <label>Buscar Producto</label>
-              <div style="display:flex; gap:4px">
-                <input type="text" id="inputBuscar" placeholder="Código o nombre" autocomplete="off" style="flex:1" />
-                <button type="button" id="btnBuscarProductoOrden" class="btn-add" style="padding:9px 12px" title="Buscar producto">🔍</button>
-              </div>
+              <input type="text" id="inputBuscar" placeholder="Código o nombre + Enter" autocomplete="off" />
               <ul id="sugerencias" class="sugerencias"></ul>
             </div>
             <div class="field">
@@ -752,6 +752,32 @@
       <div class="modal-footer">
         <button onclick="cerrarModal()" class="btn-secondary">Cerrar</button>
         <button onclick="imprimirOrden()" class="btn-primary">🖨 Imprimir</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal buscar producto -->
+  <div id="modalBuscarProducto" class="modal-overlay" style="display:none">
+    <div class="modal" style="max-width:650px">
+      <div class="modal-header">
+        <h3>🔍 Buscar Producto</h3>
+        <button onclick="cerrarBuscadorProducto()" class="modal-close">✕</button>
+      </div>
+      <div class="modal-body" style="padding:16px">
+        <div style="display:flex; gap:8px; margin-bottom:12px">
+          <input type="text" id="buscadorProductoInput" placeholder="Ingresa código o nombre del producto..." style="flex:1" autocomplete="off" />
+          <button type="button" id="btnEjecutarBusqueda" class="btn-add">🔍 Buscar</button>
+        </div>
+        <div style="overflow-x:auto; max-height:300px; overflow-y:auto">
+          <table id="tablaBuscadorProducto">
+            <thead>
+              <tr><th>Código</th><th>Nombre</th><th>Unidad</th><th></th></tr>
+            </thead>
+            <tbody id="tbodyBuscadorProducto">
+              <tr><td colspan="4" class="empty-msg">Ingresa un código o nombre para buscar</td></tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>
