@@ -420,9 +420,13 @@ async function cargarDesdeFirebase() {
         // Detectar órdenes nuevas para notificar (solo después de la carga inicial)
         if (historialCargadoInicial) {
           const ordenesNuevas = nuevos.filter(n => !nrosActuales.has(n.nro));
+          const ahora = new Date();
           ordenesNuevas.forEach(orden => {
-            const quien = orden.rolCreador ? ` — Enviada por ${orden.rolCreador}` : '';
-            mostrarNotificacion('📦 Nueva Orden', `Orden ${orden.nro} — Cliente: ${orden.solicitante || 'Sin nombre'}${quien}`, orden.nro);
+            const fechaOrden = new Date(orden.fecha ? orden.fecha.replace('T', ' ') : 0);
+            if ((ahora - fechaOrden) < 5 * 60 * 1000) {
+              const quien = orden.rolCreador ? ` — Enviada por ${orden.rolCreador}` : '';
+              mostrarNotificacion('📦 Nueva Orden', `Orden ${orden.nro} — Cliente: ${orden.solicitante || 'Sin nombre'}${quien}`, orden.nro);
+            }
           });
         }
         historial = nuevos;
@@ -446,8 +450,13 @@ async function cargarDesdeFirebase() {
         // Detectar recepciones nuevas para notificar
         if (recepcionesCargadoInicial) {
           const recNuevas = nuevos.filter(n => !nrosActuales.has(n.nro));
+          const ahora = new Date();
           recNuevas.forEach(rec => {
-            mostrarNotificacion('📥 Orden Recibida por Bodega', `${rec.nro} — Orden ${rec.nroOrden} recibida por ${rec.recibidoPor}`, rec.nroOrden);
+            // Solo notificar recepciones de los últimos 5 minutos
+            const fechaRec = new Date(rec.fecha ? rec.fecha.replace('T', ' ') : 0);
+            if ((ahora - fechaRec) < 5 * 60 * 1000) {
+              mostrarNotificacion('📥 Orden Recibida por Bodega', `${rec.nro} — Orden ${rec.nroOrden} recibida por ${rec.recibidoPor}`, rec.nroOrden);
+            }
           });
         }
         // Firebase es la fuente de verdad
