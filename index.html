@@ -130,7 +130,10 @@
           <div class="add-product-row">
             <div class="field" style="flex:2; position:relative">
               <label>Buscar Producto</label>
-              <input type="text" id="inputBuscar" placeholder="Código o nombre + Enter" autocomplete="off" />
+              <div style="display:flex; gap:4px">
+                <input type="text" id="inputBuscar" placeholder="Código o nombre" autocomplete="off" style="flex:1" />
+                <button type="button" id="btnBuscarProductoOrden" class="btn-add" style="padding:9px 12px" title="Buscar producto">🔍</button>
+              </div>
               <ul id="sugerencias" class="sugerencias"></ul>
             </div>
             <div class="field">

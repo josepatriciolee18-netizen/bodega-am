@@ -606,6 +606,21 @@ inputBuscar.addEventListener('keydown', (e) => {
   else showToast(`No se encontró "${inputBuscar.value}" en el catálogo`, true);
 });
 
+// Botón lupa para buscar producto
+function buscarProductoEnOrden() {
+  const q = inputBuscar.value.trim().toLowerCase();
+  if (!q) { showToast('Escribe un código o nombre para buscar', true); inputBuscar.focus(); return; }
+  if (catalogo.length === 0) { showToast('El catálogo de productos está vacío', true); return; }
+  const norm = s => s.toLowerCase().replace(/[\s\-\.]/g, '');
+  const encontrado = catalogo.find(p => norm(p.codigo) === norm(q))
+                  || catalogo.find(p => norm(p.nombre)  === norm(q))
+                  || catalogo.find(p => norm(p.codigo).includes(norm(q)))
+                  || catalogo.find(p => norm(p.nombre).includes(norm(q)));
+  if (encontrado) seleccionarProducto(catalogo.indexOf(encontrado));
+  else showToast(`No se encontró "${inputBuscar.value}" en el catálogo`, true);
+}
+document.getElementById('btnBuscarProductoOrden').addEventListener('click', buscarProductoEnOrden);
+
 document.getElementById('inputCantidad').addEventListener('input', (e) => {
   const n = parseInt(e.target.value);
   document.getElementById('inputCantidadPalabras').value = n > 0 ? numeroAPalabras(n) : '';
