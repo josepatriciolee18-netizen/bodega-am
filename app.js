@@ -134,6 +134,7 @@ let contadorRec  = parseInt(localStorage.getItem('contadorRecepciones')   || '1'
 let usuarioActivo    = null;
 let ordenImpresion   = null;
 let ordenEnRecepcion = null;
+let logActividad     = JSON.parse(localStorage.getItem('logActividad')    || '[]');
 
 function winMinimizar() {
   if (window.require) {
@@ -2454,7 +2455,6 @@ function formatFecha(f) {
 }
 
 // ── Log de Actividad ──────────────────────────────────────
-let logActividad = JSON.parse(localStorage.getItem('logActividad') || '[]');
 
 function registrarActividad(accion, detalle) {
   try {
