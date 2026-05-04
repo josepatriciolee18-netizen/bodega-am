@@ -117,6 +117,12 @@ document.getElementById('btnReintentar').addEventListener('click', () => {
 // Iniciar
 iniciarApp();
 
+// Registrar listeners de login inmediatamente
+document.getElementById('btnLogin').addEventListener('click', hacerLogin);
+document.getElementById('loginClave').addEventListener('keydown', e => {
+  if (e.key === 'Enter') hacerLogin();
+});
+
 let productos = [];
 let historial    = JSON.parse(localStorage.getItem('historialSalidas')    || '[]');
 let catalogo     = JSON.parse(localStorage.getItem('catalogoProductos')   || '[]');
@@ -247,11 +253,6 @@ function mostrarApp() {
   // Sincronizar con Firebase después del login
   setTimeout(() => esperarFirebase(), 500);
 }
-
-document.getElementById('btnLogin').addEventListener('click', hacerLogin);
-document.getElementById('loginClave').addEventListener('keydown', e => {
-  if (e.key === 'Enter') hacerLogin();
-});
 
 function hacerLogin() {
   try {
