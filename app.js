@@ -300,10 +300,12 @@ function hacerLogin() {
     errEl.style.display = 'none';
     usuarioActivo = usuario;
     sessionStorage.setItem('sesionActiva', JSON.stringify(usuario));
+    alert('Login OK! Llamando mostrarApp...');
     registrarActividad('Inicio de sesión', `${usuario.nombre} (${usuario.rol})`);
     document.getElementById('btnLogin').textContent = 'Ingresar';
     document.getElementById('btnLogin').disabled = false;
     mostrarApp();
+    alert('mostrarApp terminó!');
   } catch(e) {
     console.error('Error en login:', e);
     showToast('Error al iniciar sesión: ' + e.message, true);
