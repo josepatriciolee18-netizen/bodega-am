@@ -234,22 +234,11 @@ function mostrarApp() {
   } catch(e) {}
 
   const p = usuarioActivo.permisos || {};
-  // Admin tiene todo, otros según permisos
   const esAdmin = usuarioActivo.rol === 'Admin';
-
-  // Pestañas
-  document.querySelector('[data-tab="formulario"]').style.display  = (esAdmin || p.crearOrden)   ? '' : 'none';
-  document.querySelector('[data-tab="reportes"]').style.display    = (esAdmin || p.reportes)     ? '' : 'none';
-  document.querySelector('[data-tab="productos"]').style.display   = (esAdmin || p.productos)    ? '' : 'none';
-  document.querySelector('[data-tab="clientes"]').style.display    = (esAdmin || p.clientes)     ? '' : 'none';
-  document.querySelector('[data-tab="recepciones"]').style.display = (esAdmin || p.recepciones)  ? '' : 'none';
-  document.querySelector('[data-tab="usuarios"]').style.display    = (esAdmin || p.usuarios)     ? '' : 'none';
-
-  // Botón eliminar en reportes
   window._puedeEliminarReporte = esAdmin || p.eliminarReporte;
 
-  // Papelera solo para admin
-  document.querySelector('[data-tab="papelera"]').style.display    = esAdmin ? '' : 'none';
+  // Aplicar permisos y activar primera pestaña visible
+  aplicarPermisos();
 
   // Sincronizar con Firebase después del login
   setTimeout(() => esperarFirebase(), 500);
@@ -1676,6 +1665,22 @@ function aplicarPermisos() {
   document.querySelector('[data-tab="recepciones"]').style.display = (esAdmin || p.recepciones)  ? '' : 'none';
   document.querySelector('[data-tab="usuarios"]').style.display    = (esAdmin || p.usuarios)     ? '' : 'none';
   document.querySelector('[data-tab="papelera"]').style.display    = esAdmin ? '' : 'none';
+
+  // Activar la primera pestaña visible
+  const tabs = document.querySelectorAll('.tab');
+  const contents = document.querySelectorAll('.tab-content');
+  let primeraVisible = null;
+  tabs.forEach(t => {
+    if (t.style.display !== 'none' && !primeraVisible) primeraVisible = t;
+  });
+  if (primeraVisible) {
+    tabs.forEach(t => t.classList.remove('active'));
+    contents.forEach(c => c.classList.remove('active'));
+    primeraVisible.classList.add('active');
+    const tabId = 'tab-' + primeraVisible.dataset.tab;
+    const tabContent = document.getElementById(tabId);
+    if (tabContent) tabContent.classList.add('active');
+  }
 }
 
 document.getElementById('btnImprimir').addEventListener('click', () => imprimirPagina());
