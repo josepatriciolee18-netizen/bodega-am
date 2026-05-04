@@ -198,10 +198,12 @@ function verificarSesion() {
 
 function mostrarApp() {
   try {
+  alert('mostrarApp paso 1');
   document.getElementById('loginScreen').style.display = 'none';
   document.getElementById('updateScreen').style.display = 'none';
   document.getElementById('noInternetScreen').style.display = 'none';
   document.getElementById('appMain').style.display = 'block';
+  alert('mostrarApp paso 2 - pantallas cambiadas');
   document.getElementById('headerUsuario').textContent = `👤 ${usuarioActivo.nombre} (${usuarioActivo.rol})`;
 
   // Mostrar fecha en formato "30 Abril 2026"
