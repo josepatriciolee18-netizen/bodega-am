@@ -335,6 +335,8 @@ const nroSalidaEl = document.getElementById('nroSalida');
 const tbodyCat    = document.getElementById('tbodyCatalogo');
 const inputBuscar = document.getElementById('inputBuscar');
 const sugerencias = document.getElementById('sugerencias');
+const solicitanteInput   = document.getElementById('solicitante');
+const sugerenciasCliente = document.getElementById('sugerenciasCliente');
 
 // ── Init ──────────────────────────────────────────────────
 document.getElementById('fecha').value = fechaHoraLocal();
@@ -1766,8 +1768,6 @@ function reimprimirOrden(btn) {
 }
 
 // ── Autocomplete clientes en campo solicitante ────────────
-const solicitanteInput   = document.getElementById('solicitante');
-const sugerenciasCliente = document.getElementById('sugerenciasCliente');
 
 function buscarClienteAutoComplete() {
   const input = document.getElementById('solicitante');
