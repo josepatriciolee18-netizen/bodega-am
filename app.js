@@ -1769,7 +1769,7 @@ function reimprimirOrden(btn) {
 const solicitanteInput   = document.getElementById('solicitante');
 const sugerenciasCliente = document.getElementById('sugerenciasCliente');
 
-solicitanteInput.addEventListener('input', () => {
+function buscarClienteAutoComplete() {
   const q = solicitanteInput.value.trim().toLowerCase();
   if (!q || clientes.length === 0) { sugerenciasCliente.classList.remove('visible'); return; }
   const filtrados = clientes.filter(c =>
@@ -1782,7 +1782,9 @@ solicitanteInput.addEventListener('input', () => {
     </li>`
   ).join('');
   sugerenciasCliente.classList.add('visible');
-});
+}
+
+solicitanteInput.addEventListener('input', buscarClienteAutoComplete);
 
 function seleccionarCliente(nombre) {
   solicitanteInput.value = nombre;
