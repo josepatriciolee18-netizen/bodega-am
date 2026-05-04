@@ -2,6 +2,14 @@
 
 // ── Función de hash para contraseñas ──────────────────────
 async function hashPassword(password) {
+  // Usar Node.js crypto si está disponible (Electron)
+  if (window.require) {
+    try {
+      const crypto = window.require('crypto');
+      return crypto.createHash('sha256').update(password).digest('hex');
+    } catch(e) {}
+  }
+  // Fallback: Web Crypto API
   try {
     const encoder = new TextEncoder();
     const data = encoder.encode(password);
@@ -9,7 +17,7 @@ async function hashPassword(password) {
     const hashArray = Array.from(new Uint8Array(hashBuffer));
     return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
   } catch(e) {
-    // Fallback si crypto.subtle no está disponible
+    // Último fallback
     let hash = 0;
     for (let i = 0; i < password.length; i++) {
       const char = password.charCodeAt(i);
