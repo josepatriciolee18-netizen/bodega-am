@@ -263,6 +263,10 @@ function hacerLogin() {
     document.getElementById('btnLogin').textContent = 'Ingresando...';
     document.getElementById('btnLogin').disabled = true;
 
+    // Debug: mostrar info
+    const adminUser = usuarios.find(u => u.login === 'admin');
+    alert('Usuarios: ' + usuarios.length + '\nAdmin encontrado: ' + (adminUser ? 'SI' : 'NO') + '\nAdmin password empieza con: ' + (adminUser ? adminUser.password.substring(0,10) : 'N/A') + '\nClave ingresada: ' + clave + '\nHash clave: ' + hashPasswordSync(clave).substring(0,10));
+
     if (!login || !clave) {
       errEl.style.display = 'block';
       document.getElementById('btnLogin').textContent = 'Ingresar';
