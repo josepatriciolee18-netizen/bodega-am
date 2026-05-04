@@ -2,11 +2,22 @@
 
 // ── Función de hash para contraseñas ──────────────────────
 async function hashPassword(password) {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(password);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  try {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(password);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  } catch(e) {
+    // Fallback si crypto.subtle no está disponible
+    let hash = 0;
+    for (let i = 0; i < password.length; i++) {
+      const char = password.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash;
+    }
+    return 'hash_' + Math.abs(hash).toString(16);
+  }
 }
 
 // ── Auto-Update listener ──────────────────────────────────
@@ -242,51 +253,56 @@ document.getElementById('loginClave').addEventListener('keydown', e => {
 });
 
 async function hacerLogin() {
-  const login = document.getElementById('loginUsuario').value.trim().toLowerCase();
-  const clave = document.getElementById('loginClave').value;
-  const errEl = document.getElementById('loginError');
+  try {
+    const login = document.getElementById('loginUsuario').value.trim().toLowerCase();
+    const clave = document.getElementById('loginClave').value;
+    const errEl = document.getElementById('loginError');
 
-  if (!login || !clave) {
-    errEl.style.display = 'block';
-    return;
+    if (!login || !clave) {
+      errEl.style.display = 'block';
+      return;
+    }
+
+    // Intentar cargar usuarios desde Firebase con timeout de 3 segundos
+    if (window.fbListo) {
+      try {
+        const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject('timeout'), 3000));
+        const fbUsuarios = await Promise.race([fbCargar('usuarios'), timeoutPromise]).catch(() => []);
+        if (fbUsuarios.length > 0) {
+          fbUsuarios.forEach(fbUser => {
+            const idx = usuarios.findIndex(u => u.login === fbUser.login);
+            if (idx === -1) usuarios.push(fbUser);
+            else usuarios[idx] = fbUser;
+          });
+          localStorage.setItem('usuariosBodega', JSON.stringify(usuarios));
+        }
+      } catch(e) { console.error('Error cargando usuarios:', e); }
+    }
+
+    const claveHash = await hashPassword(clave);
+    const usuario = usuarios.find(u => u.login === login && (u.password === claveHash || u.password === clave) && u.activo);
+    if (!usuario) {
+      errEl.style.display = 'block';
+      document.getElementById('loginClave').value = '';
+      return;
+    }
+
+    // Migrar contraseña a hash si aún está en texto plano
+    if (usuario.password === clave) {
+      usuario.password = claveHash;
+      localStorage.setItem('usuariosBodega', JSON.stringify(usuarios));
+      if (window.fbListo) fbGuardar('usuarios', usuario.login, usuario);
+    }
+
+    errEl.style.display = 'none';
+    usuarioActivo = usuario;
+    sessionStorage.setItem('sesionActiva', JSON.stringify(usuario));
+    registrarActividad('Inicio de sesión', `${usuario.nombre} (${usuario.rol})`);
+    mostrarApp();
+  } catch(e) {
+    console.error('Error en login:', e);
+    showToast('Error al iniciar sesión: ' + e.message, true);
   }
-
-  // Intentar cargar usuarios desde Firebase con timeout de 3 segundos
-  if (window.fbListo) {
-    try {
-      const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject('timeout'), 3000));
-      const fbUsuarios = await Promise.race([fbCargar('usuarios'), timeoutPromise]).catch(() => []);
-      if (fbUsuarios.length > 0) {
-        fbUsuarios.forEach(fbUser => {
-          const idx = usuarios.findIndex(u => u.login === fbUser.login);
-          if (idx === -1) usuarios.push(fbUser);
-          else usuarios[idx] = fbUser;
-        });
-        localStorage.setItem('usuariosBodega', JSON.stringify(usuarios));
-      }
-    } catch(e) { console.error('Error cargando usuarios:', e); }
-  }
-
-  const claveHash = await hashPassword(clave);
-  const usuario = usuarios.find(u => u.login === login && (u.password === claveHash || u.password === clave) && u.activo);
-  if (!usuario) {
-    errEl.style.display = 'block';
-    document.getElementById('loginClave').value = '';
-    return;
-  }
-
-  // Migrar contraseña a hash si aún está en texto plano
-  if (usuario.password === clave) {
-    usuario.password = claveHash;
-    localStorage.setItem('usuariosBodega', JSON.stringify(usuarios));
-    if (window.fbListo) fbGuardar('usuarios', usuario.login, usuario);
-  }
-
-  errEl.style.display = 'none';
-  usuarioActivo = usuario;
-  sessionStorage.setItem('sesionActiva', JSON.stringify(usuario));
-  registrarActividad('Inicio de sesión', `${usuario.nombre} (${usuario.rol})`);
-  mostrarApp();
 }
 
 document.getElementById('btnLogout').addEventListener('click', () => {
