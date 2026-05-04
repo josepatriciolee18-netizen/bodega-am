@@ -307,10 +307,10 @@ function hacerLogin() {
     usuarioActivo = usuario;
     sessionStorage.setItem('sesionActiva', JSON.stringify(usuario));
     alert('Login OK! Llamando mostrarApp...');
-    registrarActividad('Inicio de sesión', `${usuario.nombre} (${usuario.rol})`);
     document.getElementById('btnLogin').textContent = 'Ingresar';
     document.getElementById('btnLogin').disabled = false;
     mostrarApp();
+    registrarActividad('Inicio de sesión', `${usuario.nombre} (${usuario.rol})`);
     alert('mostrarApp terminó!');
   } catch(e) {
     console.error('Error en login:', e);
@@ -2461,19 +2461,20 @@ function formatFecha(f) {
 let logActividad = JSON.parse(localStorage.getItem('logActividad') || '[]');
 
 function registrarActividad(accion, detalle) {
-  const entrada = {
-    id: Date.now().toString(36) + Math.random().toString(36).substr(2, 5),
-    fecha: fechaHoraLocal(),
-    usuario: usuarioActivo ? usuarioActivo.nombre : 'Sistema',
-    rol: usuarioActivo ? usuarioActivo.rol : '-',
-    accion,
-    detalle
-  };
-  logActividad.unshift(entrada);
-  // Mantener máximo 500 registros locales
-  if (logActividad.length > 500) logActividad = logActividad.slice(0, 500);
-  localStorage.setItem('logActividad', JSON.stringify(logActividad));
-  if (window.fbListo) fbGuardar('actividad', entrada.id, entrada);
+  try {
+    const entrada = {
+      id: Date.now().toString(36) + Math.random().toString(36).substr(2, 5),
+      fecha: fechaHoraLocal(),
+      usuario: usuarioActivo ? usuarioActivo.nombre : 'Sistema',
+      rol: usuarioActivo ? usuarioActivo.rol : '-',
+      accion,
+      detalle
+    };
+    logActividad.unshift(entrada);
+    if (logActividad.length > 500) logActividad = logActividad.slice(0, 500);
+    localStorage.setItem('logActividad', JSON.stringify(logActividad));
+    if (window.fbListo) fbGuardar('actividad', entrada.id, entrada);
+  } catch(e) { console.error('Error registrarActividad:', e); }
 }
 
 function renderActividad(filtro = '') {
