@@ -1770,18 +1770,20 @@ const solicitanteInput   = document.getElementById('solicitante');
 const sugerenciasCliente = document.getElementById('sugerenciasCliente');
 
 function buscarClienteAutoComplete() {
-  const q = solicitanteInput.value.trim().toLowerCase();
-  if (!q || clientes.length === 0) { sugerenciasCliente.classList.remove('visible'); return; }
+  const input = document.getElementById('solicitante');
+  const lista = document.getElementById('sugerenciasCliente');
+  const q = input.value.trim().toLowerCase();
+  if (!q || clientes.length === 0) { lista.classList.remove('visible'); return; }
   const filtrados = clientes.filter(c =>
     c.nombre.toLowerCase().includes(q) || (c.rut && c.rut.toLowerCase().includes(q))
   );
-  if (filtrados.length === 0) { sugerenciasCliente.classList.remove('visible'); return; }
-  sugerenciasCliente.innerHTML = filtrados.map(c =>
+  if (filtrados.length === 0) { lista.classList.remove('visible'); return; }
+  lista.innerHTML = filtrados.map(c =>
     `<li onclick="seleccionarCliente('${c.nombre.replace(/'/g,"\\'")}')">
       <strong>${c.nombre}</strong><span>${c.rut || ''}</span>
     </li>`
   ).join('');
-  sugerenciasCliente.classList.add('visible');
+  lista.classList.add('visible');
 }
 
 solicitanteInput.addEventListener('input', buscarClienteAutoComplete);
