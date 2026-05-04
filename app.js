@@ -493,6 +493,21 @@ async function cargarDesdeFirebase() {
         localStorage.setItem('contadorSalidas', contador);
         nroSalidaEl.value = generarNro(contador);
       }
+      // Detectar mensaje nuevo del admin en tiempo real
+      const msg = datos.find(c => c.texto !== undefined);
+      if (msg && msg.texto) {
+        const ultimoMsgVisto = localStorage.getItem('ultimoMsgAdmin') || '';
+        if (msg.texto !== ultimoMsgVisto) {
+          localStorage.setItem('ultimoMsgAdmin', msg.texto);
+          showToast('📢 Admin: ' + msg.texto);
+          if (window.require) {
+            const { ipcRenderer } = window.require('electron');
+            ipcRenderer.send('mostrar-notificacion', { titulo: '📢 Mensaje del Admin', mensaje: msg.texto });
+          }
+        }
+        const el = document.getElementById('mensajeAdminActual');
+        if (el) el.textContent = 'Mensaje actual: "' + msg.texto + '"';
+      }
     }));
 
     // Escuchar cambios en usuarios - reemplaza lista completa
