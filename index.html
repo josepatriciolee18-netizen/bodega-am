@@ -128,7 +128,7 @@
         <section class="section">
           <h2 style="display:flex; justify-content:space-between; align-items:center">
             Detalle de Productos
-            <button type="button" id="btnAbrirBuscador" class="btn-add" style="font-size:0.85rem; padding:6px 14px">🔍 Buscar Producto</button>
+            <button type="button" id="btnAbrirBuscador" class="btn-add" style="font-size:0.85rem; padding:6px 14px" onclick="document.getElementById('modalBuscarProducto').style.display='flex';document.getElementById('buscadorProductoInput').value='';document.getElementById('tbodyBuscadorProducto').innerHTML='<tr><td colspan=4 class=empty-msg>Ingresa un código o nombre para buscar</td></tr>';setTimeout(function(){document.getElementById('buscadorProductoInput').focus()},200);">🔍 Buscar Producto</button>
           </h2>
           <div class="add-product-row">
             <div class="field" style="flex:2; position:relative">
