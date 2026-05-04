@@ -47,7 +47,7 @@
         <input type="password" id="loginClave" placeholder="••••••" />
       </div>
       <div id="loginError" class="login-error" style="display:none">Usuario o contraseña incorrectos</div>
-      <button id="btnLogin" class="btn-primary" style="width:100%; margin-top:18px; padding:12px" onclick="if(typeof hacerLogin==='function')hacerLogin();else this.textContent='Error: app.js no cargó';">Ingresar</button>
+      <button id="btnLogin" class="btn-primary" style="width:100%; margin-top:18px; padding:12px" onclick="alert('Botón funciona! hacerLogin=' + (typeof hacerLogin))">Ingresar</button>
       <button style="width:100%; margin-top:8px; padding:8px; background:none; border:1px solid #ddd; border-radius:7px; cursor:pointer; font-size:0.8rem; color:#888" onclick="localStorage.clear();sessionStorage.clear();alert('Datos limpiados. La app se reiniciará.');location.reload();">🔧 Resetear datos locales</button>
     </div>
   </div>
