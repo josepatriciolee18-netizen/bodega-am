@@ -265,9 +265,15 @@ async function hacerLogin() {
     const login = document.getElementById('loginUsuario').value.trim().toLowerCase();
     const clave = document.getElementById('loginClave').value;
     const errEl = document.getElementById('loginError');
+    
+    // Indicador visual de que se está procesando
+    document.getElementById('btnLogin').textContent = 'Ingresando...';
+    document.getElementById('btnLogin').disabled = true;
 
     if (!login || !clave) {
       errEl.style.display = 'block';
+      document.getElementById('btnLogin').textContent = 'Ingresar';
+      document.getElementById('btnLogin').disabled = false;
       return;
     }
 
@@ -288,10 +294,19 @@ async function hacerLogin() {
     }
 
     const claveHash = await hashPassword(clave);
-    const usuario = usuarios.find(u => u.login === login && (u.password === claveHash || u.password === clave) && u.activo);
+    // Buscar usuario: comparar con hash, texto plano, o contraseña original admin123
+    const usuario = usuarios.find(u => {
+      if (u.login !== login || !u.activo) return false;
+      if (u.password === claveHash) return true;
+      if (u.password === clave) return true;
+      return false;
+    });
     if (!usuario) {
       errEl.style.display = 'block';
+      errEl.textContent = 'Usuario o contraseña incorrectos';
       document.getElementById('loginClave').value = '';
+      document.getElementById('btnLogin').textContent = 'Ingresar';
+      document.getElementById('btnLogin').disabled = false;
       return;
     }
 
@@ -310,6 +325,8 @@ async function hacerLogin() {
   } catch(e) {
     console.error('Error en login:', e);
     showToast('Error al iniciar sesión: ' + e.message, true);
+    document.getElementById('btnLogin').textContent = 'Ingresar';
+    document.getElementById('btnLogin').disabled = false;
   }
 }
 
