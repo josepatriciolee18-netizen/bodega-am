@@ -1452,7 +1452,7 @@ async function imprimirPagina() {
           <td>${p.descripcion}</td>
           <td>${p.unidad}</td>
           <td style="text-align:center">${p.cantidad}</td>
-          <td style="text-align:center; padding-left:14px">${p.cantPalabras||'-'}</td>
+          <td class="palabras">${p.cantPalabras||'-'}</td>
         </tr>`).join('');
 
       const estiloTermico = `
@@ -1466,8 +1466,9 @@ async function imprimirPagina() {
         .row { display:flex; gap:4px; margin-bottom:4px; font-size:14px; }
         .row label { font-weight:bold; min-width:95px; }
         table { width:100%; border-collapse:collapse; margin-top:6px; border-top:2px dashed #000; border-bottom:2px dashed #000; }
-        thead th { font-weight:bold; font-size:13px; padding:4px 2px; border-bottom:1px solid #000; text-align:left; }
-        tbody td { font-size:13px; font-weight:bold; padding:3px 2px; border:none; }
+        thead th { font-weight:bold; font-size:11px; padding:4px 2px; border-bottom:1px solid #000; text-align:left; }
+        tbody td { font-size:11px; font-weight:bold; padding:3px 2px; border:none; }
+        tbody td.palabras { font-size:10px; padding-left:6px; font-style:italic; }
         .footer { margin-top:12px; border-top:2px dashed #000; padding-top:6px; text-align:center; font-size:14px; font-weight:bold; }
         @media print {
           html { background: white; }
@@ -1504,7 +1505,7 @@ async function imprimirPagina() {
         ${obs ? `<div class="row"><label>Observaciones:</label><span>${obs}</span></div>` : ''}
         ${creadoPor ? `<div class="row"><label>Creada por:</label><span>${creadoPor} (${rolCreador})</span></div>` : ''}
         <table>
-          <thead><tr><th>#</th><th>Código</th><th>Descripción</th><th>Unid.</th><th>Cant.</th><th style="padding-left:14px">En Palabras</th></tr></thead>
+          <thead><tr><th>#</th><th>Código</th><th>Descripción</th><th>Unid.</th><th>Cant.</th><th style="padding-left:6px">En Palabras</th></tr></thead>
           <tbody>${filasProductos}</tbody>
         </table>
         <div class="footer">
