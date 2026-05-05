@@ -696,7 +696,7 @@ function buscarProductoEnOrden() {
 }
 
 document.getElementById('inputCantidad').addEventListener('input', (e) => {
-  const n = parseInt(e.target.value);
+  const n = parseFloat(e.target.value);
   document.getElementById('inputCantidadPalabras').value = n > 0 ? numeroAPalabras(n) : '';
 });
 
@@ -2507,6 +2507,28 @@ document.getElementById('modalRecepcion').addEventListener('click', (e) => {
 function numeroAPalabras(n) {
   if (n === 0) return 'cero';
   if (n < 0) return 'menos ' + numeroAPalabras(-n);
+
+  // Manejar decimales: "1.5" → "uno punto cinco"
+  if (n !== Math.floor(n)) {
+    const partes = n.toString().split('.');
+    const entera = parseInt(partes[0]);
+    const decimalStr = partes[1];
+    // Convertir cada dígito decimal individualmente
+    const digitosDecimal = ['cero','uno','dos','tres','cuatro','cinco','seis','siete','ocho','nueve'];
+    let decimalPalabras;
+    const decimalNum = parseInt(decimalStr);
+    if (decimalStr.length <= 2 && decimalNum > 0 && decimalNum < 100) {
+      // Intentar convertir como número completo (ej: 25 → "veinticinco")
+      decimalPalabras = numeroAPalabras(decimalNum);
+    } else {
+      // Dígito por dígito para decimales largos
+      decimalPalabras = decimalStr.split('').map(d => digitosDecimal[parseInt(d)]).join(' ');
+    }
+    const enteraPalabras = entera === 0 ? 'cero' : numeroAPalabras(entera);
+    return enteraPalabras + ' punto ' + decimalPalabras;
+  }
+
+  n = Math.floor(n);
 
   const unidades  = ['','uno','dos','tres','cuatro','cinco','seis','siete','ocho','nueve',
                      'diez','once','doce','trece','catorce','quince','dieciséis','diecisiete',
