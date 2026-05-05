@@ -1452,7 +1452,7 @@ async function imprimirPagina() {
           <td>${p.descripcion}</td>
           <td>${p.unidad}</td>
           <td style="text-align:center">${p.cantidad}</td>
-          <td style="text-align:center">${p.cantPalabras||'-'}</td>
+          <td style="text-align:center; padding-left:8px">${p.cantPalabras||'-'}</td>
         </tr>`).join('');
 
       const estiloTermico = `
@@ -1504,7 +1504,7 @@ async function imprimirPagina() {
         ${obs ? `<div class="row"><label>Observaciones:</label><span>${obs}</span></div>` : ''}
         ${creadoPor ? `<div class="row"><label>Creada por:</label><span>${creadoPor} (${rolCreador})</span></div>` : ''}
         <table>
-          <thead><tr><th>#</th><th>Código</th><th>Descripción</th><th>Unid.</th><th>Cant.</th><th>En Palabras</th></tr></thead>
+          <thead><tr><th>#</th><th>Código</th><th>Descripción</th><th>Unid.</th><th>Cant.</th><th style="padding-left:8px">En Palabras</th></tr></thead>
           <tbody>${filasProductos}</tbody>
         </table>
         <div class="footer">
