@@ -2,26 +2,28 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Orden Bodega A&M</title>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; padding: 16px; color: #333; }
-    .card { max-width: 480px; margin: 0 auto; background: white; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.1); overflow: hidden; }
-    .header { background: #1a56db; color: white; padding: 20px; text-align: center; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { width: 100%; height: 100%; margin: 0; padding: 0; }
+    body { width: 100%; min-height: 100%; margin: 0 !important; padding: 0 !important; font-family: 'Segoe UI', sans-serif; background: #1a56db; color: #333; -webkit-text-size-adjust: 100%; }
+    .card { width: 100%; margin: 0; padding: 0; background: white; border-radius: 0; box-shadow: none; }
+    .header { background: #1a56db; color: white; padding: 20px 16px; text-align: center; }
     .header h1 { font-size: 1.4rem; }
     .header p { font-size: 0.9rem; opacity: 0.9; margin-top: 4px; }
     .estado-box { padding: 14px; text-align: center; font-weight: 700; font-size: 1rem; }
     .estado-box.recibida { background: #def7ec; color: #03543f; }
     .estado-box.activa { background: #fef3c7; color: #92400e; }
     .estado-box.anulada { background: #fde8e8; color: #c81e1e; }
-    .row { display: flex; justify-content: space-between; padding: 10px 20px; border-bottom: 1px solid #f0f0f0; font-size: 0.9rem; }
+    .row { display: flex; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid #f0f0f0; font-size: 0.95rem; }
     .row strong { color: #555; }
     table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-    thead th { background: #1a56db; color: white; padding: 8px 12px; text-align: left; }
-    tbody td { padding: 8px 12px; border-bottom: 1px solid #eee; }
+    thead th { background: #1a56db; color: white; padding: 8px 6px; text-align: left; font-size: 0.8rem; }
+    tbody td { padding: 8px 6px; border-bottom: 1px solid #eee; vertical-align: top; font-weight: bold; }
+    tbody td.palabras { font-size: 0.75rem; font-style: italic; color: #555; font-weight: bold; }
     tbody tr:nth-child(even) { background: #f8f9ff; }
-    .recepcion-info { background: #def7ec; padding: 14px 20px; font-size: 0.88rem; color: #03543f; border-top: 2px solid #84e1bc; }
+    .recepcion-info { background: #def7ec; padding: 16px; font-size: 0.9rem; color: #03543f; border-top: 2px solid #84e1bc; }
     .error { padding: 40px; text-align: center; color: #c81e1e; font-size: 1.1rem; font-weight: 600; }
     .loading { padding: 40px; text-align: center; color: #888; font-size: 1rem; }
   </style>
@@ -88,6 +90,7 @@
             <div class="row"><strong>Tipo Doc.</strong><span>${s.tipoDocumento||'-'}</span></div>
             <div class="row"><strong>N° Documento</strong><span>${s.nroDocumento||'-'}</span></div>
             <div class="row"><strong>Cliente</strong><span>${s.solicitante||'-'}</span></div>
+            ${s.creadoPor ? `<div class="row"><strong>Creada por</strong><span>${s.creadoPor}${s.rolCreador ? ' ('+s.rolCreador+')' : ''}</span></div>` : ''}
             ${s.observaciones ? `<div class="row"><strong>Observaciones</strong><span>${s.observaciones}</span></div>` : ''}
             <table>
               <thead><tr><th>#</th><th>Producto</th><th>Unid.</th><th>Cant.</th><th>En Palabras</th></tr></thead>
@@ -98,7 +101,7 @@
                     <td>${p.descripcion}</td>
                     <td>${p.unidad}</td>
                     <td>${p.cantidad}</td>
-                    <td>${p.cantPalabras || '-'}</td>
+                    <td class="palabras">${p.cantPalabras || '-'}</td>
                   </tr>`).join('')}
               </tbody>
             </table>

@@ -858,6 +858,35 @@ form.addEventListener('submit', async (e) => {
   if (!solicitante) { showToast('Ingresa el nombre del Cliente', true); document.getElementById('solicitante').focus(); registrando = false; document.getElementById('btnRegistrar').disabled = false; document.getElementById('btnRegistrar').textContent = '✔ Registrar Salida'; return; }
   if (productos.length === 0) { showToast('Agrega al menos un producto', true); registrando = false; document.getElementById('btnRegistrar').disabled = false; document.getElementById('btnRegistrar').textContent = '✔ Registrar Salida'; return; }
 
+  // ── Si estamos editando una orden existente ──
+  if (window._editandoOrden) {
+    const nroEdit = window._editandoOrden;
+    const idx = historial.findIndex(o => o.nro === nroEdit);
+    if (idx === -1) { showToast('Orden no encontrada', true); registrando = false; document.getElementById('btnRegistrar').disabled = false; document.getElementById('btnRegistrar').textContent = '✔ Registrar Salida'; return; }
+
+    // Actualizar la orden
+    historial[idx].fecha         = document.getElementById('fecha').value;
+    historial[idx].tipoDocumento = tipoDocumento;
+    historial[idx].nroDocumento  = nroDocumento;
+    historial[idx].solicitante   = solicitante;
+    historial[idx].observaciones = document.getElementById('observaciones').value;
+    historial[idx].productos     = [...productos];
+    historial[idx].total         = productos.length;
+    historial[idx].editadoPor    = usuarioActivo ? usuarioActivo.nombre : '';
+    historial[idx].fechaEdicion  = new Date().toISOString().slice(0,16);
+
+    localStorage.setItem('historialSalidas', JSON.stringify(historial));
+    if (window.fbListo) fbGuardar('historial', nroEdit, historial[idx]);
+
+    showToast(`✔ Orden ${nroEdit} actualizada correctamente`);
+    registrarActividad('Orden editada', `${nroEdit} — Cliente: ${solicitante}`);
+    window._editandoOrden = null;
+    bloquearFormulario();
+    buscarOrdenAntigua();
+    registrando = false;
+    return;
+  }
+
   // Obtener siguiente número de orden (transacción atómica - nunca se duplica)
   let nroOrden;
   document.getElementById('btnRegistrar').textContent = '⏳ Registrando...';
@@ -1675,6 +1704,9 @@ document.getElementById('btnNuevaOrden').addEventListener('click', () => {
 });
 
 function limpiarFormularioCompleto() {
+  // Cancelar modo edición si estaba activo
+  window._editandoOrden = null;
+
   // Habilitar y limpiar todos los campos
   ['tipoDocumento','nroDocumento','solicitante','observaciones','fecha',
    'inputBuscar','inputCodigo','inputDescripcion','inputCantidad','inputCantidadPalabras'
@@ -1785,6 +1817,7 @@ function buscarOrdenAntigua() {
       <td>${estado}</td>
       <td>
         <button class="btn-ver" onclick="verOrdenAntigua('${s.nro}')" style="margin-right:4px">Ver</button>
+        ${!anulada && !recibida ? `<button class="btn-secondary" style="padding:4px 10px;font-size:0.8rem;margin-right:4px" onclick="editarOrden('${s.nro}')">✏ Editar</button>` : ''}
         ${!anulada && !recibida ? `<button class="btn-add" style="padding:4px 10px;font-size:0.8rem" onclick="reimprimirOrden(this)" data-nro="${s.nro}">🖨 Reimprimir</button>` : ''}
         ${!anulada && !recibida ? `<button class="btn-delete" style="margin-left:4px" onclick="anularOrden(this)" data-nro="${s.nro}" title="Anular">🚫 Anular</button>` : ''}
         ${recibida ? `<button class="btn-add" style="padding:4px 10px;font-size:0.8rem" onclick="reimprimirOrden(this)" data-nro="${s.nro}">🖨 Reimprimir</button>` : ''}
@@ -1814,6 +1847,42 @@ function anularOrden(btn) {
   showToast(`Orden ${nro} anulada`);
   registrarActividad('Orden anulada', `${nro}`);
   buscarOrdenAntigua();
+}
+
+// ── Editar orden existente (solo si no fue recibida ni anulada) ──
+function editarOrden(nro) {
+  const idx = historial.findIndex(o => o.nro === nro);
+  if (idx === -1) { showToast('Orden no encontrada', true); return; }
+  const s = historial[idx];
+  if (s.anulada) { showToast('No se puede editar una orden anulada', true); return; }
+  if (recepciones.some(r => r.nroOrden === nro)) { showToast('No se puede editar una orden ya recibida', true); return; }
+
+  if (!confirm(`¿Deseas editar la orden ${nro}? Se cargará en el formulario para modificarla.`)) return;
+
+  // Cargar datos en el formulario
+  resetForm();
+  document.getElementById('nroSalida').value      = s.nro;
+  document.getElementById('fecha').value          = s.fecha;
+  document.getElementById('tipoDocumento').value  = s.tipoDocumento || '';
+  document.getElementById('nroDocumento').value   = s.nroDocumento || '';
+  document.getElementById('solicitante').value    = s.solicitante || '';
+  document.getElementById('observaciones').value  = s.observaciones || '';
+  document.getElementById('campoNroDoc').style.display = (s.tipoDocumento === 'Sin Documento' || !s.tipoDocumento) ? 'none' : '';
+  productos = [...s.productos];
+  renderTabla();
+
+  // Marcar que estamos editando (no crear nueva orden)
+  window._editandoOrden = nro;
+
+  // Cambiar texto del botón
+  document.getElementById('btnRegistrar').textContent = '✔ Guardar Cambios';
+
+  // Scroll al formulario
+  document.getElementById('tab-formulario').scrollTo({ top: 0, behavior: 'smooth' });
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  showToast(`Editando orden ${nro}. Modifica y presiona "Guardar Cambios".`);
+  registrarActividad('Editando orden', `${nro}`);
 }
 
 function reimprimirOrden(btn) {
