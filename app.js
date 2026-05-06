@@ -2415,19 +2415,25 @@ function abrirModalRec(btn) {
   opcionesUsuarios += `<option value="__otro__">✏ Otra persona...</option>`;
   selectRec.innerHTML = opcionesUsuarios;
   selectRec.value = '';
+  // Crear/mostrar input para nombre manual
+  let inputOtro = document.getElementById('inputRecOtroNombre');
+  if (!inputOtro) {
+    inputOtro = document.createElement('input');
+    inputOtro.type = 'text';
+    inputOtro.id = 'inputRecOtroNombre';
+    inputOtro.placeholder = 'Escribe el nombre...';
+    inputOtro.style.cssText = 'margin-top:8px; display:none; width:100%;';
+    selectRec.parentNode.appendChild(inputOtro);
+  }
+  inputOtro.style.display = 'none';
+  inputOtro.value = '';
   // Listener para "Otra persona"
   selectRec.onchange = function() {
     if (this.value === '__otro__') {
-      const nombre = prompt('Ingresa el nombre de quien recibe:');
-      if (nombre && nombre.trim()) {
-        const opt = document.createElement('option');
-        opt.value = nombre.trim();
-        opt.textContent = nombre.trim();
-        selectRec.insertBefore(opt, selectRec.lastElementChild);
-        selectRec.value = nombre.trim();
-      } else {
-        selectRec.value = '';
-      }
+      inputOtro.style.display = '';
+      inputOtro.focus();
+    } else {
+      inputOtro.style.display = 'none';
     }
   };
   document.getElementById('modalRecBody').innerHTML = `
@@ -2456,7 +2462,12 @@ function cerrarModalRec() {
 }
 
 async function confirmarRecepcion() {
-  const recibidoPor = document.getElementById('recibidoPor').value.trim();
+  let recibidoPor = document.getElementById('recibidoPor').value.trim();
+  // Si eligió "Otra persona", usar el input de texto
+  if (recibidoPor === '__otro__') {
+    const inputOtro = document.getElementById('inputRecOtroNombre');
+    recibidoPor = inputOtro ? inputOtro.value.trim() : '';
+  }
   if (!recibidoPor) { showToast('Ingresa quién recibe la orden', true); return; }
 
   // Verificar que no esté ya recibida (en local y en Firebase)
