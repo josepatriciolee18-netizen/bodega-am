@@ -647,19 +647,27 @@ document.getElementById('tipoDocumento').addEventListener('change', function () 
 document.getElementById('campoNroDoc').style.display = 'none';
 
 // ── Buscador autocomplete ─────────────────────────────────
+let _buscarTimeout = null;
 inputBuscar.addEventListener('input', () => {
-  const q = inputBuscar.value.trim().toLowerCase();
-  if (!q || catalogo.length === 0) { cerrarSugerencias(); return; }
-  const filtrados = catalogo.filter(p =>
-    p.nombre.toLowerCase().includes(q) || p.codigo.toLowerCase().includes(q)
-  );
-  if (filtrados.length === 0) { cerrarSugerencias(); return; }
-  sugerencias.innerHTML = filtrados.map(p =>
-    `<li onclick="seleccionarProducto(${catalogo.indexOf(p)})">
-      <strong>${p.nombre}</strong><span>${p.codigo} · ${p.unidad}</span>
-    </li>`
-  ).join('');
-  sugerencias.classList.add('visible');
+  if (_buscarTimeout) clearTimeout(_buscarTimeout);
+  _buscarTimeout = setTimeout(() => {
+    const q = inputBuscar.value.trim().toLowerCase();
+    if (!q || q.length < 2 || catalogo.length === 0) { cerrarSugerencias(); return; }
+    const filtrados = [];
+    for (let i = 0; i < catalogo.length && filtrados.length < 15; i++) {
+      const p = catalogo[i];
+      if (p.nombre.toLowerCase().includes(q) || p.codigo.toLowerCase().includes(q)) {
+        filtrados.push(p);
+      }
+    }
+    if (filtrados.length === 0) { cerrarSugerencias(); return; }
+    sugerencias.innerHTML = filtrados.map(p =>
+      `<li onclick="seleccionarProducto(${catalogo.indexOf(p)})">
+        <strong>${p.nombre}</strong><span>${p.codigo} · ${p.unidad}</span>
+      </li>`
+    ).join('');
+    sugerencias.classList.add('visible');
+  }, 150);
 });
 
 inputBuscar.addEventListener('keydown', (e) => {
@@ -741,18 +749,21 @@ document.getElementById('modalBuscarProducto').addEventListener('click', (e) => 
 function ejecutarBusquedaProducto() {
   const q = document.getElementById('buscadorProductoInput').value.trim().toLowerCase();
   const tbody = document.getElementById('tbodyBuscadorProducto');
-  if (!q) {
-    tbody.innerHTML = '<tr><td colspan="4" class="empty-msg">Ingresa un código o nombre para buscar</td></tr>';
+  if (!q || q.length < 2) {
+    tbody.innerHTML = '<tr><td colspan="4" class="empty-msg">Ingresa al menos 2 caracteres para buscar</td></tr>';
     return;
   }
   if (catalogo.length === 0) {
     tbody.innerHTML = '<tr><td colspan="4" class="empty-msg">El catálogo está vacío</td></tr>';
     return;
   }
-  const resultados = catalogo.filter(p =>
-    p.nombre.toLowerCase().includes(q) ||
-    (p.codigo && p.codigo.toLowerCase().includes(q))
-  );
+  const resultados = [];
+  for (let i = 0; i < catalogo.length && resultados.length < 30; i++) {
+    const p = catalogo[i];
+    if (p.nombre.toLowerCase().includes(q) || (p.codigo && p.codigo.toLowerCase().includes(q))) {
+      resultados.push(p);
+    }
+  }
   if (resultados.length === 0) {
     tbody.innerHTML = '<tr><td colspan="4" class="empty-msg">No se encontraron productos</td></tr>';
     return;
@@ -766,11 +777,15 @@ function ejecutarBusquedaProducto() {
     </tr>`).join('');
 }
 
+let _buscarModalTimeout = null;
 document.getElementById('btnEjecutarBusqueda').addEventListener('click', ejecutarBusquedaProducto);
 document.getElementById('buscadorProductoInput').addEventListener('keydown', (e) => {
   if (e.key === 'Enter') ejecutarBusquedaProducto();
 });
-document.getElementById('buscadorProductoInput').addEventListener('input', ejecutarBusquedaProducto);
+document.getElementById('buscadorProductoInput').addEventListener('input', () => {
+  if (_buscarModalTimeout) clearTimeout(_buscarModalTimeout);
+  _buscarModalTimeout = setTimeout(ejecutarBusquedaProducto, 150);
+});
 
 function cerrarSugerencias() {
   sugerencias.innerHTML = '';
