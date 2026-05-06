@@ -249,12 +249,21 @@
           </div>
           <div class="stat-card">
             <span class="stat-num" id="statItems">0</span>
-            <span class="stat-label">Ítems Despachados</span>
+            <span class="stat-label">Ítems Despachados Hoy</span>
           </div>
           <div class="stat-card">
             <span class="stat-num" id="statMes">0</span>
             <span class="stat-label">Órdenes este Mes</span>
           </div>
+        </div>
+
+        <div class="filtros" style="margin-top:16px; padding:12px; background:#f8fafc; border-radius:8px;">
+          <div class="field">
+            <label>📅 Ítems despachados en fecha</label>
+            <input type="date" id="filtroItemsFecha" />
+          </div>
+          <button type="button" id="btnFiltroItems" class="btn-add">🔍 Ver</button>
+          <span id="statItemsFecha" style="align-self:center; font-weight:700; font-size:1.1rem; color:#1a56db;"></span>
         </div>
       </section>
 

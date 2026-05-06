@@ -1016,7 +1016,7 @@ function renderReportes(filtro = null) {
 
   document.getElementById('statTotal').textContent = historial.length;
   document.getElementById('statHoy').textContent   = historial.filter(s => s.fecha && s.fecha.slice(0,10) === hoy).length;
-  document.getElementById('statItems').textContent = historial.reduce((a, s) => a + s.total, 0);
+  document.getElementById('statItems').textContent = historial.filter(s => s.fecha && s.fecha.slice(0,10) === hoy).reduce((a, s) => a + s.total, 0);
   document.getElementById('statMes').textContent   = historial.filter(s => s.fecha && s.fecha.slice(0,7) === mes).length;
 
   // Top productos
@@ -1275,6 +1275,14 @@ function buscarProductoFecha() {
 
 // Filtros órdenes
 document.getElementById('btnFiltrar').addEventListener('click', aplicarFiltro);
+
+// Filtro ítems despachados por fecha
+document.getElementById('btnFiltroItems').addEventListener('click', () => {
+  const fecha = document.getElementById('filtroItemsFecha').value;
+  if (!fecha) { showToast('Selecciona una fecha', true); return; }
+  const items = historial.filter(s => s.fecha && s.fecha.slice(0,10) === fecha).reduce((a, s) => a + s.total, 0);
+  document.getElementById('statItemsFecha').textContent = items + ' ítems el ' + fecha.split('-').reverse().join('/');
+});
 
 document.getElementById('btnFiltroMes').addEventListener('click', () => {
   const mes = document.getElementById('filtroMes').value;
