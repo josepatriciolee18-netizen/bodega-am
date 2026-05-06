@@ -73,15 +73,19 @@ async function iniciarApp() {
       const progressFill = document.getElementById('updateProgressFill');
       const detail       = document.getElementById('updateDetail');
 
+      window._updateDescargando = false;
+
       if (data.status === 'checking') {
         msg.textContent = '🔍 Buscando actualizaciones...';
         detail.textContent = 'Espera un momento';
       } else if (data.status === 'downloading') {
+        window._updateDescargando = true;
         msg.textContent = '⬇ Actualizando...';
         progress.style.display = 'block';
         progressFill.style.width = data.percent + '%';
         detail.textContent = data.percent + '% descargado';
       } else if (data.status === 'ready') {
+        window._updateDescargando = true;
         msg.textContent = '✔ Actualización lista';
         progress.style.display = 'block';
         progressFill.style.width = '100%';
@@ -93,9 +97,10 @@ async function iniciarApp() {
     });
 
     // Si después de 10 segundos no hay respuesta del updater, mostrar login
+    // PERO si está descargando, NO mostrar login hasta que termine
     setTimeout(() => {
       const updateScreen = document.getElementById('updateScreen');
-      if (updateScreen.style.display !== 'none') {
+      if (updateScreen.style.display !== 'none' && !window._updateDescargando) {
         updateScreen.style.display = 'none';
         document.getElementById('loginScreen').style.display = 'flex';
       }
