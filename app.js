@@ -96,7 +96,7 @@ async function iniciarApp() {
       }
     });
 
-    // Si después de 10 segundos no hay respuesta del updater, mostrar login
+    // Si después de 30 segundos no hay respuesta del updater, mostrar login
     // PERO si está descargando, NO mostrar login hasta que termine
     setTimeout(() => {
       const updateScreen = document.getElementById('updateScreen');
@@ -104,7 +104,7 @@ async function iniciarApp() {
         updateScreen.style.display = 'none';
         document.getElementById('loginScreen').style.display = 'flex';
       }
-    }, 10000);
+    }, 30000);
 
   } else {
     document.getElementById('loginScreen').style.display = 'flex';
