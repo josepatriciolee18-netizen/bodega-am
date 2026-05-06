@@ -5,6 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Bodega A&M — Salida de Mercadería</title>
   <link rel="stylesheet" href="styles.css" />
+  <style>
+    .diag-progress-bar { width:100%; height:18px; background:#e5e7eb; border-radius:9px; overflow:hidden; margin-top:4px; }
+    .diag-progress-fill { height:100%; background:#1a56db; border-radius:9px; transition:width 0.4s ease; width:0%; }
+    .diag-warning { background:#fef3c7; color:#92400e; padding:10px 14px; border-radius:8px; margin-top:10px; font-size:0.88rem; font-weight:600; }
+    .diag-error-list { max-height:260px; overflow-y:auto; }
+    .diag-error-item { background:#fef2f2; border:1px solid #fecaca; border-radius:8px; padding:10px 14px; margin-bottom:8px; font-size:0.85rem; }
+    .diag-error-item .diag-error-time { font-size:0.75rem; color:#888; margin-bottom:2px; }
+    .diag-error-item .diag-error-tipo { font-size:0.72rem; color:#b91c1c; font-weight:600; text-transform:uppercase; }
+  </style>
 </head>
 <body>
 
@@ -81,6 +90,7 @@
       <button class="tab" data-tab="recepciones">📥 Recepción de Órdenes</button>
       <button class="tab" data-tab="usuarios">👤 Usuarios</button>
       <button class="tab" data-tab="papelera">🗑 Papelera</button>
+      <button class="tab" data-tab="diagnosticos">🩺 Diagnósticos</button>
     </nav>
 
     <!-- ── PESTAÑA: FORMULARIO ── -->
@@ -689,6 +699,67 @@
       </section>
     </div>
 
+    <!-- ── PESTAÑA: DIAGNÓSTICOS ── -->
+    <div id="tab-diagnosticos" class="tab-content">
+      <section class="section">
+        <h2>🔗 Estado de Conexión</h2>
+        <div class="grid-2">
+          <div class="field">
+            <label>Estado</label>
+            <span id="diagConexionEstado" class="badge">—</span>
+          </div>
+          <div class="field">
+            <label>Latencia</label>
+            <span id="diagLatencia">—</span>
+          </div>
+          <div class="field">
+            <label>Última sincronización</label>
+            <span id="diagUltimaSync">—</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>💾 Uso de Almacenamiento</h2>
+        <div id="diagStorageGrid" class="grid-2"></div>
+        <div class="field" style="margin-top:12px">
+          <label>Estimación total</label>
+          <div class="diag-progress-bar">
+            <div id="diagProgressFill" class="diag-progress-fill"></div>
+          </div>
+          <span id="diagStorageText">—</span>
+        </div>
+        <div id="diagStorageWarning" class="diag-warning" style="display:none">
+          ⚠️ Almacenamiento superior al 80% del tier gratuito (1 GB)
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>⚠️ Errores Recientes</h2>
+        <div style="display:flex; justify-content:flex-end; margin-bottom:8px">
+          <button id="btnLimpiarErrores" class="btn-secondary">🗑 Limpiar errores</button>
+        </div>
+        <div id="diagErrorList" class="diag-error-list">
+          <p class="empty-msg">Sin errores registrados</p>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>ℹ️ Información del Sistema</h2>
+        <div class="grid-2">
+          <div class="field"><label>Versión</label><span id="diagVersion">—</span></div>
+          <div class="field"><label>Sistema Operativo</label><span id="diagOS">—</span></div>
+          <div class="field"><label>Usuario activo</label><span id="diagUsuario">—</span></div>
+          <div class="field"><label>Duración de sesión</label><span id="diagSesion">—</span></div>
+          <div class="field"><label>Memoria en uso</label><span id="diagMemoria">—</span></div>
+        </div>
+      </section>
+
+      <div style="text-align:center; margin-top:16px">
+        <button id="btnActualizarDiag" class="btn-primary">🔄 Actualizar</button>
+      </div>
+    </div>
+
   </div><!-- /appMain -->
 
   <!-- Modal detalle orden -->
@@ -735,7 +806,7 @@
   <div id="updateBar" class="update-bar" style="display:none"></div>
   <div id="toast" class="toast"></div>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  <script>window.onerror=function(msg,url,line){document.title='ERROR: '+msg+' (linea '+line+')';console.error('ERROR:',msg,'linea:',line);};</script>
+  <script>window.onerror=function(msg,url,line){document.title='ERROR: '+msg+' (linea '+line+')';console.error('ERROR:',msg,'linea:',line);if(typeof diagRegistrarError==='function')diagRegistrarError(msg+' ('+url+':'+line+')','general');};</script>
   <script src="firebase-init.js"></script>
   <script src="app.js"></script>
 </body>

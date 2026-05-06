@@ -111,6 +111,16 @@ ipcMain.on('check-for-updates', () => {
 ipcMain.on('get-version', (event) => {
   event.reply('app-version', app.getVersion());
 });
+
+// Información del sistema para panel de diagnósticos
+ipcMain.handle('get-system-info', () => {
+  return {
+    platform: os.platform(),
+    release: os.release(),
+    hostname: os.hostname(),
+    memoryUsage: Math.round(process.memoryUsage().rss / (1024 * 1024))
+  };
+});
 app.on('window-all-closed', () => { if (process.platform !== 'darwin' || app.isQuiting) app.quit(); });
 app.on('activate', () => { if (BrowserWindow.getAllWindows().length === 0) createWindow(); });
 

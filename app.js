@@ -322,6 +322,7 @@ function hacerLogin() {
 
     errEl.style.display = 'none';
     usuarioActivo = usuario;
+    diagInicioSesion = Date.now();
     sessionStorage.setItem('sesionActiva', JSON.stringify(usuario));
     
     // Registrar sesión activa en Firebase
@@ -619,6 +620,8 @@ document.querySelectorAll('.tab').forEach(btn => {
     }
     if (btn.dataset.tab === 'recepciones') { renderOrdenesEmitidas(); renderRecepciones(); }
     if (btn.dataset.tab === 'papelera') { renderPapelera(); }
+    if (btn.dataset.tab === 'diagnosticos') { diagnosticosRefresh(); diagIniciarIntervalos(); }
+    if (btn.dataset.tab !== 'diagnosticos') { diagDetenerIntervalos(); }
   });
 });
 
@@ -1754,6 +1757,7 @@ function aplicarPermisos() {
   document.querySelector('[data-tab="recepciones"]').style.display = (esAdmin || p.recepciones)  ? '' : 'none';
   document.querySelector('[data-tab="usuarios"]').style.display    = (esAdmin || p.usuarios)     ? '' : 'none';
   document.querySelector('[data-tab="papelera"]').style.display    = esAdmin ? '' : 'none';
+  document.querySelector('[data-tab="diagnosticos"]').style.display = esAdmin ? '' : 'none';
 
   // Activar la primera pestaña visible
   const tabs = document.querySelectorAll('.tab');
@@ -2774,3 +2778,324 @@ if (window.require) {
     }
   });
 }
+
+// ══════════════════════════════════════════════════════════════
+// ── PANEL DE DIAGNÓSTICOS ─────────────────────────────────────
+// ══════════════════════════════════════════════════════════════
+
+// ── Error Logger ──────────────────────────────────────────────
+let diagErrores = [];
+const DIAG_MAX_ERRORES = 50;
+
+function diagRegistrarError(mensaje, tipo = 'general') {
+  const error = {
+    timestamp: Date.now(),
+    mensaje: mensaje,
+    tipo: tipo,
+    resuelto: false
+  };
+  diagErrores.unshift(error);
+  if (diagErrores.length > DIAG_MAX_ERRORES) {
+    diagErrores.pop();
+  }
+}
+
+function diagLimpiarErrores() {
+  diagErrores = [];
+}
+
+function diagMarcarResueltos(tipo) {
+  diagErrores.forEach(e => {
+    if (e.tipo === tipo && !e.resuelto) e.resuelto = true;
+  });
+}
+
+// ── Firebase Connection Monitor ───────────────────────────────
+let diagUltimaSync = null;
+let diagConectado = navigator.onLine;
+
+function diagMedirLatencia() {
+  const inicio = performance.now();
+  return fbCargar('config').then(() => {
+    const fin = performance.now();
+    diagUltimaSync = Date.now();
+    diagConectado = true;
+    diagMarcarResueltos('network');
+    return Math.round(fin - inicio);
+  }).catch(err => {
+    diagConectado = false;
+    diagRegistrarError('Error de conexión: ' + err.message, 'network');
+    return null;
+  });
+}
+
+async function diagActualizarConexion() {
+  const estadoEl = document.getElementById('diagConexionEstado');
+  const latenciaEl = document.getElementById('diagLatencia');
+  const syncEl = document.getElementById('diagUltimaSync');
+  if (!estadoEl) return;
+
+  const latencia = await diagMedirLatencia();
+  if (latencia !== null) {
+    estadoEl.textContent = 'Conectado';
+    estadoEl.style.background = '#d1fae5';
+    estadoEl.style.color = '#065f46';
+    latenciaEl.textContent = latencia + ' ms';
+  } else {
+    estadoEl.textContent = 'Desconectado';
+    estadoEl.style.background = '#fee2e2';
+    estadoEl.style.color = '#991b1b';
+    latenciaEl.textContent = '—';
+  }
+  if (diagUltimaSync) {
+    syncEl.textContent = diagFormatearFecha(diagUltimaSync);
+  }
+}
+
+// ── Storage Calculator ────────────────────────────────────────
+const DIAG_TAMANO_PROMEDIO = {
+  historial: 2048,
+  catalogo: 512,
+  clientes: 256,
+  recepciones: 1024,
+  usuarios: 384
+};
+
+async function diagCalcularAlmacenamiento() {
+  const colecciones = ['historial', 'catalogo', 'clientes', 'recepciones', 'usuarios'];
+  const resultados = {};
+  let totalBytes = 0;
+
+  for (const col of colecciones) {
+    try {
+      const docs = await fbCargar(col);
+      const count = docs.length;
+      const estimatedBytes = count * (DIAG_TAMANO_PROMEDIO[col] || 512);
+      resultados[col] = { count, estimatedBytes };
+      totalBytes += estimatedBytes;
+    } catch (e) {
+      resultados[col] = { count: 0, estimatedBytes: 0, error: true };
+    }
+  }
+
+  const totalMB = totalBytes / (1024 * 1024);
+  const porcentaje = Math.min((totalMB / 1024) * 100, 100);
+
+  return { colecciones: resultados, totalMB, porcentaje };
+}
+
+async function diagActualizarStorage() {
+  const gridEl = document.getElementById('diagStorageGrid');
+  const fillEl = document.getElementById('diagProgressFill');
+  const textEl = document.getElementById('diagStorageText');
+  const warnEl = document.getElementById('diagStorageWarning');
+  if (!gridEl) return;
+
+  try {
+    const datos = await diagCalcularAlmacenamiento();
+
+    // Render grid
+    let html = '';
+    for (const [col, info] of Object.entries(datos.colecciones)) {
+      const kb = (info.estimatedBytes / 1024).toFixed(1);
+      const estado = info.error ? '<span style="color:#e53e3e">Error</span>' : `${info.count} docs (~${kb} KB)`;
+      html += `<div class="field"><label>${col}</label><span>${estado}</span></div>`;
+    }
+    gridEl.innerHTML = html;
+
+    // Progress bar
+    fillEl.style.width = datos.porcentaje.toFixed(1) + '%';
+    if (datos.porcentaje > 80) {
+      fillEl.style.background = '#e53e3e';
+    } else if (datos.porcentaje > 60) {
+      fillEl.style.background = '#f59e0b';
+    } else {
+      fillEl.style.background = '#1a56db';
+    }
+    textEl.textContent = datos.totalMB.toFixed(2) + ' MB / 1024 MB (' + datos.porcentaje.toFixed(1) + '%)';
+
+    // Warning
+    warnEl.style.display = datos.porcentaje > 80 ? '' : 'none';
+  } catch (e) {
+    gridEl.innerHTML = '<p class="empty-msg">Error al calcular almacenamiento</p>';
+  }
+}
+
+// ── System Info ───────────────────────────────────────────────
+async function diagObtenerInfoSistema() {
+  if (window.require) {
+    try {
+      const { ipcRenderer } = window.require('electron');
+      return await ipcRenderer.invoke('get-system-info');
+    } catch (e) {
+      return null;
+    }
+  }
+  return null;
+}
+
+async function diagActualizarSistema() {
+  const versionEl = document.getElementById('diagVersion');
+  const osEl = document.getElementById('diagOS');
+  const usuarioEl = document.getElementById('diagUsuario');
+  const memoriaEl = document.getElementById('diagMemoria');
+  if (!versionEl) return;
+
+  // Versión
+  const verEl = document.getElementById('appVersion');
+  versionEl.textContent = verEl ? verEl.textContent || 'N/A' : 'N/A';
+
+  // Usuario activo
+  usuarioEl.textContent = usuarioActivo ? `${usuarioActivo.nombre} (${usuarioActivo.rol})` : 'N/A';
+
+  // Info del sistema via IPC
+  const info = await diagObtenerInfoSistema();
+  if (info) {
+    osEl.textContent = `${info.platform} ${info.release}`;
+    memoriaEl.textContent = info.memoryUsage + ' MB';
+  } else {
+    osEl.textContent = 'No disponible';
+    memoriaEl.textContent = 'No disponible';
+  }
+}
+
+// ── Session Duration ──────────────────────────────────────────
+let diagInicioSesion = null;
+
+function diagCalcularDuracionSesion(inicioTimestamp, ahoraTimestamp) {
+  const diffMs = ahoraTimestamp - inicioTimestamp;
+  const totalMinutos = Math.floor(diffMs / 60000);
+  const horas = Math.floor(totalMinutos / 60);
+  const minutos = totalMinutos % 60;
+  return { horas, minutos, texto: `${horas}h ${minutos}m` };
+}
+
+function diagActualizarSesion() {
+  const sesionEl = document.getElementById('diagSesion');
+  if (!sesionEl) return;
+  if (diagInicioSesion) {
+    const duracion = diagCalcularDuracionSesion(diagInicioSesion, Date.now());
+    sesionEl.textContent = duracion.texto;
+  } else {
+    sesionEl.textContent = '—';
+  }
+}
+
+// ── Timestamp Formatter ───────────────────────────────────────
+function diagFormatearFecha(timestamp) {
+  const d = new Date(timestamp);
+  const dd = String(d.getDate()).padStart(2, '0');
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const yyyy = d.getFullYear();
+  const hh = String(d.getHours()).padStart(2, '0');
+  const min = String(d.getMinutes()).padStart(2, '0');
+  const ss = String(d.getSeconds()).padStart(2, '0');
+  return `${dd}/${mm}/${yyyy} ${hh}:${min}:${ss}`;
+}
+
+// ── Periodic Refresh Controller ───────────────────────────────
+let diagIntervalConexion = null;
+let diagIntervalStorage = null;
+let diagIntervalSesion = null;
+
+function diagIniciarIntervalos() {
+  diagDetenerIntervalos();
+  diagIntervalConexion = setInterval(diagActualizarConexion, 30000);
+  diagIntervalStorage = setInterval(diagActualizarStorage, 300000);
+  diagIntervalSesion = setInterval(diagActualizarSesion, 60000);
+}
+
+function diagDetenerIntervalos() {
+  if (diagIntervalConexion) { clearInterval(diagIntervalConexion); diagIntervalConexion = null; }
+  if (diagIntervalStorage) { clearInterval(diagIntervalStorage); diagIntervalStorage = null; }
+  if (diagIntervalSesion) { clearInterval(diagIntervalSesion); diagIntervalSesion = null; }
+}
+
+// ── Main Refresh Orchestrator ─────────────────────────────────
+async function diagnosticosRefresh() {
+  try {
+    await diagActualizarConexion();
+  } catch (e) {}
+  try {
+    await diagActualizarStorage();
+  } catch (e) {}
+  try {
+    await diagActualizarSistema();
+  } catch (e) {}
+  diagActualizarSesion();
+  diagRenderErrores();
+}
+
+function diagRenderErrores() {
+  const listEl = document.getElementById('diagErrorList');
+  if (!listEl) return;
+
+  if (diagErrores.length === 0) {
+    listEl.innerHTML = '<p class="empty-msg">Sin errores registrados</p>';
+    return;
+  }
+
+  listEl.innerHTML = diagErrores.map(e => {
+    const fecha = diagFormatearFecha(e.timestamp);
+    const resueltoCls = e.resuelto ? ' style="opacity:0.5"' : '';
+    return `<div class="diag-error-item"${resueltoCls}>
+      <div class="diag-error-time">${fecha}</div>
+      <div class="diag-error-tipo">${e.tipo}</div>
+      <div>${e.mensaje}</div>
+    </div>`;
+  }).join('');
+}
+
+// ── Button Event Listeners ────────────────────────────────────
+document.getElementById('btnLimpiarErrores').addEventListener('click', () => {
+  diagLimpiarErrores();
+  diagRenderErrores();
+});
+
+document.getElementById('btnActualizarDiag').addEventListener('click', () => {
+  diagnosticosRefresh();
+});
+
+// ── Global Error Interception ─────────────────────────────────
+window.addEventListener('unhandledrejection', (event) => {
+  diagRegistrarError('Promise: ' + event.reason, 'general');
+});
+
+// Wrap Firebase functions for error capture
+(function() {
+  if (typeof window.fbCargar === 'function') {
+    const originalFbCargar = window.fbCargar;
+    window.fbCargar = async function(col) {
+      try {
+        return await originalFbCargar(col);
+      } catch(e) {
+        diagRegistrarError('Firebase fbCargar(' + col + '): ' + e.message, 'firebase');
+        throw e;
+      }
+    };
+  }
+
+  if (typeof window.fbGuardar === 'function') {
+    const originalFbGuardar = window.fbGuardar;
+    window.fbGuardar = async function(col, id, data) {
+      try {
+        return await originalFbGuardar(col, id, data);
+      } catch(e) {
+        diagRegistrarError('Firebase fbGuardar(' + col + '): ' + e.message, 'firebase');
+        throw e;
+      }
+    };
+  }
+
+  if (typeof window.fbEliminar === 'function') {
+    const originalFbEliminar = window.fbEliminar;
+    window.fbEliminar = async function(col, id) {
+      try {
+        return await originalFbEliminar(col, id);
+      } catch(e) {
+        diagRegistrarError('Firebase fbEliminar(' + col + '): ' + e.message, 'firebase');
+        throw e;
+      }
+    };
+  }
+})();
