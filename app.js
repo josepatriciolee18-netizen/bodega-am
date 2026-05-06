@@ -2398,8 +2398,33 @@ function abrirModalRec(btn) {
   ordenEnRecepcion = orden;
   document.getElementById('modalRecTitulo').textContent = `Recibir Orden ${nroOrden}`;
   const selectRec = document.getElementById('recibidoPor');
-  selectRec.innerHTML = `<option value="">-- Seleccionar --</option><option value="${usuarioActivo.nombre}">${usuarioActivo.nombre} (${usuarioActivo.rol})</option>`;
+  // Mostrar todos los usuarios activos para que cualquiera pueda recibir
+  let opcionesUsuarios = '<option value="">-- Seleccionar --</option>';
+  // Primero el usuario activo (preseleccionado arriba)
+  opcionesUsuarios += `<option value="${usuarioActivo.nombre}">${usuarioActivo.nombre} (${usuarioActivo.rol})</option>`;
+  // Luego los demás usuarios activos
+  usuarios.filter(u => u.activo && u.login !== usuarioActivo.login).forEach(u => {
+    opcionesUsuarios += `<option value="${u.nombre}">${u.nombre} (${u.rol})</option>`;
+  });
+  // Opción para escribir otro nombre manualmente
+  opcionesUsuarios += `<option value="__otro__">✏ Otra persona...</option>`;
+  selectRec.innerHTML = opcionesUsuarios;
   selectRec.value = '';
+  // Listener para "Otra persona"
+  selectRec.onchange = function() {
+    if (this.value === '__otro__') {
+      const nombre = prompt('Ingresa el nombre de quien recibe:');
+      if (nombre && nombre.trim()) {
+        const opt = document.createElement('option');
+        opt.value = nombre.trim();
+        opt.textContent = nombre.trim();
+        selectRec.insertBefore(opt, selectRec.lastElementChild);
+        selectRec.value = nombre.trim();
+      } else {
+        selectRec.value = '';
+      }
+    }
+  };
   document.getElementById('modalRecBody').innerHTML = `
     <div class="detail-row"><strong>N° Orden:</strong> ${orden.nro}</div>
     <div class="detail-row"><strong>Fecha Emisión:</strong> ${formatFecha(orden.fecha)}</div>
