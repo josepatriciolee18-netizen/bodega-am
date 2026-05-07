@@ -1916,22 +1916,46 @@ function renderCatalogo(filtro = '') {
 
 function editarProductoCatalogo(i) {
   const p = catalogo[i];
-  const nuevoCodigo = prompt('Código:', p.codigo);
-  if (nuevoCodigo === null) return;
-  const nuevoNombre = prompt('Nombre:', p.nombre);
-  if (nuevoNombre === null || !nuevoNombre.trim()) return;
-  const nuevaUnidad = prompt('Unidad (unidad, kg, litro, caja, metro):', p.unidad);
-  if (nuevaUnidad === null) return;
-
-  // Eliminar el anterior de Firebase si cambió el código
-  if (window.fbListo && p.codigo !== nuevoCodigo.trim()) {
-    fbEliminar('catalogo', p.codigo || p.nombre);
-  }
-  catalogo[i] = { codigo: nuevoCodigo.trim(), nombre: nuevoNombre.trim(), unidad: nuevaUnidad.trim() || 'unidad' };
-  localStorage.setItem('catalogoProductos', JSON.stringify(catalogo));
-  if (window.fbListo) fbGuardar('catalogo', catalogo[i].codigo || catalogo[i].nombre, catalogo[i]);
-  renderCatalogo();
-  showToast('✔ Producto actualizado');
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.style.display = 'flex';
+  overlay.innerHTML = `
+    <div class="modal" style="max-width:400px">
+      <div class="modal-header"><h3>✏ Editar Producto</h3><button class="modal-close" onclick="this.closest('.modal-overlay').remove()">✕</button></div>
+      <div class="modal-body" style="padding:16px">
+        <div class="field"><label>Código</label><input type="text" id="editProdCodigo" value="${p.codigo || ''}" /></div>
+        <div class="field" style="margin-top:10px"><label>Nombre</label><input type="text" id="editProdNombre" value="${p.nombre || ''}" /></div>
+        <div class="field" style="margin-top:10px"><label>Unidad</label>
+          <select id="editProdUnidad">
+            <option value="unidad" ${p.unidad==='unidad'?'selected':''}>Unidad</option>
+            <option value="kg" ${p.unidad==='kg'?'selected':''}>Kg</option>
+            <option value="litro" ${p.unidad==='litro'?'selected':''}>Litro</option>
+            <option value="caja" ${p.unidad==='caja'?'selected':''}>Caja</option>
+            <option value="metro" ${p.unidad==='metro'?'selected':''}>Metro</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="this.closest('.modal-overlay').remove()">Cancelar</button>
+        <button class="btn-primary" id="btnGuardarEditProd">✔ Guardar</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  overlay.querySelector('#btnGuardarEditProd').addEventListener('click', () => {
+    const nuevoCodigo = document.getElementById('editProdCodigo').value.trim();
+    const nuevoNombre = document.getElementById('editProdNombre').value.trim();
+    const nuevaUnidad = document.getElementById('editProdUnidad').value;
+    if (!nuevoNombre) { showToast('El nombre es obligatorio', true); return; }
+    if (window.fbListo && p.codigo !== nuevoCodigo) {
+      fbEliminar('catalogo', p.codigo || p.nombre);
+    }
+    catalogo[i] = { codigo: nuevoCodigo, nombre: nuevoNombre, unidad: nuevaUnidad };
+    localStorage.setItem('catalogoProductos', JSON.stringify(catalogo));
+    if (window.fbListo) fbGuardar('catalogo', catalogo[i].codigo || catalogo[i].nombre, catalogo[i]);
+    overlay.remove();
+    renderCatalogo();
+    showToast('✔ Producto actualizado');
+  });
 }
 
 function eliminarMasivoCatalogo() {
@@ -2338,24 +2362,40 @@ function renderClientes(filtro = '') {
 
 function editarCliente(i) {
   const c = clientes[i];
-  const nuevoRut = prompt('RUT:', c.rut || '');
-  if (nuevoRut === null) return;
-  const nuevoNombre = prompt('Nombre / Razón Social:', c.nombre);
-  if (nuevoNombre === null || !nuevoNombre.trim()) return;
-  const nuevoTelefono = prompt('Teléfono:', c.telefono || '');
-  if (nuevoTelefono === null) return;
-  const nuevaDireccion = prompt('Dirección:', c.direccion || '');
-  if (nuevaDireccion === null) return;
-
-  // Eliminar el anterior de Firebase si cambió el RUT
-  if (window.fbListo && (c.rut || c.nombre) !== (nuevoRut.trim() || nuevoNombre.trim())) {
-    fbEliminar('clientes', c.rut || c.nombre);
-  }
-  clientes[i] = { rut: nuevoRut.trim(), nombre: nuevoNombre.trim(), telefono: nuevoTelefono.trim(), direccion: nuevaDireccion.trim() };
-  localStorage.setItem('clientesBodega', JSON.stringify(clientes));
-  if (window.fbListo) fbGuardar('clientes', clientes[i].rut || clientes[i].nombre, clientes[i]);
-  renderClientes();
-  showToast('✔ Cliente actualizado');
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.style.display = 'flex';
+  overlay.innerHTML = `
+    <div class="modal" style="max-width:450px">
+      <div class="modal-header"><h3>✏ Editar Cliente</h3><button class="modal-close" onclick="this.closest('.modal-overlay').remove()">✕</button></div>
+      <div class="modal-body" style="padding:16px">
+        <div class="field"><label>RUT</label><input type="text" id="editCliRut" value="${c.rut || ''}" /></div>
+        <div class="field" style="margin-top:10px"><label>Nombre / Razón Social</label><input type="text" id="editCliNombre" value="${c.nombre || ''}" /></div>
+        <div class="field" style="margin-top:10px"><label>Teléfono</label><input type="text" id="editCliTelefono" value="${c.telefono || ''}" /></div>
+        <div class="field" style="margin-top:10px"><label>Dirección</label><input type="text" id="editCliDireccion" value="${c.direccion || ''}" /></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="this.closest('.modal-overlay').remove()">Cancelar</button>
+        <button class="btn-primary" id="btnGuardarEditCli">✔ Guardar</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  overlay.querySelector('#btnGuardarEditCli').addEventListener('click', () => {
+    const nuevoRut = document.getElementById('editCliRut').value.trim();
+    const nuevoNombre = document.getElementById('editCliNombre').value.trim();
+    const nuevoTelefono = document.getElementById('editCliTelefono').value.trim();
+    const nuevaDireccion = document.getElementById('editCliDireccion').value.trim();
+    if (!nuevoNombre) { showToast('El nombre es obligatorio', true); return; }
+    if (window.fbListo && (c.rut || c.nombre) !== (nuevoRut || nuevoNombre)) {
+      fbEliminar('clientes', c.rut || c.nombre);
+    }
+    clientes[i] = { rut: nuevoRut, nombre: nuevoNombre, telefono: nuevoTelefono, direccion: nuevaDireccion };
+    localStorage.setItem('clientesBodega', JSON.stringify(clientes));
+    if (window.fbListo) fbGuardar('clientes', clientes[i].rut || clientes[i].nombre, clientes[i]);
+    overlay.remove();
+    renderClientes();
+    showToast('✔ Cliente actualizado');
+  });
 }
 
 function eliminarMasivoClientes() {
