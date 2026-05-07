@@ -447,11 +447,17 @@ async function cargarDesdeFirebase() {
       const nrosNuevos = new Set(nuevos.map(n => n.nro));
       const nrosActuales = new Set(historial.map(h => h.nro));
       
-      // Verificar si hay cambios reales (nuevas órdenes o diferente cantidad)
+      // Verificar si hay cambios reales (nuevas órdenes, eliminadas, o editadas)
       const hayNuevos = nuevos.some(n => !nrosActuales.has(n.nro));
       const hayEliminados = historial.some(h => !nrosNuevos.has(h.nro));
+      // Detectar ediciones: comparar contenido de órdenes existentes
+      const hayEditados = nuevos.some(n => {
+        const actual = historial.find(h => h.nro === n.nro);
+        if (!actual) return false;
+        return JSON.stringify(actual) !== JSON.stringify(n);
+      });
       
-      if (hayNuevos || hayEliminados || nuevos.length !== historial.length) {
+      if (hayNuevos || hayEliminados || hayEditados || nuevos.length !== historial.length) {
         // Detectar órdenes nuevas para notificar (solo después de la carga inicial)
         if (historialCargadoInicial) {
           const ordenesNuevas = nuevos.filter(n => !nrosActuales.has(n.nro));
@@ -906,6 +912,8 @@ form.addEventListener('submit', async (e) => {
     window._editandoOrden = null;
     bloquearFormulario();
     buscarOrdenAntigua();
+    renderReportes();
+    renderOrdenesEmitidas();
     registrando = false;
     return;
   }
