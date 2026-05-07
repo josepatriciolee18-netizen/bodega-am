@@ -1,6 +1,6 @@
-// ── Estado ────────────────────────────────────────────────
+﻿// â”€â”€ Estado â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-// ── Función de hash para contraseñas ──────────────────────
+// â”€â”€ FunciÃ³n de hash para contraseÃ±as â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function hashPasswordSync(password) {
   if (window.require) {
     try {
@@ -21,7 +21,7 @@ async function hashPassword(password) {
   return hashPasswordSync(password);
 }
 
-// ── Auto-Update listener ──────────────────────────────────
+// â”€â”€ Auto-Update listener â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function verificarInternet() {
   return new Promise((resolve) => {
     let resuelto = false;
@@ -37,7 +37,7 @@ function verificarInternet() {
         .then(() => resolver(true))
         .catch(() => {});
     });
-    // También verificar con navigator.onLine
+    // TambiÃ©n verificar con navigator.onLine
     if (navigator.onLine) {
       setTimeout(() => resolver(true), 2000);
     }
@@ -50,14 +50,14 @@ async function iniciarApp() {
   const hayInternet = await verificarInternet();
 
   if (!hayInternet) {
-    // Sin internet → mostrar pantalla de error
+    // Sin internet â†’ mostrar pantalla de error
     document.getElementById('updateScreen').style.display = 'none';
     document.getElementById('loginScreen').style.display = 'none';
     document.getElementById('noInternetScreen').style.display = 'flex';
     return;
   }
 
-  // Hay internet → continuar con verificación de updates
+  // Hay internet â†’ continuar con verificaciÃ³n de updates
   if (window.require) {
     const { ipcRenderer } = window.require('electron');
 
@@ -76,28 +76,28 @@ async function iniciarApp() {
       window._updateDescargando = false;
 
       if (data.status === 'checking') {
-        msg.textContent = '🔍 Buscando actualizaciones...';
+        msg.textContent = 'ðŸ” Buscando actualizaciones...';
         detail.textContent = 'Espera un momento';
       } else if (data.status === 'downloading') {
         window._updateDescargando = true;
-        msg.textContent = '⬇ Actualizando...';
+        msg.textContent = 'â¬‡ Actualizando...';
         progress.style.display = 'block';
         progressFill.style.width = data.percent + '%';
         detail.textContent = data.percent + '% descargado';
       } else if (data.status === 'ready') {
         window._updateDescargando = true;
-        msg.textContent = '✔ Actualización lista';
+        msg.textContent = 'âœ” ActualizaciÃ³n lista';
         progress.style.display = 'block';
         progressFill.style.width = '100%';
-        detail.textContent = 'Reiniciando aplicación...';
+        detail.textContent = 'Reiniciando aplicaciÃ³n...';
       } else if (data.status === 'no-update' || data.status === 'error') {
         updateScreen.style.display = 'none';
         loginScreen.style.display = 'flex';
       }
     });
 
-    // Si después de 30 segundos no hay respuesta del updater, mostrar login
-    // PERO si está descargando, NO mostrar login hasta que termine
+    // Si despuÃ©s de 30 segundos no hay respuesta del updater, mostrar login
+    // PERO si estÃ¡ descargando, NO mostrar login hasta que termine
     setTimeout(() => {
       const updateScreen = document.getElementById('updateScreen');
       if (updateScreen.style.display !== 'none' && !window._updateDescargando) {
@@ -111,11 +111,11 @@ async function iniciarApp() {
   }
 }
 
-// Botón reintentar
+// BotÃ³n reintentar
 document.getElementById('btnReintentar').addEventListener('click', () => {
   document.getElementById('noInternetScreen').style.display = 'none';
   document.getElementById('updateScreen').style.display = 'flex';
-  document.getElementById('updateMsg').textContent = '🔍 Verificando conexión...';
+  document.getElementById('updateMsg').textContent = 'ðŸ” Verificando conexiÃ³n...';
   iniciarApp();
 });
 
@@ -160,7 +160,7 @@ function winCerrar() {
   }
 }
 
-// ── Login ─────────────────────────────────────────────────
+// â”€â”€ Login â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Usuario admin por defecto si no existe
 if (!usuarios.some(u => u.login === 'admin')) {
   usuarios.push({ nombre: 'Administrador', login: 'admin', password: 'admin123', rol: 'Admin', activo: true });
@@ -168,26 +168,26 @@ if (!usuarios.some(u => u.login === 'admin')) {
 }
 
 function verificarSesion() {
-  // Recupera sesión temporal de localStorage (viene de limpiar/nueva orden)
+  // Recupera sesiÃ³n temporal de localStorage (viene de limpiar/nueva orden)
   const sesionTemp = localStorage.getItem('sesionTemp');
   if (sesionTemp) {
     localStorage.removeItem('sesionTemp');
-    sessionStorage.setItem('sesionActiva', sesionTemp);
+    localStorage.setItem('sesionActiva', sesionTemp);
   }
-  const sesion = sessionStorage.getItem('sesionActiva');
+  const sesion = localStorage.getItem('sesionActiva');
   if (sesion) {
     const sesionGuardada = JSON.parse(sesion);
     // Siempre cargar permisos frescos desde la lista de usuarios actual
     const usuarioFresco = usuarios.find(u => u.login === sesionGuardada.login && u.activo);
     if (usuarioFresco) {
       usuarioActivo = usuarioFresco;
-      sessionStorage.setItem('sesionActiva', JSON.stringify(usuarioFresco));
+      localStorage.setItem('sesionActiva', JSON.stringify(usuarioFresco));
     } else {
-      // Usuario no existe o fue desactivado — cerrar sesión
-      sessionStorage.removeItem('sesionActiva');
+      // Usuario no existe o fue desactivado â€” cerrar sesiÃ³n
+      localStorage.removeItem('sesionActiva');
       return;
     }
-    // Solo mostrar app si no estamos en pantalla de actualización
+    // Solo mostrar app si no estamos en pantalla de actualizaciÃ³n
     const updateScreen = document.getElementById('updateScreen');
     if (!updateScreen || updateScreen.style.display === 'none') {
       mostrarApp();
@@ -208,14 +208,14 @@ function mostrarApp() {
   document.getElementById('updateScreen').style.display = 'none';
   document.getElementById('noInternetScreen').style.display = 'none';
   document.getElementById('appMain').style.display = 'block';
-  document.getElementById('headerUsuario').textContent = `👤 ${usuarioActivo.nombre} (${usuarioActivo.rol})`;
+  document.getElementById('headerUsuario').textContent = `ðŸ‘¤ ${usuarioActivo.nombre} (${usuarioActivo.rol})`;
 
   // Mostrar fecha en formato "30 Abril 2026"
   const ahora = new Date();
   const opcFecha = { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'America/Santiago' };
-  document.getElementById('headerFecha').textContent = `📅 ${ahora.toLocaleDateString('es-CL', opcFecha)}`;
+  document.getElementById('headerFecha').textContent = `ðŸ“… ${ahora.toLocaleDateString('es-CL', opcFecha)}`;
 
-  // Actualizar número de salida desde Firebase
+  // Actualizar nÃºmero de salida desde Firebase
   if (window.fbListo) {
     fbCargar('config').then(datos => {
       const cfg = datos.find(c => c.valor !== undefined);
@@ -227,7 +227,7 @@ function mostrarApp() {
     });
   }
 
-  // Mostrar versión automáticamente
+  // Mostrar versiÃ³n automÃ¡ticamente
   try {
     if (window.require) {
       const { ipcRenderer } = window.require('electron');
@@ -242,35 +242,35 @@ function mostrarApp() {
   const esAdmin = usuarioActivo.rol === 'Admin';
   window._puedeEliminarReporte = esAdmin || p.eliminarReporte;
 
-  // Aplicar permisos y activar primera pestaña visible
+  // Aplicar permisos y activar primera pestaÃ±a visible
   aplicarPermisos();
 
-  // Sincronizar con Firebase después del login
+  // Sincronizar con Firebase despuÃ©s del login
   setTimeout(() => esperarFirebase(), 500);
   
   // Mostrar mensaje del admin si existe
   setTimeout(() => mostrarMensajeAdmin(), 3000);
   
-  // Verificar cada 60 segundos si mi sesión sigue activa (reducido de 15s para ahorrar lecturas)
+  // Verificar cada 60 segundos si mi sesiÃ³n sigue activa (reducido de 15s para ahorrar lecturas)
   if (window._checkSesionInterval) clearInterval(window._checkSesionInterval);
   window._checkSesionInterval = setInterval(async () => {
     if (!usuarioActivo || !window.fbListo) return;
-    const miSesion = sessionStorage.getItem('sesionId');
+    const miSesion = localStorage.getItem('sesionId');
     if (!miSesion) return;
     try {
       const sesiones = await fbCargar('sesiones');
-      // Si Firebase no devuelve datos (error de red), NO cerrar sesión
+      // Si Firebase no devuelve datos (error de red), NO cerrar sesiÃ³n
       if (!sesiones || sesiones.length === 0) return;
       const encontrada = sesiones.find(s => s.sesionId === miSesion);
       if (!encontrada) {
-        // Verificar que realmente otro dispositivo tomó la sesión
+        // Verificar que realmente otro dispositivo tomÃ³ la sesiÃ³n
         const miUsuarioSesion = sesiones.find(s => s.sesionId && s.sesionId !== miSesion);
-        if (!miUsuarioSesion) return; // No hay otra sesión, probablemente error de red
-        // Mi sesión fue reemplazada por otra
-        showToast('Tu sesión fue cerrada porque otro dispositivo inició sesión con este usuario', true);
+        if (!miUsuarioSesion) return; // No hay otra sesiÃ³n, probablemente error de red
+        // Mi sesiÃ³n fue reemplazada por otra
+        showToast('Tu sesiÃ³n fue cerrada porque otro dispositivo iniciÃ³ sesiÃ³n con este usuario', true);
         setTimeout(() => {
-          sessionStorage.removeItem('sesionActiva');
-          sessionStorage.removeItem('sesionId');
+          localStorage.removeItem('sesionActiva');
+          localStorage.removeItem('sesionId');
           usuarioActivo = null;
           if (window.require) {
             const { ipcRenderer } = window.require('electron');
@@ -312,14 +312,14 @@ function hacerLogin() {
     });
     if (!usuario) {
       errEl.style.display = 'block';
-      errEl.textContent = 'Usuario o contraseña incorrectos';
+      errEl.textContent = 'Usuario o contraseÃ±a incorrectos';
       document.getElementById('loginClave').value = '';
       document.getElementById('btnLogin').textContent = 'Ingresar';
       document.getElementById('btnLogin').disabled = false;
       return;
     }
 
-    // Migrar contraseña a hash si aún está en texto plano
+    // Migrar contraseÃ±a a hash si aÃºn estÃ¡ en texto plano
     if (usuario.password === clave) {
       usuario.password = claveHash;
       localStorage.setItem('usuariosBodega', JSON.stringify(usuarios));
@@ -329,29 +329,29 @@ function hacerLogin() {
     errEl.style.display = 'none';
     usuarioActivo = usuario;
     diagInicioSesion = Date.now();
-    sessionStorage.setItem('sesionActiva', JSON.stringify(usuario));
+    localStorage.setItem('sesionActiva', JSON.stringify(usuario));
     
-    // Registrar sesión activa en Firebase
+    // Registrar sesiÃ³n activa en Firebase
     const sesionId = Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
-    sessionStorage.setItem('sesionId', sesionId);
+    localStorage.setItem('sesionId', sesionId);
     if (window.fbListo) fbGuardar('sesiones', usuario.login, { sesionId, fecha: fechaHoraLocal() });
     
     document.getElementById('btnLogin').textContent = 'Ingresar';
     document.getElementById('btnLogin').disabled = false;
     mostrarApp();
-    registrarActividad('Inicio de sesión', `${usuario.nombre} (${usuario.rol})`);
+    registrarActividad('Inicio de sesiÃ³n', `${usuario.nombre} (${usuario.rol})`);
   } catch(e) {
     console.error('Error en login:', e);
-    showToast('Error al iniciar sesión: ' + e.message, true);
+    showToast('Error al iniciar sesiÃ³n: ' + e.message, true);
     document.getElementById('btnLogin').textContent = 'Ingresar';
     document.getElementById('btnLogin').disabled = false;
   }
 }
 
 document.getElementById('btnLogout').addEventListener('click', () => {
-  if (!confirm('¿Cerrar sesión?')) return;
-  registrarActividad('Cierre de sesión', `${usuarioActivo ? usuarioActivo.nombre : ''}`);
-  sessionStorage.removeItem('sesionActiva');
+  if (!confirm('Â¿Cerrar sesiÃ³n?')) return;
+  registrarActividad('Cierre de sesiÃ³n', `${usuarioActivo ? usuarioActivo.nombre : ''}`);
+  localStorage.removeItem('sesionActiva');
   usuarioActivo = null;
   if (window.require) {
     const { ipcRenderer } = window.require('electron');
@@ -363,7 +363,7 @@ document.getElementById('btnLogout').addEventListener('click', () => {
 
 verificarSesion();
 
-// ── Elementos ─────────────────────────────────────────────
+// â”€â”€ Elementos â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const form        = document.getElementById('salidaForm');
 const tbodyProd   = document.getElementById('tbodyProductos');
 const nroSalidaEl = document.getElementById('nroSalida');
@@ -373,11 +373,11 @@ const sugerencias = document.getElementById('sugerencias');
 const solicitanteInput   = document.getElementById('solicitante');
 const sugerenciasCliente = document.getElementById('sugerenciasCliente');
 
-// ── Init ──────────────────────────────────────────────────
+// â”€â”€ Init â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 document.getElementById('fecha').value = fechaHoraLocal();
 nroSalidaEl.value = generarNro(contador);
 
-// Cargar datos desde Firebase si está disponible
+// Cargar datos desde Firebase si estÃ¡ disponible
 let _unsubscribers = [];
 async function cargarDesdeFirebase() {
   if (!window.fbListo) {
@@ -409,9 +409,9 @@ async function cargarDesdeFirebase() {
       renderUsuarios();
     }
 
-    showToast('✔ Conectado a la nube');
+    showToast('âœ” Conectado a la nube');
 
-    // Cargar desde Firebase SOLO si localStorage está vacío (ahorra miles de lecturas)
+    // Cargar desde Firebase SOLO si localStorage estÃ¡ vacÃ­o (ahorra miles de lecturas)
     // Si ya hay datos locales, los listeners en tiempo real se encargan de mantenerlos actualizados
     if (historial.length === 0) {
       const fbHistorial = await fbCargar('historial');
@@ -449,14 +449,14 @@ async function cargarDesdeFirebase() {
     _unsubscribers.push(fbEscuchar('historial', (datos) => {
       const nuevos = datos.sort((a,b) => b.nro.localeCompare(a.nro));
       
-      // Usar números de orden como clave para evitar duplicados
+      // Usar nÃºmeros de orden como clave para evitar duplicados
       const nrosNuevos = new Set(nuevos.map(n => n.nro));
       const nrosActuales = new Set(historial.map(h => h.nro));
       
-      // Verificar si hay cambios reales (nuevas órdenes, eliminadas, o editadas)
+      // Verificar si hay cambios reales (nuevas Ã³rdenes, eliminadas, o editadas)
       const hayNuevos = nuevos.some(n => !nrosActuales.has(n.nro));
       const hayEliminados = historial.some(h => !nrosNuevos.has(h.nro));
-      // Detectar ediciones: comparar contenido de órdenes existentes
+      // Detectar ediciones: comparar contenido de Ã³rdenes existentes
       const hayEditados = nuevos.some(n => {
         const actual = historial.find(h => h.nro === n.nro);
         if (!actual) return false;
@@ -464,15 +464,15 @@ async function cargarDesdeFirebase() {
       });
       
       if (hayNuevos || hayEliminados || hayEditados || nuevos.length !== historial.length) {
-        // Detectar órdenes nuevas para notificar (solo después de la carga inicial)
+        // Detectar Ã³rdenes nuevas para notificar (solo despuÃ©s de la carga inicial)
         if (historialCargadoInicial) {
           const ordenesNuevas = nuevos.filter(n => !nrosActuales.has(n.nro));
           const ahora = new Date();
           ordenesNuevas.forEach(orden => {
             const fechaOrden = new Date(orden.fecha ? orden.fecha.replace('T', ' ') : 0);
             if ((ahora - fechaOrden) < 5 * 60 * 1000) {
-              const quien = orden.rolCreador ? ` — Enviada por ${orden.rolCreador}` : '';
-              mostrarNotificacion('📦 Nueva Orden', `Orden ${orden.nro} — Cliente: ${orden.solicitante || 'Sin nombre'}${quien}`, orden.nro);
+              const quien = orden.rolCreador ? ` â€” Enviada por ${orden.rolCreador}` : '';
+              mostrarNotificacion('ðŸ“¦ Nueva Orden', `Orden ${orden.nro} â€” Cliente: ${orden.solicitante || 'Sin nombre'}${quien}`, orden.nro);
             }
           });
         }
@@ -500,17 +500,17 @@ async function cargarDesdeFirebase() {
           const recNuevas = nuevos.filter(n => !nrosActuales.has(n.nro));
           const ahora = new Date();
           recNuevas.forEach(rec => {
-            // Solo notificar recepciones de los últimos 5 minutos
+            // Solo notificar recepciones de los Ãºltimos 5 minutos
             const fechaRec = new Date(rec.fecha ? rec.fecha.replace('T', ' ') : 0);
             if ((ahora - fechaRec) < 5 * 60 * 1000) {
-              mostrarNotificacion('📥 Orden Recibida por Bodega', `${rec.nro} — Orden ${rec.nroOrden} recibida por ${rec.recibidoPor}`, rec.nroOrden);
+              mostrarNotificacion('ðŸ“¥ Orden Recibida por Bodega', `${rec.nro} â€” Orden ${rec.nroOrden} recibida por ${rec.recibidoPor}`, rec.nroOrden);
             }
           });
         }
         // Firebase es la fuente de verdad
         recepciones = nuevos;
         localStorage.setItem('recepcionesBodega', JSON.stringify(recepciones));
-        // También recargar historial desde Firebase para mantener sincronizado
+        // TambiÃ©n recargar historial desde Firebase para mantener sincronizado
         fbCargar('historial').then(fbHist => {
           if (fbHist.length > 0) {
             historial = fbHist.sort((a,b) => b.nro.localeCompare(a.nro));
@@ -555,10 +555,10 @@ async function cargarDesdeFirebase() {
         const ultimoMsgVisto = localStorage.getItem('ultimoMsgAdmin') || '';
         if (msg.texto !== ultimoMsgVisto) {
           localStorage.setItem('ultimoMsgAdmin', msg.texto);
-          showToast('📢 Admin: ' + msg.texto);
+          showToast('ðŸ“¢ Admin: ' + msg.texto);
           if (window.require) {
             const { ipcRenderer } = window.require('electron');
-            ipcRenderer.send('mostrar-notificacion', { titulo: '📢 Mensaje del Admin', mensaje: msg.texto });
+            ipcRenderer.send('mostrar-notificacion', { titulo: 'ðŸ“¢ Mensaje del Admin', mensaje: msg.texto });
           }
         }
         const el = document.getElementById('mensajeAdminActual');
@@ -577,17 +577,17 @@ async function cargarDesdeFirebase() {
         localStorage.setItem('usuariosBodega', JSON.stringify(usuarios));
         renderUsuarios();
 
-        // Refrescar permisos del usuario activo si está logeado
+        // Refrescar permisos del usuario activo si estÃ¡ logeado
         if (usuarioActivo) {
           const usuarioFresco = usuarios.find(u => u.login === usuarioActivo.login && u.activo);
           if (usuarioFresco) {
             usuarioActivo = usuarioFresco;
-            sessionStorage.setItem('sesionActiva', JSON.stringify(usuarioFresco));
-            // Reaplicar permisos en las pestañas
+            localStorage.setItem('sesionActiva', JSON.stringify(usuarioFresco));
+            // Reaplicar permisos en las pestaÃ±as
             aplicarPermisos();
           } else if (usuarioActivo.login !== 'admin') {
-            // Usuario desactivado — cerrar sesión
-            sessionStorage.removeItem('sesionActiva');
+            // Usuario desactivado â€” cerrar sesiÃ³n
+            localStorage.removeItem('sesionActiva');
             usuarioActivo = null;
             document.getElementById('appMain').style.display = 'none';
             document.getElementById('loginScreen').style.display = 'flex';
@@ -602,7 +602,7 @@ async function cargarDesdeFirebase() {
   }
 }
 
-// Esperar a que Firebase esté listo con polling
+// Esperar a que Firebase estÃ© listo con polling
 function esperarFirebase() {
   if (window.fbListo) {
     cargarDesdeFirebase();
@@ -622,7 +622,7 @@ renderUsuarios();
 renderClientes();
 buscarOrdenAntigua();
 
-// ── Pestañas ──────────────────────────────────────────────
+// â”€â”€ PestaÃ±as â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 document.querySelectorAll('.tab').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -642,12 +642,12 @@ document.querySelectorAll('.tab').forEach(btn => {
   });
 });
 
-// ── Número de salida ──────────────────────────────────────
+// â”€â”€ NÃºmero de salida â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function generarNro(n) {
   return 'SAL-' + String(n).padStart(4, '0');
 }
 
-// Mostrar/ocultar N° documento según tipo
+// Mostrar/ocultar NÂ° documento segÃºn tipo
 document.getElementById('tipoDocumento').addEventListener('change', function () {
   const campo = document.getElementById('campoNroDoc');
   const input = document.getElementById('nroDocumento');
@@ -663,7 +663,7 @@ document.getElementById('tipoDocumento').addEventListener('change', function () 
 // Estado inicial oculto
 document.getElementById('campoNroDoc').style.display = 'none';
 
-// ── Buscador autocomplete ─────────────────────────────────
+// â”€â”€ Buscador autocomplete â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 let _buscarTimeout = null;
 inputBuscar.addEventListener('input', () => {
   if (_buscarTimeout) clearTimeout(_buscarTimeout);
@@ -680,7 +680,7 @@ inputBuscar.addEventListener('input', () => {
     if (filtrados.length === 0) { cerrarSugerencias(); return; }
     sugerencias.innerHTML = filtrados.map(p =>
       `<li onclick="seleccionarProducto(${catalogo.indexOf(p)})">
-        <strong>${p.nombre}</strong><span>${p.codigo} · ${p.unidad}</span>
+        <strong>${p.nombre}</strong><span>${p.codigo} Â· ${p.unidad}</span>
       </li>`
     ).join('');
     sugerencias.classList.add('visible');
@@ -694,10 +694,10 @@ inputBuscar.addEventListener('keydown', (e) => {
   if (!q) return;
 
   if (catalogo.length === 0) {
-    showToast('El catálogo de productos está vacío', true); return;
+    showToast('El catÃ¡logo de productos estÃ¡ vacÃ­o', true); return;
   }
 
-  // Normaliza código quitando espacios y guiones para comparación flexible
+  // Normaliza cÃ³digo quitando espacios y guiones para comparaciÃ³n flexible
   const norm = s => s.toLowerCase().replace(/[\s\-\.]/g, '');
 
   const encontrado = catalogo.find(p => norm(p.codigo) === norm(q))
@@ -706,21 +706,21 @@ inputBuscar.addEventListener('keydown', (e) => {
                   || catalogo.find(p => norm(p.nombre).includes(norm(q)));
 
   if (encontrado) seleccionarProducto(catalogo.indexOf(encontrado));
-  else showToast(`No se encontró "${inputBuscar.value}" en el catálogo`, true);
+  else showToast(`No se encontrÃ³ "${inputBuscar.value}" en el catÃ¡logo`, true);
 });
 
-// Botón lupa para buscar producto — abre modal de búsqueda
+// BotÃ³n lupa para buscar producto â€” abre modal de bÃºsqueda
 function buscarProductoEnOrden() {
   const q = inputBuscar.value.trim().toLowerCase();
-  if (!q) { showToast('Escribe un código o nombre para buscar', true); inputBuscar.focus(); return; }
-  if (catalogo.length === 0) { showToast('El catálogo de productos está vacío', true); return; }
+  if (!q) { showToast('Escribe un cÃ³digo o nombre para buscar', true); inputBuscar.focus(); return; }
+  if (catalogo.length === 0) { showToast('El catÃ¡logo de productos estÃ¡ vacÃ­o', true); return; }
   const norm = s => s.toLowerCase().replace(/[\s\-\.]/g, '');
   const encontrado = catalogo.find(p => norm(p.codigo) === norm(q))
                   || catalogo.find(p => norm(p.nombre)  === norm(q))
                   || catalogo.find(p => norm(p.codigo).includes(norm(q)))
                   || catalogo.find(p => norm(p.nombre).includes(norm(q)));
   if (encontrado) seleccionarProducto(catalogo.indexOf(encontrado));
-  else showToast(`No se encontró "${inputBuscar.value}" en el catálogo`, true);
+  else showToast(`No se encontrÃ³ "${inputBuscar.value}" en el catÃ¡logo`, true);
 }
 
 document.getElementById('inputCantidad').addEventListener('input', (e) => {
@@ -747,11 +747,11 @@ function seleccionarProducto(i) {
   document.getElementById('inputCantidad').focus();
 }
 
-// ── Modal buscar producto ─────────────────────────────────
+// â”€â”€ Modal buscar producto â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 document.getElementById('btnAbrirBuscador').addEventListener('click', () => {
   document.getElementById('modalBuscarProducto').style.display = 'flex';
   document.getElementById('buscadorProductoInput').value = '';
-  document.getElementById('tbodyBuscadorProducto').innerHTML = '<tr><td colspan="4" class="empty-msg">Ingresa un código o nombre para buscar</td></tr>';
+  document.getElementById('tbodyBuscadorProducto').innerHTML = '<tr><td colspan="4" class="empty-msg">Ingresa un cÃ³digo o nombre para buscar</td></tr>';
   setTimeout(() => document.getElementById('buscadorProductoInput').focus(), 200);
 });
 
@@ -771,7 +771,7 @@ function ejecutarBusquedaProducto() {
     return;
   }
   if (catalogo.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="4" class="empty-msg">El catálogo está vacío</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="4" class="empty-msg">El catÃ¡logo estÃ¡ vacÃ­o</td></tr>';
     return;
   }
   const resultados = [];
@@ -813,15 +813,15 @@ document.addEventListener('click', (e) => {
   if (!e.target.closest('.add-product-row')) cerrarSugerencias();
 });
 
-// ── Agregar producto a la salida ──────────────────────────
+// â”€â”€ Agregar producto a la salida â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 document.getElementById('btnAgregar').addEventListener('click', () => {
-  // Validar que los datos generales estén llenos antes de agregar productos
+  // Validar que los datos generales estÃ©n llenos antes de agregar productos
   const tipoDoc = document.getElementById('tipoDocumento').value;
   const cliente = document.getElementById('solicitante').value.trim();
   if (!tipoDoc) { showToast('Primero selecciona el Tipo de Documento', true); document.getElementById('tipoDocumento').focus(); return; }
   const campoNroVisible = document.getElementById('campoNroDoc').style.display !== 'none';
   const nroDoc = document.getElementById('nroDocumento').value.trim();
-  if (tipoDoc !== 'Sin Documento' && campoNroVisible && !nroDoc) { showToast('Primero ingresa el N° de Documento', true); document.getElementById('nroDocumento').focus(); return; }
+  if (tipoDoc !== 'Sin Documento' && campoNroVisible && !nroDoc) { showToast('Primero ingresa el NÂ° de Documento', true); document.getElementById('nroDocumento').focus(); return; }
   if (!cliente) { showToast('Primero ingresa el nombre del Cliente', true); document.getElementById('solicitante').focus(); return; }
 
   const codigo      = document.getElementById('inputCodigo').value.trim();
@@ -830,8 +830,8 @@ document.getElementById('btnAgregar').addEventListener('click', () => {
   const cantidad    = parseFloat(document.getElementById('inputCantidad').value);
   const cantPalabras = document.getElementById('inputCantidadPalabras').value;
 
-  if (!descripcion) { showToast('Ingresa la descripción del producto', true); return; }
-  if (!cantidad || cantidad <= 0) { showToast('Ingresa una cantidad válida', true); return; }
+  if (!descripcion) { showToast('Ingresa la descripciÃ³n del producto', true); return; }
+  if (!cantidad || cantidad <= 0) { showToast('Ingresa una cantidad vÃ¡lida', true); return; }
 
   productos.push({ codigo, descripcion, unidad, cantidad, cantPalabras });
   renderTabla();
@@ -851,7 +851,7 @@ function renderTabla() {
       <td>${p.unidad}</td>
       <td>${p.cantidad}</td>
       <td>${p.cantPalabras || '-'}</td>
-      <td><button class="btn-delete" onclick="eliminarProducto(${i})" title="Eliminar">✕</button></td>
+      <td><button class="btn-delete" onclick="eliminarProducto(${i})" title="Eliminar">âœ•</button></td>
     </tr>`).join('');
 }
 
@@ -867,7 +867,7 @@ function limpiarInputsProducto() {
   document.getElementById('inputUnidad').value = 'unidad';
 }
 
-// ── Submit salida ─────────────────────────────────────────
+// â”€â”€ Submit salida â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 let registrando = false;
 form.addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -876,37 +876,37 @@ form.addEventListener('submit', async (e) => {
   if (registrando) return;
   registrando = true;
   document.getElementById('btnRegistrar').disabled = true;
-  document.getElementById('btnRegistrar').textContent = '⏳ Registrando...';
+  document.getElementById('btnRegistrar').textContent = 'â³ Registrando...';
 
   const tipoDocumento = document.getElementById('tipoDocumento').value;
   const solicitante   = document.getElementById('solicitante').value.trim();
 
-  if (!tipoDocumento) { showToast('Selecciona el Tipo de Documento', true); document.getElementById('tipoDocumento').focus(); registrando = false; document.getElementById('btnRegistrar').disabled = false; document.getElementById('btnRegistrar').textContent = '✔ Registrar Salida'; return; }
+  if (!tipoDocumento) { showToast('Selecciona el Tipo de Documento', true); document.getElementById('tipoDocumento').focus(); registrando = false; document.getElementById('btnRegistrar').disabled = false; document.getElementById('btnRegistrar').textContent = 'âœ” Registrar Salida'; return; }
 
   const nroDocumento = document.getElementById('nroDocumento').value.trim();
   const campoNroVisible = document.getElementById('campoNroDoc').style.display !== 'none';
   if (tipoDocumento !== 'Sin Documento' && campoNroVisible && !nroDocumento) {
-    showToast('Ingresa el N° de Documento', true);
+    showToast('Ingresa el NÂ° de Documento', true);
     document.getElementById('nroDocumento').focus();
-    registrando = false; document.getElementById('btnRegistrar').disabled = false; document.getElementById('btnRegistrar').textContent = '✔ Registrar Salida'; return;
+    registrando = false; document.getElementById('btnRegistrar').disabled = false; document.getElementById('btnRegistrar').textContent = 'âœ” Registrar Salida'; return;
   }
-  if (!solicitante) { showToast('Ingresa el nombre del Cliente', true); document.getElementById('solicitante').focus(); registrando = false; document.getElementById('btnRegistrar').disabled = false; document.getElementById('btnRegistrar').textContent = '✔ Registrar Salida'; return; }
-  if (productos.length === 0) { showToast('Agrega al menos un producto', true); registrando = false; document.getElementById('btnRegistrar').disabled = false; document.getElementById('btnRegistrar').textContent = '✔ Registrar Salida'; return; }
+  if (!solicitante) { showToast('Ingresa el nombre del Cliente', true); document.getElementById('solicitante').focus(); registrando = false; document.getElementById('btnRegistrar').disabled = false; document.getElementById('btnRegistrar').textContent = 'âœ” Registrar Salida'; return; }
+  if (productos.length === 0) { showToast('Agrega al menos un producto', true); registrando = false; document.getElementById('btnRegistrar').disabled = false; document.getElementById('btnRegistrar').textContent = 'âœ” Registrar Salida'; return; }
 
-  // ── Vista previa antes de confirmar ──
+  // â”€â”€ Vista previa antes de confirmar â”€â”€
   const previewConfirmado = await mostrarVistaPrevia(tipoDocumento, nroDocumento, solicitante, productos, window._editandoOrden);
   if (!previewConfirmado) {
     registrando = false;
     document.getElementById('btnRegistrar').disabled = false;
-    document.getElementById('btnRegistrar').textContent = window._editandoOrden ? '✔ Guardar Cambios' : '✔ Registrar Salida';
+    document.getElementById('btnRegistrar').textContent = window._editandoOrden ? 'âœ” Guardar Cambios' : 'âœ” Registrar Salida';
     return;
   }
 
-  // ── Si estamos editando una orden existente ──
+  // â”€â”€ Si estamos editando una orden existente â”€â”€
   if (window._editandoOrden) {
     const nroEdit = window._editandoOrden;
     const idx = historial.findIndex(o => o.nro === nroEdit);
-    if (idx === -1) { showToast('Orden no encontrada', true); registrando = false; document.getElementById('btnRegistrar').disabled = false; document.getElementById('btnRegistrar').textContent = '✔ Registrar Salida'; return; }
+    if (idx === -1) { showToast('Orden no encontrada', true); registrando = false; document.getElementById('btnRegistrar').disabled = false; document.getElementById('btnRegistrar').textContent = 'âœ” Registrar Salida'; return; }
 
     // Actualizar la orden
     historial[idx].fecha         = document.getElementById('fecha').value;
@@ -922,8 +922,8 @@ form.addEventListener('submit', async (e) => {
     localStorage.setItem('historialSalidas', JSON.stringify(historial));
     if (window.fbListo) fbGuardar('historial', nroEdit, historial[idx]);
 
-    showToast(`✔ Orden ${nroEdit} actualizada correctamente`);
-    registrarActividad('Orden editada', `${nroEdit} — Cliente: ${solicitante}`);
+    showToast(`âœ” Orden ${nroEdit} actualizada correctamente`);
+    registrarActividad('Orden editada', `${nroEdit} â€” Cliente: ${solicitante}`);
     window._editandoOrden = null;
     bloquearFormulario();
     buscarOrdenAntigua();
@@ -933,9 +933,9 @@ form.addEventListener('submit', async (e) => {
     return;
   }
 
-  // Obtener siguiente número de orden (transacción atómica - nunca se duplica)
+  // Obtener siguiente nÃºmero de orden (transacciÃ³n atÃ³mica - nunca se duplica)
   let nroOrden;
-  document.getElementById('btnRegistrar').textContent = '⏳ Registrando...';
+  document.getElementById('btnRegistrar').textContent = 'â³ Registrando...';
   if (window.fbListo && window.fbObtenerSiguienteNumero) {
     try {
       const nroDesdeFirebase = await fbObtenerSiguienteNumero();
@@ -944,8 +944,8 @@ form.addEventListener('submit', async (e) => {
         contador = nroDesdeFirebase + 1;
         localStorage.setItem('contadorSalidas', contador);
       } else {
-        // Firebase falló — reintentar una vez
-        showToast('Reintentando conexión...', true);
+        // Firebase fallÃ³ â€” reintentar una vez
+        showToast('Reintentando conexiÃ³n...', true);
         await new Promise(r => setTimeout(r, 1000));
         const reintento = await fbObtenerSiguienteNumero();
         if (reintento !== null) {
@@ -953,26 +953,26 @@ form.addEventListener('submit', async (e) => {
           contador = reintento + 1;
           localStorage.setItem('contadorSalidas', contador);
         } else {
-          showToast('Error de conexión. Intenta de nuevo.', true);
+          showToast('Error de conexiÃ³n. Intenta de nuevo.', true);
           registrando = false;
           document.getElementById('btnRegistrar').disabled = false;
-          document.getElementById('btnRegistrar').textContent = '✔ Registrar Salida';
+          document.getElementById('btnRegistrar').textContent = 'âœ” Registrar Salida';
           return;
         }
       }
     } catch(e) {
-      console.error('Error obteniendo número:', e);
-      showToast('Error de conexión. Intenta de nuevo.', true);
+      console.error('Error obteniendo nÃºmero:', e);
+      showToast('Error de conexiÃ³n. Intenta de nuevo.', true);
       registrando = false;
       document.getElementById('btnRegistrar').disabled = false;
-      document.getElementById('btnRegistrar').textContent = '✔ Registrar Salida';
+      document.getElementById('btnRegistrar').textContent = 'âœ” Registrar Salida';
       return;
     }
   } else {
-    showToast('Sin conexión a Firebase. Intenta de nuevo.', true);
+    showToast('Sin conexiÃ³n a Firebase. Intenta de nuevo.', true);
     registrando = false;
     document.getElementById('btnRegistrar').disabled = false;
-    document.getElementById('btnRegistrar').textContent = '✔ Registrar Salida';
+    document.getElementById('btnRegistrar').textContent = 'âœ” Registrar Salida';
     return;
   }
 
@@ -1001,8 +1001,8 @@ form.addEventListener('submit', async (e) => {
     fbGuardar('historial', salida.nro, salida);
   }
 
-  showToast(`✔ Salida ${salida.nro} registrada correctamente`);
-  registrarActividad('Orden creada', `${salida.nro} — Cliente: ${salida.solicitante} — ${salida.total} producto(s)`);
+  showToast(`âœ” Salida ${salida.nro} registrada correctamente`);
+  registrarActividad('Orden creada', `${salida.nro} â€” Cliente: ${salida.solicitante} â€” ${salida.total} producto(s)`);
   bloquearFormulario();
   buscarOrdenAntigua();
   registrando = false;
@@ -1040,7 +1040,7 @@ function resetForm() {
   document.getElementById('btnAgregar').disabled  = false;
   document.getElementById('btnRegistrar').disabled = false;
   document.getElementById('btnRegistrar').style.display = '';
-  document.getElementById('btnRegistrar').textContent = '✔ Registrar Salida';
+  document.getElementById('btnRegistrar').textContent = 'âœ” Registrar Salida';
   registrando = false;
   document.getElementById('btnImprimir').style.display = 'none';
   document.getElementById('btnNuevaOrden').style.display = 'none';
@@ -1051,7 +1051,7 @@ function resetForm() {
   nroSalidaEl.value = generarNro(contador);
 }
 
-// ── Reportes ──────────────────────────────────────────────
+// â”€â”€ Reportes â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function renderReportes(filtro = null) {
   const datos = filtro !== null ? filtro : historial.slice(0, 10);
   const hoy   = new Date().toISOString().slice(0, 10);
@@ -1088,7 +1088,7 @@ function renderReportes(filtro = null) {
 
   const tbody = document.getElementById('tbodyReportes');
   if (datos.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="7" class="empty-msg">No hay órdenes que coincidan</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" class="empty-msg">No hay Ã³rdenes que coincidan</td></tr>';
     return;
   }
   tbody.innerHTML = datos.map((s, i) => `
@@ -1104,7 +1104,7 @@ function renderReportes(filtro = null) {
     </tr>`).join('');
 }
 
-// ── Exportar reportes a Excel (CSV) ──────────────────────────
+// â”€â”€ Exportar reportes a Excel (CSV) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 document.getElementById('btnExportarExcel').addEventListener('click', () => {
   try {
     const conteo = {};
@@ -1116,14 +1116,14 @@ document.getElementById('btnExportarExcel').addEventListener('click', () => {
       });
     });
 
-    // CSV de órdenes
+    // CSV de Ã³rdenes
     let csv = '\uFEFF'; // BOM para Excel
-    csv += 'N° Salida;Fecha;Tipo Doc.;N° Documento;Cliente;Creada por;Rol;Estado;Productos\n';
+    csv += 'NÂ° Salida;Fecha;Tipo Doc.;NÂ° Documento;Cliente;Creada por;Rol;Estado;Productos\n';
     historial.forEach(s => {
       csv += `${s.nro};${formatFecha(s.fecha)};${s.tipoDocumento||'-'};${s.nroDocumento||'-'};${s.solicitante||'-'};${s.creadoPor||'-'};${s.rolCreador||'-'};${s.anulada?'Anulada':'Activa'};${s.total}\n`;
     });
     csv += '\n\nTop Productos Despachados\n';
-    csv += '#;Código;Producto;Unidad;Total Despachado\n';
+    csv += '#;CÃ³digo;Producto;Unidad;Total Despachado\n';
     const topProductos = Object.values(conteo).sort((a,b) => b.total - a.total);
     topProductos.forEach((p, i) => {
       csv += `${i+1};${p.codigo};${p.descripcion};${p.unidad};${p.total}\n`;
@@ -1137,15 +1137,15 @@ document.getElementById('btnExportarExcel').addEventListener('click', () => {
     a.download = `Reporte_BodegaAM_${hoy}.csv`;
     a.click();
     URL.revokeObjectURL(url);
-    showToast('✔ Reporte exportado a Excel (CSV)');
-    registrarActividad('Exportar Excel', 'Reporte de órdenes exportado');
+    showToast('âœ” Reporte exportado a Excel (CSV)');
+    registrarActividad('Exportar Excel', 'Reporte de Ã³rdenes exportado');
   } catch(e) {
     console.error('Error exportando:', e);
     showToast('Error al exportar: ' + e.message, true);
   }
 });
 
-// ── Exportar reportes a PDF ───────────────────────────────
+// â”€â”€ Exportar reportes a PDF â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 document.getElementById('btnExportarPDF').addEventListener('click', () => {
   const hoy = new Date().toLocaleDateString('es-CL');
 
@@ -1189,23 +1189,23 @@ document.getElementById('btnExportarPDF').addEventListener('click', () => {
       tbody tr:nth-child(even) { background:#f5f5f5; }
     </style></head>
     <body>
-      <h1>Bodega A&M — Reporte de Órdenes</h1>
+      <h1>Bodega A&M â€” Reporte de Ã“rdenes</h1>
       <p class="fecha">Generado el ${hoy}</p>
       <div class="stats">
-        <div class="stat"><div class="stat-num">${historial.length}</div><div class="stat-label">Total Órdenes</div></div>
-        <div class="stat"><div class="stat-num">${historial.filter(s=>s.fecha&&s.fecha.slice(0,10)===new Date().toISOString().slice(0,10)).length}</div><div class="stat-label">Órdenes Hoy</div></div>
-        <div class="stat"><div class="stat-num">${historial.reduce((a,s)=>a+s.total,0)}</div><div class="stat-label">Ítems Despachados</div></div>
-        <div class="stat"><div class="stat-num">${historial.filter(s=>s.fecha&&s.fecha.slice(0,7)===new Date().toISOString().slice(0,7)).length}</div><div class="stat-label">Órdenes este Mes</div></div>
+        <div class="stat"><div class="stat-num">${historial.length}</div><div class="stat-label">Total Ã“rdenes</div></div>
+        <div class="stat"><div class="stat-num">${historial.filter(s=>s.fecha&&s.fecha.slice(0,10)===new Date().toISOString().slice(0,10)).length}</div><div class="stat-label">Ã“rdenes Hoy</div></div>
+        <div class="stat"><div class="stat-num">${historial.reduce((a,s)=>a+s.total,0)}</div><div class="stat-label">Ãtems Despachados</div></div>
+        <div class="stat"><div class="stat-num">${historial.filter(s=>s.fecha&&s.fecha.slice(0,7)===new Date().toISOString().slice(0,7)).length}</div><div class="stat-label">Ã“rdenes este Mes</div></div>
       </div>
-      <h2>Top 10 Productos Más Despachados</h2>
+      <h2>Top 10 Productos MÃ¡s Despachados</h2>
       <table>
-        <thead><tr><th>#</th><th>Código</th><th>Producto</th><th>Unidad</th><th>Total</th></tr></thead>
+        <thead><tr><th>#</th><th>CÃ³digo</th><th>Producto</th><th>Unidad</th><th>Total</th></tr></thead>
         <tbody>${filasTop || '<tr><td colspan="5" style="text-align:center">Sin datos</td></tr>'}</tbody>
       </table>
-      <h2>Historial de Órdenes</h2>
+      <h2>Historial de Ã“rdenes</h2>
       <table>
-        <thead><tr><th>N° Salida</th><th>Tipo Doc.</th><th>Fecha</th><th>Cliente</th><th>Creada por</th><th>Estado</th></tr></thead>
-        <tbody>${filasOrdenes || '<tr><td colspan="6" style="text-align:center">Sin órdenes</td></tr>'}</tbody>
+        <thead><tr><th>NÂ° Salida</th><th>Tipo Doc.</th><th>Fecha</th><th>Cliente</th><th>Creada por</th><th>Estado</th></tr></thead>
+        <tbody>${filasOrdenes || '<tr><td colspan="6" style="text-align:center">Sin Ã³rdenes</td></tr>'}</tbody>
       </table>
     </body></html>`;
 
@@ -1213,7 +1213,7 @@ document.getElementById('btnExportarPDF').addEventListener('click', () => {
     const { ipcRenderer } = window.require('electron');
     ipcRenderer.send('vistaPreviewPDF', html);
   }
-  registrarActividad('Exportar PDF', 'Reporte de órdenes exportado');
+  registrarActividad('Exportar PDF', 'Reporte de Ã³rdenes exportado');
 });
 
 document.getElementById('btnBuscarProductoFecha').addEventListener('click', buscarProductoFecha);
@@ -1223,7 +1223,7 @@ document.getElementById('buscarProductoFecha').addEventListener('keydown', e => 
 // Exportar Producto Fecha a Excel
 document.getElementById('btnExcelProductoFecha').addEventListener('click', () => {
   if (!window._productoFechaData) return;
-  let csv = '\uFEFFFecha;N° Orden;Código;Producto;Unid.;Cant.;Cliente\n';
+  let csv = '\uFEFFFecha;NÂ° Orden;CÃ³digo;Producto;Unid.;Cant.;Cliente\n';
   window._productoFechaData.forEach(r => {
     csv += `${formatFecha(r.fecha)};${r.nro};${r.codigo};${r.descripcion};${r.unidad};${r.cantidad};${r.cliente||'-'}\n`;
   });
@@ -1234,7 +1234,7 @@ document.getElementById('btnExcelProductoFecha').addEventListener('click', () =>
   a.download = `BusquedaProducto_${fechaHoraLocal().slice(0,10)}.csv`;
   a.click();
   URL.revokeObjectURL(url);
-  showToast('✔ Excel exportado');
+  showToast('âœ” Excel exportado');
 });
 
 // Exportar Producto Fecha a PDF
@@ -1247,8 +1247,8 @@ document.getElementById('btnPdfProductoFecha').addEventListener('click', () => {
     table{width:100%;border-collapse:collapse}thead th{background:#333;color:#fff;padding:5px 8px;text-align:left}
     tbody td{padding:4px 8px;border-bottom:1px solid #ddd}tbody tr:nth-child(even){background:#f5f5f5}
   </style></head><body>
-    <h1>Bodega A&M — Búsqueda de Salidas por Producto</h1>
-    <table><thead><tr><th>Fecha</th><th>N° Orden</th><th>Código</th><th>Producto</th><th>Unid.</th><th>Cant.</th><th>Cliente</th></tr></thead>
+    <h1>Bodega A&M â€” BÃºsqueda de Salidas por Producto</h1>
+    <table><thead><tr><th>Fecha</th><th>NÂ° Orden</th><th>CÃ³digo</th><th>Producto</th><th>Unid.</th><th>Cant.</th><th>Cliente</th></tr></thead>
     <tbody>${filas}</tbody></table></body></html>`;
   if (window.require) {
     const { ipcRenderer } = window.require('electron');
@@ -1316,15 +1316,15 @@ function buscarProductoFecha() {
   window._productoFechaData = resultados;
 }
 
-// Filtros órdenes
+// Filtros Ã³rdenes
 document.getElementById('btnFiltrar').addEventListener('click', aplicarFiltro);
 
-// Filtro ítems despachados por fecha
+// Filtro Ã­tems despachados por fecha
 document.getElementById('btnFiltroItems').addEventListener('click', () => {
   const fecha = document.getElementById('filtroItemsFecha').value;
   if (!fecha) { showToast('Selecciona una fecha', true); return; }
   const items = historial.filter(s => s.fecha && s.fecha.slice(0,10) === fecha).reduce((a, s) => a + s.total, 0);
-  document.getElementById('statItemsFecha').textContent = items + ' ítems el ' + fecha.split('-').reverse().join('/');
+  document.getElementById('statItemsFecha').textContent = items + ' Ã­tems el ' + fecha.split('-').reverse().join('/');
 });
 
 document.getElementById('btnFiltroMes').addEventListener('click', () => {
@@ -1335,7 +1335,7 @@ document.getElementById('btnFiltroMes').addEventListener('click', () => {
 // Exportar Top Mes a Excel
 document.getElementById('btnExcelTopMes').addEventListener('click', () => {
   if (!window._topMesData) return;
-  let csv = '\uFEFF#;Código;Producto;Unidad;Total Despachado\n';
+  let csv = '\uFEFF#;CÃ³digo;Producto;Unidad;Total Despachado\n';
   window._topMesData.forEach((p, i) => {
     csv += `${i+1};${p.codigo};${p.descripcion};${p.unidad};${p.total}\n`;
   });
@@ -1346,7 +1346,7 @@ document.getElementById('btnExcelTopMes').addEventListener('click', () => {
   a.download = `TopProductos_${window._topMesTitulo}.csv`;
   a.click();
   URL.revokeObjectURL(url);
-  showToast('✔ Excel exportado');
+  showToast('âœ” Excel exportado');
 });
 
 // Exportar Top Mes a PDF
@@ -1359,8 +1359,8 @@ document.getElementById('btnPdfTopMes').addEventListener('click', () => {
     table{width:100%;border-collapse:collapse}thead th{background:#333;color:#fff;padding:5px 8px;text-align:left}
     tbody td{padding:4px 8px;border-bottom:1px solid #ddd}tbody tr:nth-child(even){background:#f5f5f5}
   </style></head><body>
-    <h1>Bodega A&M — Productos Más Despachados (${window._topMesTitulo})</h1>
-    <table><thead><tr><th>#</th><th>Código</th><th>Producto</th><th>Unidad</th><th>Total</th></tr></thead>
+    <h1>Bodega A&M â€” Productos MÃ¡s Despachados (${window._topMesTitulo})</h1>
+    <table><thead><tr><th>#</th><th>CÃ³digo</th><th>Producto</th><th>Unidad</th><th>Total</th></tr></thead>
     <tbody>${filas}</tbody></table></body></html>`;
   if (window.require) {
     const { ipcRenderer } = window.require('electron');
@@ -1380,7 +1380,7 @@ function renderTopMes(mes) {
   }
   const ordenesMes = historial.filter(s => s.fecha && s.fecha.slice(0, 7) === mes);
   if (ordenesMes.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="5" class="empty-msg">No hay órdenes en ese mes</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="5" class="empty-msg">No hay Ã³rdenes en ese mes</td></tr>';
     btnExcel.style.display = 'none';
     btnPdf.style.display = 'none';
     return;
@@ -1435,28 +1435,28 @@ function aplicarFiltro() {
 }
 
 function eliminarOrden(i) {
-  if (!confirm(`¿Eliminar la orden ${historial[i].nro}?`)) return;
+  if (!confirm(`Â¿Eliminar la orden ${historial[i].nro}?`)) return;
   historial.splice(i, 1);
   localStorage.setItem('historialSalidas', JSON.stringify(historial));
   renderReportes();
   showToast('Orden eliminada');
 }
 
-// ── Modal detalle ─────────────────────────────────────────
+// â”€â”€ Modal detalle â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function abrirModal(i) {
   const s = historial[i];
   ordenImpresion = s;
   document.getElementById('modalTitulo').textContent = `Orden ${s.nro}`;
   document.getElementById('modalBody').innerHTML = `
-    <div class="detail-row"><strong>N° Salida:</strong> ${s.nro}</div>
+    <div class="detail-row"><strong>NÂ° Salida:</strong> ${s.nro}</div>
     <div class="detail-row"><strong>Fecha:</strong> ${formatFecha(s.fecha)}</div>
     <div class="detail-row"><strong>Tipo Documento:</strong> ${s.tipoDocumento || '-'}</div>
-    <div class="detail-row"><strong>N° Documento:</strong> ${s.nroDocumento || '-'}</div>
+    <div class="detail-row"><strong>NÂ° Documento:</strong> ${s.nroDocumento || '-'}</div>
     <div class="detail-row"><strong>Cliente:</strong> ${s.solicitante}</div>
     ${s.creadoPor ? `<div class="detail-row"><strong>Creada por:</strong> ${s.creadoPor} (${s.rolCreador || '-'})</div>` : ''}
     ${s.observaciones ? `<div class="detail-row"><strong>Observaciones:</strong> ${s.observaciones}</div>` : ''}
     <table style="margin-top:14px">
-      <thead><tr><th>#</th><th>Código</th><th>Descripción</th><th>Unidad</th><th>Cantidad</th></tr></thead>
+      <thead><tr><th>#</th><th>CÃ³digo</th><th>DescripciÃ³n</th><th>Unidad</th><th>Cantidad</th></tr></thead>
       <tbody>
         ${s.productos.map((p, j) => `
           <tr>
@@ -1519,7 +1519,7 @@ async function imprimirPagina() {
         creadoPor = ordenImpresion.creadoPor;
         rolCreador = ordenImpresion.rolCreador || '';
       } else if (usuarioActivo) {
-        // Buscar la orden en el historial por número
+        // Buscar la orden en el historial por nÃºmero
         const ordenEnHistorial = historial.find(s => s.nro === nro);
         if (ordenEnHistorial && ordenEnHistorial.creadoPor) {
           creadoPor = ordenEnHistorial.creadoPor;
@@ -1577,24 +1577,24 @@ async function imprimirPagina() {
       const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
         <style>${estiloTermico}</style></head><body>
         <div class="header">
-          <h1>Salida de Mercadería</h1>
+          <h1>Salida de MercaderÃ­a</h1>
           <p>Bodega A&M</p>
         </div>
-        <div class="row"><label>N° Salida:</label><span>${nro}</span></div>
+        <div class="row"><label>NÂ° Salida:</label><span>${nro}</span></div>
         <div class="row"><label>Fecha:</label><span>${fecha}</span></div>
         <div class="row"><label>Tipo Doc.:</label><span>${tipodoc||'-'}</span></div>
-        ${nrodoc ? `<div class="row"><label>N° Documento:</label><span>${nrodoc}</span></div>` : ''}
+        ${nrodoc ? `<div class="row"><label>NÂ° Documento:</label><span>${nrodoc}</span></div>` : ''}
         <div class="row"><label>Cliente:</label><span>${cliente||'-'}</span></div>
         ${obs ? `<div class="row"><label>Observaciones:</label><span>${obs}</span></div>` : ''}
         ${creadoPor ? `<div class="row"><label>Creada por:</label><span>${creadoPor} (${rolCreador})</span></div>` : ''}
         <table>
-          <thead><tr><th>#</th><th>Código</th><th>Descripción</th><th>Unid.</th><th>Cant.</th><th style="padding-left:6px">En Palabras</th></tr></thead>
+          <thead><tr><th>#</th><th>CÃ³digo</th><th>DescripciÃ³n</th><th>Unid.</th><th>Cant.</th><th style="padding-left:6px">En Palabras</th></tr></thead>
           <tbody>${filasProductos}</tbody>
         </table>
         <div class="footer">
           <p style="font-weight:bold">Entregar comprobante a bodeguero</p>
-          <p style="margin-top:8px">¡Gracias por su compra!</p>
-          <p style="margin-top:10px;font-size:9px">Bodega A&M — Documento interno</p>
+          <p style="margin-top:8px">Â¡Gracias por su compra!</p>
+          <p style="margin-top:10px;font-size:9px">Bodega A&M â€” Documento interno</p>
         </div>
         ${qrHtml}
         <script>window.onload=function(){setTimeout(function(){window.print();},300);};<\/script>
@@ -1610,7 +1610,7 @@ async function imprimirPagina() {
   }
 }
 
-// ── Catálogo de productos ─────────────────────────────────
+// â”€â”€ CatÃ¡logo de productos â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 document.getElementById('btnGuardarProducto').addEventListener('click', () => {
   const codigo = document.getElementById('catCodigo').value.trim();
   const nombre = document.getElementById('catNombre').value.trim();
@@ -1618,7 +1618,7 @@ document.getElementById('btnGuardarProducto').addEventListener('click', () => {
 
   if (!nombre) { showToast('Ingresa el nombre del producto', true); return; }
   if (codigo && catalogo.some(p => p.codigo === codigo)) {
-    showToast('Ya existe un producto con ese código', true); return;
+    showToast('Ya existe un producto con ese cÃ³digo', true); return;
   }
 
   catalogo.push({ codigo, nombre, unidad });
@@ -1628,12 +1628,12 @@ document.getElementById('btnGuardarProducto').addEventListener('click', () => {
   document.getElementById('catCodigo').value = '';
   document.getElementById('catNombre').value = '';
   document.getElementById('catUnidad').value = 'unidad';
-  showToast('Producto guardado en catálogo');
+  showToast('Producto guardado en catÃ¡logo');
 });
 
 function renderCatalogo(filtro = '') {
   if (catalogo.length === 0) {
-    tbodyCat.innerHTML = '<tr><td colspan="4" class="empty-msg">No hay productos en el catálogo</td></tr>';
+    tbodyCat.innerHTML = '<tr><td colspan="4" class="empty-msg">No hay productos en el catÃ¡logo</td></tr>';
     return;
   }
   const datos = filtro
@@ -1647,18 +1647,18 @@ function renderCatalogo(filtro = '') {
       <td>${p.codigo || '-'}</td>
       <td>${p.nombre}</td>
       <td>${p.unidad}</td>
-      <td><button class="btn-delete" onclick="eliminarDelCatalogo(${catalogo.indexOf(p)})" title="Eliminar">✕</button></td>
+      <td><button class="btn-delete" onclick="eliminarDelCatalogo(${catalogo.indexOf(p)})" title="Eliminar">âœ•</button></td>
     </tr>`).join('');
 
   if (!filtro && catalogo.length > 50) {
     tbodyCat.innerHTML += `<tr><td colspan="4" style="text-align:center;color:#888;font-style:italic;padding:10px">
-      Mostrando 50 de ${catalogo.length} productos. Usa el buscador para ver más.
+      Mostrando 50 de ${catalogo.length} productos. Usa el buscador para ver mÃ¡s.
     </td></tr>`;
   }
 }
 
 function eliminarDelCatalogo(i) {
-  if (!confirm(`¿Eliminar "${catalogo[i].nombre}" del catálogo?`)) return;
+  if (!confirm(`Â¿Eliminar "${catalogo[i].nombre}" del catÃ¡logo?`)) return;
   const producto = catalogo[i];
   if (window.fbListo) fbEliminar('catalogo', producto.codigo || producto.nombre);
   catalogo.splice(i, 1);
@@ -1711,7 +1711,7 @@ document.getElementById('btnImportarProductos').addEventListener('click', () => 
 
       let agregados = 0, duplicados = 0, errores = 0;
       rows.forEach(row => {
-        const codigo = String(row['Código'] || row['Codigo'] || row['codigo'] || row['CÓDIGO'] || '').trim();
+        const codigo = String(row['CÃ³digo'] || row['Codigo'] || row['codigo'] || row['CÃ“DIGO'] || '').trim();
         const nombre = String(row['Nombre'] || row['nombre'] || row['NOMBRE'] || '').trim();
         const unidad = String(row['Unidad'] || row['unidad'] || row['UNIDAD'] || 'unidad').trim().toLowerCase() || 'unidad';
 
@@ -1725,9 +1725,9 @@ document.getElementById('btnImportarProductos').addEventListener('click', () => 
       if (window.fbListo) catalogo.forEach(p => fbGuardar('catalogo', p.codigo || p.nombre, p));
       renderCatalogo();
       document.getElementById('inputExcelProductos').value = '';
-      resultEl.innerHTML = `<span style="color:#03543f">✔ ${agregados} producto(s) importado(s)</span>` +
-        (duplicados ? ` · <span style="color:#92400e">${duplicados} duplicado(s) omitido(s)</span>` : '') +
-        (errores    ? ` · <span style="color:#e53e3e">${errores} fila(s) sin nombre ignorada(s)</span>` : '');
+      resultEl.innerHTML = `<span style="color:#03543f">âœ” ${agregados} producto(s) importado(s)</span>` +
+        (duplicados ? ` Â· <span style="color:#92400e">${duplicados} duplicado(s) omitido(s)</span>` : '') +
+        (errores    ? ` Â· <span style="color:#e53e3e">${errores} fila(s) sin nombre ignorada(s)</span>` : '');
     } catch (err) {
       console.error(err);
       resultEl.innerHTML = '<span style="color:#e53e3e">Error al leer el archivo. Verifica el formato.</span>';
@@ -1739,7 +1739,7 @@ document.getElementById('btnImportarProductos').addEventListener('click', () => 
 // Descargar plantilla productos
 document.getElementById('btnDescargarPlantillaProductos').addEventListener('click', (e) => {
   e.preventDefault();
-  const csv = 'Código;Nombre;Unidad\n001;Producto Ejemplo;unidad\n002;Otro Producto;kg\n';
+  const csv = 'CÃ³digo;Nombre;Unidad\n001;Producto Ejemplo;unidad\n002;Otro Producto;kg\n';
   const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
   const url  = URL.createObjectURL(blob);
   const a    = document.createElement('a');
@@ -1748,9 +1748,9 @@ document.getElementById('btnDescargarPlantillaProductos').addEventListener('clic
   URL.revokeObjectURL(url);
 });
 
-// ── Botones formulario ────────────────────────────────────
+// â”€â”€ Botones formulario â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 document.getElementById('btnLimpiar').addEventListener('click', () => {
-  if (confirm('¿Limpiar el formulario?')) limpiarFormularioCompleto();
+  if (confirm('Â¿Limpiar el formulario?')) limpiarFormularioCompleto();
 });
 
 document.getElementById('btnNuevaOrden').addEventListener('click', () => {
@@ -1758,7 +1758,7 @@ document.getElementById('btnNuevaOrden').addEventListener('click', () => {
 });
 
 function limpiarFormularioCompleto() {
-  // Cancelar modo edición si estaba activo
+  // Cancelar modo ediciÃ³n si estaba activo
   window._editandoOrden = null;
 
   // Habilitar y limpiar todos los campos
@@ -1776,7 +1776,7 @@ function limpiarFormularioCompleto() {
   document.getElementById('btnAgregar').disabled = false;
   document.getElementById('btnRegistrar').disabled = false;
   document.getElementById('btnRegistrar').style.display = '';
-  document.getElementById('btnRegistrar').textContent = '✔ Registrar Salida';
+  document.getElementById('btnRegistrar').textContent = 'âœ” Registrar Salida';
   registrando = false;
   document.getElementById('btnImprimir').style.display = 'none';
   document.getElementById('btnNuevaOrden').style.display = 'none';
@@ -1792,7 +1792,7 @@ function limpiarFormularioCompleto() {
       ipcRenderer.send('forzarFoco');
     }
   }, 150);
-  // Reaplicar permisos de pestañas
+  // Reaplicar permisos de pestaÃ±as
   aplicarPermisos();
 }
 
@@ -1810,7 +1810,7 @@ function aplicarPermisos() {
   document.querySelector('[data-tab="papelera"]').style.display    = esAdmin ? '' : 'none';
   document.querySelector('[data-tab="diagnosticos"]').style.display = esAdmin ? '' : 'none';
 
-  // Activar la primera pestaña visible
+  // Activar la primera pestaÃ±a visible
   const tabs = document.querySelectorAll('.tab');
   const contents = document.querySelectorAll('.tab-content');
   let primeraVisible = null;
@@ -1829,7 +1829,7 @@ function aplicarPermisos() {
 
 document.getElementById('btnImprimir').addEventListener('click', () => imprimirPagina());
 
-// ── Buscar y reimprimir orden antigua ─────────────────────
+// â”€â”€ Buscar y reimprimir orden antigua â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 document.getElementById('btnBuscarOrden').addEventListener('click', buscarOrdenAntigua);
 document.getElementById('buscarOrdenAntigua').addEventListener('keydown', e => {
   if (e.key === 'Enter') buscarOrdenAntigua();
@@ -1851,7 +1851,7 @@ function buscarOrdenAntigua() {
   tabla.style.display = historial.length === 0 ? 'none' : 'table';
 
   if (datos.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="7" class="empty-msg">No se encontraron órdenes</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" class="empty-msg">No se encontraron Ã³rdenes</td></tr>';
     return;
   }
 
@@ -1872,10 +1872,10 @@ function buscarOrdenAntigua() {
       <td>${estado}</td>
       <td>
         <button class="btn-ver" onclick="verOrdenAntigua('${s.nro}')" style="margin-right:4px">Ver</button>
-        ${!anulada && !recibida ? `<button class="btn-secondary" style="padding:4px 10px;font-size:0.8rem;margin-right:4px" onclick="editarOrden('${s.nro}')">✏ Editar</button>` : ''}
-        ${!anulada && !recibida ? `<button class="btn-add" style="padding:4px 10px;font-size:0.8rem" onclick="reimprimirOrden(this)" data-nro="${s.nro}">🖨 Reimprimir</button>` : ''}
-        ${!anulada && !recibida ? `<button class="btn-delete" style="margin-left:4px" onclick="anularOrden(this)" data-nro="${s.nro}" title="Anular">🚫 Anular</button>` : ''}
-        ${recibida ? `<button class="btn-add" style="padding:4px 10px;font-size:0.8rem" onclick="reimprimirOrden(this)" data-nro="${s.nro}">🖨 Reimprimir</button>` : ''}
+        ${!anulada && !recibida ? `<button class="btn-secondary" style="padding:4px 10px;font-size:0.8rem;margin-right:4px" onclick="editarOrden('${s.nro}')">âœ Editar</button>` : ''}
+        ${!anulada && !recibida ? `<button class="btn-add" style="padding:4px 10px;font-size:0.8rem" onclick="reimprimirOrden(this)" data-nro="${s.nro}">ðŸ–¨ Reimprimir</button>` : ''}
+        ${!anulada && !recibida ? `<button class="btn-delete" style="margin-left:4px" onclick="anularOrden(this)" data-nro="${s.nro}" title="Anular">ðŸš« Anular</button>` : ''}
+        ${recibida ? `<button class="btn-add" style="padding:4px 10px;font-size:0.8rem" onclick="reimprimirOrden(this)" data-nro="${s.nro}">ðŸ–¨ Reimprimir</button>` : ''}
       </td>
     </tr>`;
   }).join('');
@@ -1894,17 +1894,17 @@ function anularOrden(btn) {
   if (recepciones.some(r => r.nroOrden === nro)) {
     showToast('No se puede anular una orden ya recibida', true); return;
   }
-  if (!confirm(`¿Está seguro de anular la orden ${nro}? Esta acción no se puede deshacer.`)) return;
+  if (!confirm(`Â¿EstÃ¡ seguro de anular la orden ${nro}? Esta acciÃ³n no se puede deshacer.`)) return;
   historial[idx].anulada = true;
   localStorage.setItem('historialSalidas', JSON.stringify(historial));
-  // Sincronizar anulación con Firebase
+  // Sincronizar anulaciÃ³n con Firebase
   if (window.fbListo) fbGuardar('historial', nro, historial[idx]);
   showToast(`Orden ${nro} anulada`);
   registrarActividad('Orden anulada', `${nro}`);
   buscarOrdenAntigua();
 }
 
-// ── Editar orden existente (solo si no fue recibida ni anulada) ──
+// â”€â”€ Editar orden existente (solo si no fue recibida ni anulada) â”€â”€
 function editarOrden(nro) {
   const idx = historial.findIndex(o => o.nro === nro);
   if (idx === -1) { showToast('Orden no encontrada', true); return; }
@@ -1912,7 +1912,7 @@ function editarOrden(nro) {
   if (s.anulada) { showToast('No se puede editar una orden anulada', true); return; }
   if (recepciones.some(r => r.nroOrden === nro)) { showToast('No se puede editar una orden ya recibida', true); return; }
 
-  if (!confirm(`¿Deseas editar la orden ${nro}? Se cargará en el formulario para modificarla.`)) return;
+  if (!confirm(`Â¿Deseas editar la orden ${nro}? Se cargarÃ¡ en el formulario para modificarla.`)) return;
 
   // Cargar datos en el formulario
   resetForm();
@@ -1929,8 +1929,8 @@ function editarOrden(nro) {
   // Marcar que estamos editando (no crear nueva orden)
   window._editandoOrden = nro;
 
-  // Cambiar texto del botón
-  document.getElementById('btnRegistrar').textContent = '✔ Guardar Cambios';
+  // Cambiar texto del botÃ³n
+  document.getElementById('btnRegistrar').textContent = 'âœ” Guardar Cambios';
 
   // Scroll al formulario
   document.getElementById('tab-formulario').scrollTo({ top: 0, behavior: 'smooth' });
@@ -1956,7 +1956,7 @@ function reimprimirOrden(btn) {
   setTimeout(() => { imprimirPagina(); resetForm(); }, 300);
 }
 
-// ── Autocomplete clientes en campo solicitante ────────────
+// â”€â”€ Autocomplete clientes en campo solicitante â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function buscarClienteAutoComplete() {
   const input = document.getElementById('solicitante');
@@ -1987,7 +1987,7 @@ document.addEventListener('click', (e) => {
     sugerenciasCliente.classList.remove('visible');
 });
 
-// ── Clientes ──────────────────────────────────────────────
+// â”€â”€ Clientes â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 document.getElementById('btnGuardarCliente').addEventListener('click', () => {
   const rut       = document.getElementById('cliRut').value.trim();
   const nombre    = document.getElementById('cliNombre').value.trim();
@@ -2028,18 +2028,18 @@ function renderClientes(filtro = '') {
       <td>${c.nombre}</td>
       <td>${c.telefono || '-'}</td>
       <td>${c.direccion || '-'}</td>
-      <td><button class="btn-delete" onclick="eliminarCliente(${clientes.indexOf(c)})" title="Eliminar">✕</button></td>
+      <td><button class="btn-delete" onclick="eliminarCliente(${clientes.indexOf(c)})" title="Eliminar">âœ•</button></td>
     </tr>`).join('');
 
   if (!filtro && clientes.length > 50) {
     tbody.innerHTML += `<tr><td colspan="5" style="text-align:center;color:#888;font-style:italic;padding:10px">
-      Mostrando 50 de ${clientes.length} clientes. Usa el buscador para ver más.
+      Mostrando 50 de ${clientes.length} clientes. Usa el buscador para ver mÃ¡s.
     </td></tr>`;
   }
 }
 
 function eliminarCliente(i) {
-  if (!confirm(`¿Eliminar al cliente "${clientes[i].nombre}"?`)) return;
+  if (!confirm(`Â¿Eliminar al cliente "${clientes[i].nombre}"?`)) return;
   const cliente = clientes[i];
   if (window.fbListo) fbEliminar('clientes', cliente.rut || cliente.nombre);
   clientes.splice(i, 1);
@@ -2092,8 +2092,8 @@ document.getElementById('btnImportarClientes').addEventListener('click', () => {
       rows.forEach(row => {
         const rut       = String(row['RUT'] || row['rut'] || '').trim();
         const nombre    = String(row['Nombre'] || row['nombre'] || row['NOMBRE'] || '').trim();
-        const telefono  = String(row['Teléfono'] || row['Telefono'] || row['telefono'] || '').trim();
-        const direccion = String(row['Dirección'] || row['Direccion'] || row['direccion'] || '').trim();
+        const telefono  = String(row['TelÃ©fono'] || row['Telefono'] || row['telefono'] || '').trim();
+        const direccion = String(row['DirecciÃ³n'] || row['Direccion'] || row['direccion'] || '').trim();
 
         if (!nombre) { errores++; return; }
         if (rut && clientes.some(c => c.rut === rut)) { duplicados++; return; }
@@ -2105,9 +2105,9 @@ document.getElementById('btnImportarClientes').addEventListener('click', () => {
       if (window.fbListo) clientes.forEach(c => fbGuardar('clientes', c.rut || c.nombre, c));
       renderClientes();
       document.getElementById('inputExcelClientes').value = '';
-      resultEl.innerHTML = `<span style="color:#03543f">✔ ${agregados} cliente(s) importado(s)</span>` +
-        (duplicados ? ` · <span style="color:#92400e">${duplicados} duplicado(s) omitido(s)</span>` : '') +
-        (errores    ? ` · <span style="color:#e53e3e">${errores} fila(s) sin nombre ignorada(s)</span>` : '');
+      resultEl.innerHTML = `<span style="color:#03543f">âœ” ${agregados} cliente(s) importado(s)</span>` +
+        (duplicados ? ` Â· <span style="color:#92400e">${duplicados} duplicado(s) omitido(s)</span>` : '') +
+        (errores    ? ` Â· <span style="color:#e53e3e">${errores} fila(s) sin nombre ignorada(s)</span>` : '');
     } catch (err) {
       console.error(err);
       resultEl.innerHTML = '<span style="color:#e53e3e">Error al leer el archivo. Verifica el formato.</span>';
@@ -2119,7 +2119,7 @@ document.getElementById('btnImportarClientes').addEventListener('click', () => {
 // Descargar plantilla CSV
 document.getElementById('btnDescargarPlantilla').addEventListener('click', (e) => {
   e.preventDefault();
-  const csv = 'RUT;Nombre;Teléfono;Dirección\n12.345.678-9;Ejemplo Cliente;+56912345678;Av. Ejemplo 123\n';
+  const csv = 'RUT;Nombre;TelÃ©fono;DirecciÃ³n\n12.345.678-9;Ejemplo Cliente;+56912345678;Av. Ejemplo 123\n';
   const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
   const url  = URL.createObjectURL(blob);
   const a    = document.createElement('a');
@@ -2128,7 +2128,7 @@ document.getElementById('btnDescargarPlantilla').addEventListener('click', (e) =
   URL.revokeObjectURL(url);
 });
 
-// ── Usuarios ──────────────────────────────────────────────
+// â”€â”€ Usuarios â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 let editandoUsuarioIdx = null;
 
 document.getElementById('btnGuardarUsuario').addEventListener('click', async () => {
@@ -2139,7 +2139,7 @@ document.getElementById('btnGuardarUsuario').addEventListener('click', async () 
 
   if (!nombre)   { showToast('Ingresa el nombre del usuario', true); return; }
   if (!login)    { showToast('Ingresa el nombre de usuario', true); return; }
-  if (!password && editandoUsuarioIdx === null) { showToast('Ingresa una contraseña', true); return; }
+  if (!password && editandoUsuarioIdx === null) { showToast('Ingresa una contraseÃ±a', true); return; }
 
   let passwordHash;
   if (password) {
@@ -2165,7 +2165,7 @@ document.getElementById('btnGuardarUsuario').addEventListener('click', async () 
     localStorage.setItem('usuariosBodega', JSON.stringify(usuarios));
     if (window.fbListo) fbGuardar('usuarios', login, usuarios[editandoUsuarioIdx]);
     showToast(`Usuario "${login}" actualizado`);
-    registrarActividad('Usuario editado', `${nombre} (${login}) — Rol: ${rol}`);
+    registrarActividad('Usuario editado', `${nombre} (${login}) â€” Rol: ${rol}`);
     editandoUsuarioIdx = null;
     const btn = document.getElementById('btnGuardarUsuario');
     btn.textContent = '+ Agregar';
@@ -2180,14 +2180,14 @@ document.getElementById('btnGuardarUsuario').addEventListener('click', async () 
     };
     guardarUsuarioFb();
     showToast(`Usuario "${login}" creado correctamente`);
-    registrarActividad('Usuario creado', `${nombre} (${login}) — Rol: ${rol}`);
+    registrarActividad('Usuario creado', `${nombre} (${login}) â€” Rol: ${rol}`);
   }
 
   renderUsuarios();
   document.getElementById('usuNombre').value   = '';
   document.getElementById('usuLogin').value    = '';
   document.getElementById('usuPassword').value = '';
-  document.getElementById('usuPassword').placeholder = '••••••';
+  document.getElementById('usuPassword').placeholder = 'â€¢â€¢â€¢â€¢â€¢â€¢';
   document.getElementById('usuRol').value      = 'Bodeguero';
   document.getElementById('permCrearOrden').checked      = true;
   document.getElementById('permReportes').checked        = true;
@@ -2204,7 +2204,7 @@ function editarUsuario(i) {
   document.getElementById('usuNombre').value   = u.nombre;
   document.getElementById('usuLogin').value    = u.login;
   document.getElementById('usuPassword').value = '';
-  document.getElementById('usuPassword').placeholder = '(dejar vacío para mantener)';
+  document.getElementById('usuPassword').placeholder = '(dejar vacÃ­o para mantener)';
   document.getElementById('usuRol').value      = u.rol;
   const p = u.permisos || {};
   document.getElementById('permCrearOrden').checked      = p.crearOrden      ?? true;
@@ -2215,7 +2215,7 @@ function editarUsuario(i) {
   document.getElementById('permRecepciones').checked     = p.recepciones     ?? true;
   document.getElementById('permUsuarios').checked        = p.usuarios        ?? false;
   const btn = document.getElementById('btnGuardarUsuario');
-  btn.textContent = '✔ Actualizar';
+  btn.textContent = 'âœ” Actualizar';
   btn.style.background = '#16a34a';
   document.querySelector('#tab-usuarios .add-product-row').scrollIntoView({ behavior: 'smooth' });
 }
@@ -2251,7 +2251,7 @@ function renderUsuarios() {
       <td>
         <button class="btn-toggle" onclick="toggleUsuario(${i})">${u.activo ? 'Desactivar' : 'Activar'}</button>
         <button class="btn-ver" onclick="editarUsuario(${i})">Editar</button>
-        <button class="btn-delete" onclick="eliminarUsuario(${i})" title="Eliminar">✕</button>
+        <button class="btn-delete" onclick="eliminarUsuario(${i})" title="Eliminar">âœ•</button>
       </td>
     </tr>`;
   }).join('');
@@ -2260,7 +2260,7 @@ function renderUsuarios() {
 function toggleUsuario(i) {
   const u = usuarios[i];
   if (u.activo) {
-    if (!confirm(`¿Está seguro de desactivar al usuario "${u.nombre}"?`)) return;
+    if (!confirm(`Â¿EstÃ¡ seguro de desactivar al usuario "${u.nombre}"?`)) return;
   }
   usuarios[i].activo = !usuarios[i].activo;
   localStorage.setItem('usuariosBodega', JSON.stringify(usuarios));
@@ -2269,7 +2269,7 @@ function toggleUsuario(i) {
 }
 
 function eliminarUsuario(i) {
-  if (!confirm(`¿Eliminar al usuario "${usuarios[i].login}"?`)) return;
+  if (!confirm(`Â¿Eliminar al usuario "${usuarios[i].login}"?`)) return;
   const loginEliminado = usuarios[i].login;
   usuarios.splice(i, 1);
   localStorage.setItem('usuariosBodega', JSON.stringify(usuarios));
@@ -2278,12 +2278,12 @@ function eliminarUsuario(i) {
 }
 
 document.getElementById('btnEliminarHistorial').addEventListener('click', async () => {
-  if (!confirm('¿Eliminar TODO el historial de órdenes y recepciones? Esta acción no se puede deshacer.')) return;
-  if (!confirm('¿Está completamente seguro? Se perderán todos los registros.')) return;
+  if (!confirm('Â¿Eliminar TODO el historial de Ã³rdenes y recepciones? Esta acciÃ³n no se puede deshacer.')) return;
+  if (!confirm('Â¿EstÃ¡ completamente seguro? Se perderÃ¡n todos los registros.')) return;
 
   // Eliminar de Firebase
   if (window.fbListo) {
-    showToast('🔄 Eliminando de la nube...');
+    showToast('ðŸ”„ Eliminando de la nube...');
     const [fbHistorial, fbRecepciones, fbConfig] = await Promise.all([
       fbCargar('historial'),
       fbCargar('recepciones'),
@@ -2310,19 +2310,19 @@ document.getElementById('btnEliminarHistorial').addEventListener('click', async 
   renderOrdenesEmitidas();
   buscarOrdenAntigua();
   showToast('Historial eliminado y contador reiniciado');
-  registrarActividad('Historial eliminado', 'Se eliminaron todas las órdenes y recepciones');
+  registrarActividad('Historial eliminado', 'Se eliminaron todas las Ã³rdenes y recepciones');
 });
 
-// ── Recepciones ───────────────────────────────────────────
+// â”€â”€ Recepciones â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function generarNroRec(n) {
   return 'REC-' + String(n).padStart(4, '0');
 }
 
-// Render órdenes emitidas (pendientes y recibidas)
+// Render Ã³rdenes emitidas (pendientes y recibidas)
 function renderOrdenesEmitidas(filtro = '') {
   const tbody = document.getElementById('tbodyOrdenesEmitidas');
   let datos = historial.filter(s => !s.anulada && !recepciones.some(r => r.nroOrden === s.nro));
-  // Ordenar por fecha más reciente primero
+  // Ordenar por fecha mÃ¡s reciente primero
   datos.sort((a, b) => (b.fecha || '').localeCompare(a.fecha || ''));
   if (filtro) {
     const q = filtro.toLowerCase();
@@ -2334,7 +2334,7 @@ function renderOrdenesEmitidas(filtro = '') {
     datos = datos.slice(0, 20);
   }
   if (datos.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="6" class="empty-msg">No hay órdenes pendientes</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="6" class="empty-msg">No hay Ã³rdenes pendientes</td></tr>';
     return;
   }
   tbody.innerHTML = datos.map(s => {
@@ -2345,7 +2345,7 @@ function renderOrdenesEmitidas(filtro = '') {
       <td>${s.solicitante || s.Cliente || '-'}</td>
       <td><span class="badge badge-pendiente">Pendiente</span></td>
       <td>
-        <button class="btn-add" style="padding:4px 12px;font-size:0.8rem" onclick="abrirModalRec(this)" data-nro="${s.nro}">📥 Recibir</button>
+        <button class="btn-add" style="padding:4px 12px;font-size:0.8rem" onclick="abrirModalRec(this)" data-nro="${s.nro}">ðŸ“¥ Recibir</button>
         <button class="btn-ver" onclick="verOrdenEmitida(this)" data-nro="${s.nro}">Ver</button>
       </td>
     </tr>`;
@@ -2391,7 +2391,7 @@ function renderRecepciones(filtro = '') {
     </tr>`).join('');
 }
 
-// Abrir modal para confirmar recepción de una orden
+// Abrir modal para confirmar recepciÃ³n de una orden
 function verOrdenEmitida(btn) {
   const nroOrden = btn.dataset.nro;
   const s = historial.find(o => o.nro === nroOrden);
@@ -2399,15 +2399,15 @@ function verOrdenEmitida(btn) {
   ordenImpresion = s;
   document.getElementById('modalTitulo').textContent = `Orden ${s.nro}`;
   document.getElementById('modalBody').innerHTML = `
-    <div class="detail-row"><strong>N° Salida:</strong> ${s.nro}</div>
+    <div class="detail-row"><strong>NÂ° Salida:</strong> ${s.nro}</div>
     <div class="detail-row"><strong>Fecha:</strong> ${formatFecha(s.fecha)}</div>
     <div class="detail-row"><strong>Tipo Documento:</strong> ${s.tipoDocumento || '-'}</div>
-    <div class="detail-row"><strong>N° Documento:</strong> ${s.nroDocumento || '-'}</div>
+    <div class="detail-row"><strong>NÂ° Documento:</strong> ${s.nroDocumento || '-'}</div>
     <div class="detail-row"><strong>Cliente:</strong> ${s.solicitante || '-'}</div>
     ${s.creadoPor ? `<div class="detail-row"><strong>Creada por:</strong> ${s.creadoPor} (${s.rolCreador || '-'})</div>` : ''}
     ${s.observaciones ? `<div class="detail-row"><strong>Observaciones:</strong> ${s.observaciones}</div>` : ''}
     <table style="margin-top:14px">
-      <thead><tr><th>#</th><th>Código</th><th>Descripción</th><th>Unidad</th><th>Cantidad</th><th>En Palabras</th></tr></thead>
+      <thead><tr><th>#</th><th>CÃ³digo</th><th>DescripciÃ³n</th><th>Unidad</th><th>Cantidad</th><th>En Palabras</th></tr></thead>
       <tbody>
         ${s.productos.map((p, j) => `
           <tr>
@@ -2430,12 +2430,12 @@ function abrirModalRec(btn) {
   let opcionesUsuarios = '<option value="">-- Seleccionar --</option>';
   // Primero el usuario activo (preseleccionado arriba)
   opcionesUsuarios += `<option value="${usuarioActivo.nombre}">${usuarioActivo.nombre} (${usuarioActivo.rol})</option>`;
-  // Luego los demás usuarios activos
+  // Luego los demÃ¡s usuarios activos
   usuarios.filter(u => u.activo && u.login !== usuarioActivo.login).forEach(u => {
     opcionesUsuarios += `<option value="${u.nombre}">${u.nombre} (${u.rol})</option>`;
   });
-  // Opción para escribir otro nombre manualmente
-  opcionesUsuarios += `<option value="__otro__">✏ Otra persona...</option>`;
+  // OpciÃ³n para escribir otro nombre manualmente
+  opcionesUsuarios += `<option value="__otro__">âœ Otra persona...</option>`;
   selectRec.innerHTML = opcionesUsuarios;
   selectRec.value = '';
   // Crear/mostrar input para nombre manual
@@ -2460,14 +2460,14 @@ function abrirModalRec(btn) {
     }
   };
   document.getElementById('modalRecBody').innerHTML = `
-    <div class="detail-row"><strong>N° Orden:</strong> ${orden.nro}</div>
-    <div class="detail-row"><strong>Fecha Emisión:</strong> ${formatFecha(orden.fecha)}</div>
+    <div class="detail-row"><strong>NÂ° Orden:</strong> ${orden.nro}</div>
+    <div class="detail-row"><strong>Fecha EmisiÃ³n:</strong> ${formatFecha(orden.fecha)}</div>
     <div class="detail-row"><strong>Tipo Documento:</strong> ${orden.tipoDocumento || '-'}</div>
-    <div class="detail-row"><strong>N° Documento:</strong> ${orden.nroDocumento || '-'}</div>
+    <div class="detail-row"><strong>NÂ° Documento:</strong> ${orden.nroDocumento || '-'}</div>
     <div class="detail-row"><strong>Cliente:</strong> ${orden.solicitante}</div>
     ${orden.creadoPor ? `<div class="detail-row"><strong>Creada por:</strong> ${orden.creadoPor} (${orden.rolCreador || '-'})</div>` : ''}
     <table style="margin-top:14px">
-      <thead><tr><th>#</th><th>Código</th><th>Descripción</th><th>Unidad</th><th>Cantidad</th></tr></thead>
+      <thead><tr><th>#</th><th>CÃ³digo</th><th>DescripciÃ³n</th><th>Unidad</th><th>Cantidad</th></tr></thead>
       <tbody>
         ${orden.productos.map((p, j) => `
           <tr>
@@ -2486,14 +2486,14 @@ function cerrarModalRec() {
 
 async function confirmarRecepcion() {
   let recibidoPor = document.getElementById('recibidoPor').value.trim();
-  // Si eligió "Otra persona", usar el input de texto
+  // Si eligiÃ³ "Otra persona", usar el input de texto
   if (recibidoPor === '__otro__') {
     const inputOtro = document.getElementById('inputRecOtroNombre');
     recibidoPor = inputOtro ? inputOtro.value.trim() : '';
   }
-  if (!recibidoPor) { showToast('Ingresa quién recibe la orden', true); return; }
+  if (!recibidoPor) { showToast('Ingresa quiÃ©n recibe la orden', true); return; }
 
-  // Verificar que no esté ya recibida (en local y en Firebase)
+  // Verificar que no estÃ© ya recibida (en local y en Firebase)
   if (recepciones.some(r => r.nroOrden === ordenEnRecepcion.nro)) {
     showToast('Esta orden ya fue recibida', true);
     cerrarModalRec();
@@ -2513,7 +2513,7 @@ async function confirmarRecepcion() {
     }
   }
 
-  // Verificar que no esté ya recibida
+  // Verificar que no estÃ© ya recibida
   if (recepciones.some(r => r.nroOrden === ordenEnRecepcion.nro)) {
     showToast('Esta orden ya fue recibida', true);
     cerrarModalRec();
@@ -2521,7 +2521,7 @@ async function confirmarRecepcion() {
     return;
   }
 
-  // Obtener siguiente número de recepción desde Firebase
+  // Obtener siguiente nÃºmero de recepciÃ³n desde Firebase
   let nroRec;
   if (window.fbListo) {
     try {
@@ -2557,12 +2557,12 @@ async function confirmarRecepcion() {
     total:       ordenEnRecepcion.total
   };
 
-  // Guardar en Firebase primero y esperar confirmación
+  // Guardar en Firebase primero y esperar confirmaciÃ³n
   if (window.fbListo) {
     try {
       await fbGuardar('recepciones', recepcion.nro, recepcion);
     } catch(e) {
-      showToast('Error al guardar recepción. Intenta de nuevo.', true);
+      showToast('Error al guardar recepciÃ³n. Intenta de nuevo.', true);
       return;
     }
   }
@@ -2576,13 +2576,13 @@ async function confirmarRecepcion() {
   renderOrdenesEmitidas();
   renderRecepciones();
   buscarOrdenAntigua();
-  showToast(`✔ Recepción ${recepcion.nro} confirmada`);
-  registrarActividad('Recepción confirmada', `${recepcion.nro} — Orden ${recepcion.nroOrden} — Recibido por: ${recepcion.recibidoPor}`);
+  showToast(`âœ” RecepciÃ³n ${recepcion.nro} confirmada`);
+  registrarActividad('RecepciÃ³n confirmada', `${recepcion.nro} â€” Orden ${recepcion.nroOrden} â€” Recibido por: ${recepcion.recibidoPor}`);
 }
 
 function verRecepcion(i) {
   const r = recepciones[i];
-  // Setear ordenImpresion con los datos de la recepción para poder imprimir
+  // Setear ordenImpresion con los datos de la recepciÃ³n para poder imprimir
   ordenImpresion = {
     nro: r.nroOrden,
     fecha: r.fecha,
@@ -2603,19 +2603,19 @@ function verRecepcion(i) {
     ordenImpresion.solicitante = ordenOriginal.solicitante || r.solicitante || '';
     ordenImpresion.observaciones = ordenOriginal.observaciones || '';
   }
-  document.getElementById('modalTitulo').textContent = `Recepción ${r.nro}`;
+  document.getElementById('modalTitulo').textContent = `RecepciÃ³n ${r.nro}`;
   document.getElementById('modalBody').innerHTML = `
-    <div class="detail-row"><strong>N° Recepción:</strong> ${r.nro}</div>
-    <div class="detail-row"><strong>N° Orden:</strong> ${r.nroOrden}</div>
-    <div class="detail-row"><strong>Fecha Recepción:</strong> ${formatFecha(r.fecha)}</div>
+    <div class="detail-row"><strong>NÂ° RecepciÃ³n:</strong> ${r.nro}</div>
+    <div class="detail-row"><strong>NÂ° Orden:</strong> ${r.nroOrden}</div>
+    <div class="detail-row"><strong>Fecha RecepciÃ³n:</strong> ${formatFecha(r.fecha)}</div>
     <div class="detail-row"><strong>Tipo Documento:</strong> ${ordenOriginal ? ordenOriginal.tipoDocumento || '-' : '-'}</div>
-    <div class="detail-row"><strong>N° Documento:</strong> ${ordenOriginal ? ordenOriginal.nroDocumento || '-' : '-'}</div>
+    <div class="detail-row"><strong>NÂ° Documento:</strong> ${ordenOriginal ? ordenOriginal.nroDocumento || '-' : '-'}</div>
     <div class="detail-row"><strong>Cliente:</strong> ${r.solicitante || r.Cliente || '-'}</div>
     <div class="detail-row"><strong>Recibido por:</strong> ${r.recibidoPor}</div>
     ${ordenOriginal && ordenOriginal.creadoPor ? `<div class="detail-row"><strong>Orden creada por:</strong> ${ordenOriginal.creadoPor} (${ordenOriginal.rolCreador || '-'})</div>` : ''}
     ${r.observaciones ? `<div class="detail-row"><strong>Observaciones:</strong> ${r.observaciones}</div>` : ''}
     <table style="margin-top:14px">
-      <thead><tr><th>#</th><th>Código</th><th>Descripción</th><th>Unidad</th><th>Cantidad</th></tr></thead>
+      <thead><tr><th>#</th><th>CÃ³digo</th><th>DescripciÃ³n</th><th>Unidad</th><th>Cantidad</th></tr></thead>
       <tbody>
         ${r.productos.map((p, j) => `
           <tr>
@@ -2628,12 +2628,12 @@ function verRecepcion(i) {
 }
 
 function eliminarRecepcion(i) {
-  if (!confirm(`¿Eliminar la recepción ${recepciones[i].nro}?`)) return;
+  if (!confirm(`Â¿Eliminar la recepciÃ³n ${recepciones[i].nro}?`)) return;
   recepciones.splice(i, 1);
   localStorage.setItem('recepcionesBodega', JSON.stringify(recepciones));
   renderRecepciones();
   renderOrdenesEmitidas();
-  showToast('Recepción eliminada');
+  showToast('RecepciÃ³n eliminada');
 }
 
 // Filtros recepciones
@@ -2659,30 +2659,30 @@ document.getElementById('buscarRecepcion').addEventListener('keydown', e => {
   if (e.key === 'Enter') renderRecepciones(document.getElementById('buscarRecepcion').value.trim());
 });
 
-// Cerrar modal recepción al click fuera
+// Cerrar modal recepciÃ³n al click fuera
 document.getElementById('modalRecepcion').addEventListener('click', (e) => {
   if (e.target === document.getElementById('modalRecepcion')) cerrarModalRec();
 });
 
-// ── Número a palabras (español) ───────────────────────────
+// â”€â”€ NÃºmero a palabras (espaÃ±ol) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function numeroAPalabras(n) {
   if (n === 0) return 'cero';
   if (n < 0) return 'menos ' + numeroAPalabras(-n);
 
-  // Manejar decimales: "1.5" → "uno punto cinco"
+  // Manejar decimales: "1.5" â†’ "uno punto cinco"
   if (n !== Math.floor(n)) {
     const partes = n.toString().split('.');
     const entera = parseInt(partes[0]);
     const decimalStr = partes[1];
-    // Convertir cada dígito decimal individualmente
+    // Convertir cada dÃ­gito decimal individualmente
     const digitosDecimal = ['cero','uno','dos','tres','cuatro','cinco','seis','siete','ocho','nueve'];
     let decimalPalabras;
     const decimalNum = parseInt(decimalStr);
     if (decimalStr.length <= 2 && decimalNum > 0 && decimalNum < 100) {
-      // Intentar convertir como número completo (ej: 25 → "veinticinco")
+      // Intentar convertir como nÃºmero completo (ej: 25 â†’ "veinticinco")
       decimalPalabras = numeroAPalabras(decimalNum);
     } else {
-      // Dígito por dígito para decimales largos
+      // DÃ­gito por dÃ­gito para decimales largos
       decimalPalabras = decimalStr.split('').map(d => digitosDecimal[parseInt(d)]).join(' ');
     }
     const enteraPalabras = entera === 0 ? 'cero' : numeroAPalabras(entera);
@@ -2692,7 +2692,7 @@ function numeroAPalabras(n) {
   n = Math.floor(n);
 
   const unidades  = ['','uno','dos','tres','cuatro','cinco','seis','siete','ocho','nueve',
-                     'diez','once','doce','trece','catorce','quince','dieciséis','diecisiete',
+                     'diez','once','doce','trece','catorce','quince','diecisÃ©is','diecisiete',
                      'dieciocho','diecinueve'];
   const decenas   = ['','','veinte','treinta','cuarenta','cincuenta','sesenta','setenta','ochenta','noventa'];
   const centenas  = ['','ciento','doscientos','trescientos','cuatrocientos','quinientos',
@@ -2716,7 +2716,7 @@ function numeroAPalabras(n) {
   return n.toString();
 }
 
-// ── Utilidades ────────────────────────────────────────────
+// â”€â”€ Utilidades â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function fechaHoraLocal() {
   const now = new Date();
   const opciones = { timeZone: 'America/Santiago', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false };
@@ -2737,18 +2737,18 @@ function formatFecha(f) {
   return `${d}/${m}/${y}`;
 }
 
-// ── Log de Actividad ──────────────────────────────────────
+// â”€â”€ Log de Actividad â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-// ── Log de Actividad (desactivado) ────────────────────────
+// â”€â”€ Log de Actividad (desactivado) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function registrarActividad() {}
 
-// ── Papelera de Reciclaje ─────────────────────────────────
+// â”€â”€ Papelera de Reciclaje â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function renderPapelera() {
   const tbody = document.getElementById('tbodyPapelera');
   if (!tbody) return;
   const anuladas = historial.filter(s => s.anulada === true);
   if (anuladas.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="6" class="empty-msg">No hay órdenes en la papelera</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="6" class="empty-msg">No hay Ã³rdenes en la papelera</td></tr>';
     return;
   }
   tbody.innerHTML = anuladas.map(s => {
@@ -2761,20 +2761,20 @@ function renderPapelera() {
       <td>${s.creadoPor ? `${s.creadoPor} (${s.rolCreador || '-'})` : '-'}</td>
       <td>
         <button class="btn-ver" onclick="verOrdenAntigua('${s.nro}')">Ver</button>
-        <button class="btn-add" style="padding:4px 10px;font-size:0.8rem;background:#16a34a" onclick="restaurarOrden(${idx})">♻ Restaurar</button>
-        <button class="btn-delete" style="margin-left:4px" onclick="eliminarDefinitivo(${idx})" title="Eliminar definitivamente">✕ Eliminar</button>
+        <button class="btn-add" style="padding:4px 10px;font-size:0.8rem;background:#16a34a" onclick="restaurarOrden(${idx})">â™» Restaurar</button>
+        <button class="btn-delete" style="margin-left:4px" onclick="eliminarDefinitivo(${idx})" title="Eliminar definitivamente">âœ• Eliminar</button>
       </td>
     </tr>`;
   }).join('');
 }
 
 function restaurarOrden(i) {
-  if (!confirm(`¿Restaurar la orden ${historial[i].nro}? Volverá a aparecer como orden activa.`)) return;
+  if (!confirm(`Â¿Restaurar la orden ${historial[i].nro}? VolverÃ¡ a aparecer como orden activa.`)) return;
   historial[i].anulada = false;
   localStorage.setItem('historialSalidas', JSON.stringify(historial));
   if (window.fbListo) fbGuardar('historial', historial[i].nro, historial[i]);
   registrarActividad('Orden restaurada', `${historial[i].nro}`);
-  showToast(`✔ Orden ${historial[i].nro} restaurada`);
+  showToast(`âœ” Orden ${historial[i].nro} restaurada`);
   renderPapelera();
   renderReportes();
   buscarOrdenAntigua();
@@ -2782,8 +2782,8 @@ function restaurarOrden(i) {
 }
 
 function eliminarDefinitivo(i) {
-  if (!confirm(`¿Eliminar DEFINITIVAMENTE la orden ${historial[i].nro}? Esta acción no se puede deshacer.`)) return;
-  if (!confirm('¿Estás completamente seguro?')) return;
+  if (!confirm(`Â¿Eliminar DEFINITIVAMENTE la orden ${historial[i].nro}? Esta acciÃ³n no se puede deshacer.`)) return;
+  if (!confirm('Â¿EstÃ¡s completamente seguro?')) return;
   const nro = historial[i].nro;
   historial.splice(i, 1);
   localStorage.setItem('historialSalidas', JSON.stringify(historial));
@@ -2802,13 +2802,13 @@ function showToast(msg, error = false) {
   setTimeout(() => { t.className = 'toast'; }, 3000);
 }
 
-// ── Mensaje del Admin ──────────────────────────────────────
+// â”€â”€ Mensaje del Admin â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function guardarMensajeAdmin() {
   const msg = document.getElementById('inputMensajeAdmin').value.trim();
   if (!msg) { showToast('Escribe un mensaje', true); return; }
   if (window.fbListo) {
     fbGuardar('config', 'mensajeAdmin', { texto: msg, fecha: fechaHoraLocal() });
-    showToast('✔ Mensaje enviado a todos los usuarios');
+    showToast('âœ” Mensaje enviado a todos los usuarios');
     document.getElementById('mensajeAdminActual').textContent = 'Mensaje actual: "' + msg + '"';
     document.getElementById('inputMensajeAdmin').value = '';
   }
@@ -2830,7 +2830,7 @@ function mostrarMensajeAdmin() {
     if (msg && msg.texto) {
       // Mostrar como alerta al usuario
       setTimeout(() => {
-        showToast('📢 Admin: ' + msg.texto);
+        showToast('ðŸ“¢ Admin: ' + msg.texto);
       }, 2000);
       // Mostrar en el campo si es admin
       const el = document.getElementById('mensajeAdminActual');
@@ -2839,24 +2839,24 @@ function mostrarMensajeAdmin() {
   });
 }
 
-// ── Notificaciones de escritorio ──────────────────────────
+// â”€â”€ Notificaciones de escritorio â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function mostrarNotificacion(titulo, mensaje, nroOrden) {
-  // Enviar al proceso principal para notificación persistente
+  // Enviar al proceso principal para notificaciÃ³n persistente
   if (window.require) {
     const { ipcRenderer } = window.require('electron');
     ipcRenderer.send('mostrar-notificacion', { titulo, mensaje, nroOrden });
   }
-  // También mostrar toast en la app
+  // TambiÃ©n mostrar toast en la app
   showToast(`${titulo}: ${mensaje}`);
 }
 
-// Listener para abrir orden desde notificación
+// Listener para abrir orden desde notificaciÃ³n
 if (window.require) {
   const { ipcRenderer } = window.require('electron');
   ipcRenderer.on('abrir-orden', (event, nroOrden) => {
     const idx = historial.findIndex(s => s.nro === nroOrden);
     if (idx !== -1) {
-      // Ir a la pestaña de reportes y abrir el modal
+      // Ir a la pestaÃ±a de reportes y abrir el modal
       document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
       document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
       document.querySelector('[data-tab="reportes"]').classList.add('active');
@@ -2866,11 +2866,11 @@ if (window.require) {
   });
 }
 
-// ══════════════════════════════════════════════════════════════
-// ── PANEL DE DIAGNÓSTICOS ─────────────────────────────────────
-// ══════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// â”€â”€ PANEL DE DIAGNÃ“STICOS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
-// ── Vista Previa antes de registrar ───────────────────────────
+// â”€â”€ Vista Previa antes de registrar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function mostrarVistaPrevia(tipoDoc, nroDoc, cliente, prods, esEdicion) {
   return new Promise((resolve) => {
     const listaProds = prods.map((p, i) => `<tr><td>${i+1}</td><td>${p.codigo||'-'}</td><td>${p.descripcion}</td><td>${p.unidad}</td><td>${p.cantidad}</td></tr>`).join('');
@@ -2880,22 +2880,22 @@ function mostrarVistaPrevia(tipoDoc, nroDoc, cliente, prods, esEdicion) {
     overlay.innerHTML = `
       <div class="modal" style="max-width:500px">
         <div class="modal-header">
-          <h3>${esEdicion ? '¿Guardar cambios?' : '¿Confirmar esta orden?'}</h3>
-          <button class="modal-close" id="prevCerrar">✕</button>
+          <h3>${esEdicion ? 'Â¿Guardar cambios?' : 'Â¿Confirmar esta orden?'}</h3>
+          <button class="modal-close" id="prevCerrar">âœ•</button>
         </div>
         <div class="modal-body" style="padding:16px">
           <div class="detail-row"><strong>Cliente:</strong> ${cliente}</div>
           <div class="detail-row"><strong>Tipo Doc.:</strong> ${tipoDoc || '-'}</div>
-          ${nroDoc ? `<div class="detail-row"><strong>N° Doc.:</strong> ${nroDoc}</div>` : ''}
+          ${nroDoc ? `<div class="detail-row"><strong>NÂ° Doc.:</strong> ${nroDoc}</div>` : ''}
           <div class="detail-row" style="margin-top:12px"><strong>Productos (${prods.length}):</strong></div>
           <table style="margin-top:8px;font-size:0.85rem">
-            <thead><tr><th>#</th><th>Código</th><th>Descripción</th><th>Unid.</th><th>Cant.</th></tr></thead>
+            <thead><tr><th>#</th><th>CÃ³digo</th><th>DescripciÃ³n</th><th>Unid.</th><th>Cant.</th></tr></thead>
             <tbody>${listaProds}</tbody>
           </table>
         </div>
         <div class="modal-footer">
           <button class="btn-secondary" id="prevCancelar">Cancelar</button>
-          <button class="btn-primary" id="prevConfirmar">✔ ${esEdicion ? 'Guardar' : 'Confirmar'}</button>
+          <button class="btn-primary" id="prevConfirmar">âœ” ${esEdicion ? 'Guardar' : 'Confirmar'}</button>
         </div>
       </div>`;
     document.body.appendChild(overlay);
@@ -2906,7 +2906,7 @@ function mostrarVistaPrevia(tipoDoc, nroDoc, cliente, prods, esEdicion) {
   });
 }
 
-// ── Error Logger ──────────────────────────────────────────────
+// â”€â”€ Error Logger â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 let diagErrores = [];
 const DIAG_MAX_ERRORES = 50;
 
@@ -2933,7 +2933,7 @@ function diagMarcarResueltos(tipo) {
   });
 }
 
-// ── Firebase Connection Monitor ───────────────────────────────
+// â”€â”€ Firebase Connection Monitor â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 let diagUltimaSync = null;
 let diagConectado = navigator.onLine;
 
@@ -2947,7 +2947,7 @@ function diagMedirLatencia() {
     return Math.round(fin - inicio);
   }).catch(err => {
     diagConectado = false;
-    diagRegistrarError('Error de conexión: ' + err.message, 'network');
+    diagRegistrarError('Error de conexiÃ³n: ' + err.message, 'network');
     return null;
   });
 }
@@ -2968,7 +2968,7 @@ async function diagActualizarConexion() {
     estadoEl.textContent = 'Desconectado';
     estadoEl.style.background = '#fee2e2';
     estadoEl.style.color = '#991b1b';
-    latenciaEl.textContent = '—';
+    latenciaEl.textContent = 'â€”';
   }
   if (diagUltimaSync) {
     syncEl.textContent = diagFormatearFecha(diagUltimaSync);
@@ -2999,7 +2999,7 @@ async function diagActualizarConexion() {
   }
 }
 
-// ── Storage Calculator ────────────────────────────────────────
+// â”€â”€ Storage Calculator â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const DIAG_TAMANO_PROMEDIO = {
   historial: 2048,
   catalogo: 512,
@@ -3068,7 +3068,7 @@ async function diagActualizarStorage() {
   }
 }
 
-// ── System Info ───────────────────────────────────────────────
+// â”€â”€ System Info â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 async function diagObtenerInfoSistema() {
   if (window.require) {
     try {
@@ -3088,7 +3088,7 @@ async function diagActualizarSistema() {
   const memoriaEl = document.getElementById('diagMemoria');
   if (!versionEl) return;
 
-  // Versión
+  // VersiÃ³n
   const verEl = document.getElementById('appVersion');
   versionEl.textContent = verEl ? verEl.textContent || 'N/A' : 'N/A';
 
@@ -3106,7 +3106,7 @@ async function diagActualizarSistema() {
   }
 }
 
-// ── Session Duration ──────────────────────────────────────────
+// â”€â”€ Session Duration â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 let diagInicioSesion = null;
 
 function diagCalcularDuracionSesion(inicioTimestamp, ahoraTimestamp) {
@@ -3124,11 +3124,11 @@ function diagActualizarSesion() {
     const duracion = diagCalcularDuracionSesion(diagInicioSesion, Date.now());
     sesionEl.textContent = duracion.texto;
   } else {
-    sesionEl.textContent = '—';
+    sesionEl.textContent = 'â€”';
   }
 }
 
-// ── Timestamp Formatter ───────────────────────────────────────
+// â”€â”€ Timestamp Formatter â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function diagFormatearFecha(timestamp) {
   const d = new Date(timestamp);
   const dd = String(d.getDate()).padStart(2, '0');
@@ -3140,7 +3140,7 @@ function diagFormatearFecha(timestamp) {
   return `${dd}/${mm}/${yyyy} ${hh}:${min}:${ss}`;
 }
 
-// ── Periodic Refresh Controller ───────────────────────────────
+// â”€â”€ Periodic Refresh Controller â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 let diagIntervalConexion = null;
 let diagIntervalStorage = null;
 let diagIntervalSesion = null;
@@ -3158,7 +3158,7 @@ function diagDetenerIntervalos() {
   if (diagIntervalSesion) { clearInterval(diagIntervalSesion); diagIntervalSesion = null; }
 }
 
-// ── Main Refresh Orchestrator ─────────────────────────────────
+// â”€â”€ Main Refresh Orchestrator â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 async function diagnosticosRefresh() {
   try {
     await diagActualizarConexion();
@@ -3193,7 +3193,7 @@ function diagRenderErrores() {
   }).join('');
 }
 
-// ── Button Event Listeners ────────────────────────────────────
+// â”€â”€ Button Event Listeners â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 document.getElementById('btnLimpiarErrores').addEventListener('click', () => {
   diagLimpiarErrores();
   diagRenderErrores();
@@ -3203,7 +3203,7 @@ document.getElementById('btnActualizarDiag').addEventListener('click', () => {
   diagnosticosRefresh();
 });
 
-// ── Global Error Interception ─────────────────────────────────
+// â”€â”€ Global Error Interception â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 window.addEventListener('unhandledrejection', (event) => {
   diagRegistrarError('Promise: ' + event.reason, 'general');
 });
