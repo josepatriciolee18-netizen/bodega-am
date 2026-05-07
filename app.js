@@ -251,7 +251,7 @@ function mostrarApp() {
   // Mostrar mensaje del admin si existe
   setTimeout(() => mostrarMensajeAdmin(), 3000);
   
-  // Verificar cada 15 segundos si mi sesión sigue activa
+  // Verificar cada 60 segundos si mi sesión sigue activa (reducido de 15s para ahorrar lecturas)
   if (window._checkSesionInterval) clearInterval(window._checkSesionInterval);
   window._checkSesionInterval = setInterval(async () => {
     if (!usuarioActivo || !window.fbListo) return;
@@ -259,12 +259,13 @@ function mostrarApp() {
     if (!miSesion) return;
     try {
       const sesiones = await fbCargar('sesiones');
-      const miSesionFb = sesiones.find(s => s.sesionId);
-      // Buscar por login - fbGuardar usa login como ID
-      // fbCargar devuelve todos los docs, necesitamos filtrar
-      // Como guardamos con login como ID, el doc tiene sesionId
+      // Si Firebase no devuelve datos (error de red), NO cerrar sesión
+      if (!sesiones || sesiones.length === 0) return;
       const encontrada = sesiones.find(s => s.sesionId === miSesion);
-      if (!encontrada && sesiones.length > 0) {
+      if (!encontrada) {
+        // Verificar que realmente otro dispositivo tomó la sesión
+        const miUsuarioSesion = sesiones.find(s => s.sesionId && s.sesionId !== miSesion);
+        if (!miUsuarioSesion) return; // No hay otra sesión, probablemente error de red
         // Mi sesión fue reemplazada por otra
         showToast('Tu sesión fue cerrada porque otro dispositivo inició sesión con este usuario', true);
         setTimeout(() => {
@@ -280,7 +281,7 @@ function mostrarApp() {
         }, 3000);
       }
     } catch(e) {}
-  }, 15000);
+  }, 60000);
   } catch(e) {
     console.error('Error en mostrarApp:', e);
   }
@@ -410,17 +411,22 @@ async function cargarDesdeFirebase() {
 
     showToast('✔ Conectado a la nube');
 
-    // Cargar TODO desde Firebase al conectar
-    const fbHistorial = await fbCargar('historial');
-    if (fbHistorial.length > 0) {
-      historial = fbHistorial.sort((a,b) => b.nro.localeCompare(a.nro));
-      localStorage.setItem('historialSalidas', JSON.stringify(historial));
+    // Cargar desde Firebase SOLO si localStorage está vacío (ahorra miles de lecturas)
+    // Si ya hay datos locales, los listeners en tiempo real se encargan de mantenerlos actualizados
+    if (historial.length === 0) {
+      const fbHistorial = await fbCargar('historial');
+      if (fbHistorial.length > 0) {
+        historial = fbHistorial.sort((a,b) => b.nro.localeCompare(a.nro));
+        localStorage.setItem('historialSalidas', JSON.stringify(historial));
+      }
     }
     
-    const fbRecepciones = await fbCargar('recepciones');
-    if (fbRecepciones.length >= 0) {
-      recepciones = fbRecepciones.sort((a,b) => b.nro.localeCompare(a.nro));
-      localStorage.setItem('recepcionesBodega', JSON.stringify(recepciones));
+    if (recepciones.length === 0) {
+      const fbRecepciones = await fbCargar('recepciones');
+      if (fbRecepciones.length >= 0) {
+        recepciones = fbRecepciones.sort((a,b) => b.nro.localeCompare(a.nro));
+        localStorage.setItem('recepcionesBodega', JSON.stringify(recepciones));
+      }
     }
     
     renderReportes();
