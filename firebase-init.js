@@ -22,11 +22,37 @@
     window.fbEliminar = async (col, id) => {
       try { await deleteDoc(doc(db, col, id)); } catch(e) { console.error('fbEliminar:', e); }
     };
-    window.fbCargar   = async (col) => {
-      try { const s = await getDocs(collection(db, col)); return s.docs.map(d => d.data()); } catch(e) { console.error('fbCargar:', e); return []; }
+
+    // ── Contador de lecturas diarias ──────────────────────────
+    const hoyKey = new Date().toISOString().slice(0, 10);
+    const contadorGuardado = JSON.parse(localStorage.getItem('fbContadorLecturas') || '{}');
+    if (contadorGuardado.fecha !== hoyKey) {
+      window._fbLecturas = { fecha: hoyKey, count: 0 };
+    } else {
+      window._fbLecturas = contadorGuardado;
+    }
+    function _fbSumarLecturas(n) {
+      window._fbLecturas.count += n;
+      localStorage.setItem('fbContadorLecturas', JSON.stringify(window._fbLecturas));
+      // Alerta al 80% del límite (40,000 de 50,000)
+      if (window._fbLecturas.count >= 40000 && !window._fbAlertaMostrada) {
+        window._fbAlertaMostrada = true;
+        if (typeof showToast === 'function') showToast('⚠️ Llevas ~' + window._fbLecturas.count.toLocaleString() + ' lecturas hoy. Cerca del límite diario (50,000)', true);
+      }
+    }
+
+    window.fbCargar = async (col) => {
+      try {
+        const s = await getDocs(collection(db, col));
+        _fbSumarLecturas(s.docs.length || 1);
+        return s.docs.map(d => d.data());
+      } catch(e) { console.error('fbCargar:', e); return []; }
     };
     window.fbEscuchar = (col, cb) => {
-      return onSnapshot(collection(db, col), s => cb(s.docs.map(d => d.data())));
+      return onSnapshot(collection(db, col), s => {
+        _fbSumarLecturas(s.docs.length || 1);
+        cb(s.docs.map(d => d.data()));
+      });
     };
 
     // Obtener siguiente número de orden — atómico con transacción

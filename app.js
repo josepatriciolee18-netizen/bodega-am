@@ -2973,6 +2973,14 @@ async function diagActualizarConexion() {
   if (diagUltimaSync) {
     syncEl.textContent = diagFormatearFecha(diagUltimaSync);
   }
+  // Mostrar contador de lecturas
+  const lecturasEl = document.getElementById('diagLecturasHoy');
+  if (lecturasEl && window._fbLecturas) {
+    const count = window._fbLecturas.count;
+    const pct = Math.round((count / 50000) * 100);
+    lecturasEl.textContent = count.toLocaleString() + ' / 50,000 (' + pct + '%)';
+    lecturasEl.style.color = pct >= 80 ? '#c81e1e' : pct >= 50 ? '#92400e' : '#065f46';
+  }
 }
 
 // ── Storage Calculator ────────────────────────────────────────
