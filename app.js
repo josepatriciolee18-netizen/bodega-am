@@ -887,6 +887,15 @@ form.addEventListener('submit', async (e) => {
   if (!solicitante) { showToast('Ingresa el nombre del Cliente', true); document.getElementById('solicitante').focus(); registrando = false; document.getElementById('btnRegistrar').disabled = false; document.getElementById('btnRegistrar').textContent = '✔ Registrar Salida'; return; }
   if (productos.length === 0) { showToast('Agrega al menos un producto', true); registrando = false; document.getElementById('btnRegistrar').disabled = false; document.getElementById('btnRegistrar').textContent = '✔ Registrar Salida'; return; }
 
+  // ── Vista previa antes de confirmar ──
+  const previewConfirmado = await mostrarVistaPrevia(tipoDocumento, nroDocumento, solicitante, productos, window._editandoOrden);
+  if (!previewConfirmado) {
+    registrando = false;
+    document.getElementById('btnRegistrar').disabled = false;
+    document.getElementById('btnRegistrar').textContent = window._editandoOrden ? '✔ Guardar Cambios' : '✔ Registrar Salida';
+    return;
+  }
+
   // ── Si estamos editando una orden existente ──
   if (window._editandoOrden) {
     const nroEdit = window._editandoOrden;
@@ -2854,6 +2863,42 @@ if (window.require) {
 // ══════════════════════════════════════════════════════════════
 // ── PANEL DE DIAGNÓSTICOS ─────────────────────────────────────
 // ══════════════════════════════════════════════════════════════
+
+// ── Vista Previa antes de registrar ───────────────────────────
+function mostrarVistaPrevia(tipoDoc, nroDoc, cliente, prods, esEdicion) {
+  return new Promise((resolve) => {
+    const listaProds = prods.map((p, i) => `<tr><td>${i+1}</td><td>${p.codigo||'-'}</td><td>${p.descripcion}</td><td>${p.unidad}</td><td>${p.cantidad}</td></tr>`).join('');
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+    overlay.style.display = 'flex';
+    overlay.innerHTML = `
+      <div class="modal" style="max-width:500px">
+        <div class="modal-header">
+          <h3>${esEdicion ? '¿Guardar cambios?' : '¿Confirmar esta orden?'}</h3>
+          <button class="modal-close" id="prevCerrar">✕</button>
+        </div>
+        <div class="modal-body" style="padding:16px">
+          <div class="detail-row"><strong>Cliente:</strong> ${cliente}</div>
+          <div class="detail-row"><strong>Tipo Doc.:</strong> ${tipoDoc || '-'}</div>
+          ${nroDoc ? `<div class="detail-row"><strong>N° Doc.:</strong> ${nroDoc}</div>` : ''}
+          <div class="detail-row" style="margin-top:12px"><strong>Productos (${prods.length}):</strong></div>
+          <table style="margin-top:8px;font-size:0.85rem">
+            <thead><tr><th>#</th><th>Código</th><th>Descripción</th><th>Unid.</th><th>Cant.</th></tr></thead>
+            <tbody>${listaProds}</tbody>
+          </table>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" id="prevCancelar">Cancelar</button>
+          <button class="btn-primary" id="prevConfirmar">✔ ${esEdicion ? 'Guardar' : 'Confirmar'}</button>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+    overlay.querySelector('#prevConfirmar').addEventListener('click', () => { overlay.remove(); resolve(true); });
+    overlay.querySelector('#prevCancelar').addEventListener('click', () => { overlay.remove(); resolve(false); });
+    overlay.querySelector('#prevCerrar').addEventListener('click', () => { overlay.remove(); resolve(false); });
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) { overlay.remove(); resolve(false); } });
+  });
+}
 
 // ── Error Logger ──────────────────────────────────────────────
 let diagErrores = [];
