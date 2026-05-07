@@ -251,7 +251,9 @@ function mostrarApp() {
   // Mostrar mensaje del admin si existe
   setTimeout(() => mostrarMensajeAdmin(), 3000);
   
-  // Verificar cada 60 segundos si mi sesión sigue activa (reducido de 15s para ahorrar lecturas)
+  // Verificador de sesión desactivado — no es necesario con usuarios diferentes por PC
+  // Si en el futuro necesitas reactivarlo, descomentar el bloque de abajo
+  /*
   if (window._checkSesionInterval) clearInterval(window._checkSesionInterval);
   window._checkSesionInterval = setInterval(async () => {
     if (!usuarioActivo || !window.fbListo) return;
@@ -259,14 +261,11 @@ function mostrarApp() {
     if (!miSesion) return;
     try {
       const sesiones = await fbCargar('sesiones');
-      // Si Firebase no devuelve datos (error de red), NO cerrar sesión
       if (!sesiones || sesiones.length === 0) return;
       const encontrada = sesiones.find(s => s.sesionId === miSesion);
       if (!encontrada) {
-        // Verificar que realmente otro dispositivo tomó la sesión
         const miUsuarioSesion = sesiones.find(s => s.sesionId && s.sesionId !== miSesion);
-        if (!miUsuarioSesion) return; // No hay otra sesión, probablemente error de red
-        // Mi sesión fue reemplazada por otra
+        if (!miUsuarioSesion) return;
         showToast('Tu sesión fue cerrada porque otro dispositivo inició sesión con este usuario', true);
         setTimeout(() => {
           localStorage.removeItem('sesionActiva');
@@ -282,6 +281,7 @@ function mostrarApp() {
       }
     } catch(e) {}
   }, 60000);
+  */
   } catch(e) {
     console.error('Error en mostrarApp:', e);
   }
