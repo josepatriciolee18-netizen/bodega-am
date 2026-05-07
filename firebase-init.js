@@ -17,7 +17,6 @@
     const db = getFirestore(fireApp);
 
     window.fbGuardar  = async (col, id, data) => {
-    window.fbGuardar  = async (col, id, data) => {
       try { await setDoc(doc(db, col, id), data); _fbSumarEscrituras(1); } catch(e) { console.error('fbGuardar:', e); }
     };
     window.fbEliminar = async (col, id) => {
