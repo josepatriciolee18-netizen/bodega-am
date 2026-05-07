@@ -268,6 +268,64 @@
       </section>
 
       <section class="section">
+        <h2>📋 Resumen Ejecutivo del Mes</h2>
+        <div class="filtros" style="margin-bottom:12px">
+          <div class="field">
+            <label>Seleccionar Mes</label>
+            <input type="month" id="filtroResumenMes" />
+          </div>
+          <button type="button" id="btnResumenMes" class="btn-add">🔍 Ver Resumen</button>
+          <button type="button" id="btnResumenPDF" class="btn-secondary" style="display:none">📄 PDF</button>
+          <button type="button" id="btnResumenExcel" class="btn-secondary" style="display:none">📊 Excel</button>
+        </div>
+        <div id="resumenEjecutivo" class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
+          <div class="stat-card"><span class="stat-num" id="reTotal">0</span><span class="stat-label">Total Órdenes</span></div>
+          <div class="stat-card"><span class="stat-num" id="reComparacion">—</span><span class="stat-label">vs Mes Anterior</span></div>
+          <div class="stat-card"><span class="stat-num" id="rePromedioDia">0</span><span class="stat-label">Promedio/Día</span></div>
+          <div class="stat-card"><span class="stat-num" id="reDiaMasActivo">—</span><span class="stat-label">Día Más Activo</span></div>
+          <div class="stat-card"><span class="stat-num" id="reItemsMes">0</span><span class="stat-label">Ítems Despachados</span></div>
+          <div class="stat-card"><span class="stat-num" id="reHoraPico">—</span><span class="stat-label">Hora Pico</span></div>
+          <div class="stat-card"><span class="stat-num" id="reRecepciones">0</span><span class="stat-label">Recepciones Confirmadas</span></div>
+          <div class="stat-card"><span class="stat-num" id="reAnuladas">0</span><span class="stat-label">Órdenes Anuladas</span></div>
+          <div class="stat-card"><span class="stat-num" id="rePendientes">0</span><span class="stat-label">Pendientes Recepción</span></div>
+          <div class="stat-card"><span class="stat-num" id="reSemanaActiva">—</span><span class="stat-label">Semana Más Activa</span></div>
+        </div>
+        <div style="margin-top:14px">
+          <h3 style="font-size:0.95rem;margin-bottom:8px">🏆 Top 3 Productos</h3>
+          <div id="reTopProductos" style="font-size:0.9rem;color:#333">—</div>
+        </div>
+        <div style="margin-top:12px">
+          <h3 style="font-size:0.95rem;margin-bottom:8px">⭐ Top 3 Clientes</h3>
+          <div id="reTopClientes" style="font-size:0.9rem;color:#333">—</div>
+        </div>
+        <div style="margin-top:12px">
+          <h3 style="font-size:0.95rem;margin-bottom:8px">🏅 Récord Histórico</h3>
+          <div id="reRecord" style="font-size:0.9rem;color:#333">—</div>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>📊 Comparar 2 Meses</h2>
+        <div class="filtros" style="margin-bottom:12px">
+          <div class="field">
+            <label>Mes 1</label>
+            <input type="month" id="compararMes1" />
+          </div>
+          <div class="field">
+            <label>Mes 2</label>
+            <input type="month" id="compararMes2" />
+          </div>
+          <button type="button" id="btnCompararMeses" class="btn-add">🔍 Comparar</button>
+        </div>
+        <div id="comparacionMeses" style="display:none">
+          <table style="width:100%;font-size:0.9rem">
+            <thead><tr><th>Indicador</th><th id="compTitulo1">Mes 1</th><th id="compTitulo2">Mes 2</th><th>Diferencia</th></tr></thead>
+            <tbody id="tbodyComparacion"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="section">
         <h2>📦 Productos Más Despachados</h2>
         <table id="tablaTopProductos">
           <thead>
@@ -449,12 +507,15 @@
         </div>
         <table id="tablaCatalogo">
           <thead>
-            <tr><th>Código</th><th>Nombre</th><th>Unidad</th><th></th></tr>
+            <tr><th><input type="checkbox" id="chkTodosCatalogo" onclick="document.querySelectorAll('.chk-catalogo').forEach(c=>c.checked=this.checked)" /></th><th>Código</th><th>Nombre</th><th>Unidad</th><th></th></tr>
           </thead>
           <tbody id="tbodyCatalogo">
-            <tr><td colspan="4" class="empty-msg">No hay productos en el catálogo</td></tr>
+            <tr><td colspan="5" class="empty-msg">No hay productos en el catálogo</td></tr>
           </tbody>
         </table>
+        <div style="margin-top:10px">
+          <button type="button" class="btn-delete" style="padding:8px 16px" onclick="eliminarMasivoCatalogo()">🗑 Eliminar seleccionados</button>
+        </div>
       </section>
     </div>
 
@@ -504,6 +565,7 @@
         <table id="tablaClientes">
           <thead>
             <tr>
+              <th><input type="checkbox" id="chkTodosClientes" onclick="document.querySelectorAll('.chk-cliente').forEach(c=>c.checked=this.checked)" /></th>
               <th>RUT</th>
               <th>Nombre / Razón Social</th>
               <th>Teléfono</th>
@@ -512,9 +574,12 @@
             </tr>
           </thead>
           <tbody id="tbodyClientes">
-            <tr><td colspan="5" class="empty-msg">No hay clientes registrados</td></tr>
+            <tr><td colspan="6" class="empty-msg">No hay clientes registrados</td></tr>
           </tbody>
         </table>
+        <div style="margin-top:10px">
+          <button type="button" class="btn-delete" style="padding:8px 16px" onclick="eliminarMasivoClientes()">🗑 Eliminar seleccionados</button>
+        </div>
       </section>
     </div>
 

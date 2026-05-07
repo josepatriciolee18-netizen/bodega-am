@@ -154,6 +154,7 @@ function winMaximizar() {
   }
 }
 function winCerrar() {
+  if (!confirm('¿Estás seguro de cerrar la aplicación?')) return;
   if (window.require) {
     const { ipcRenderer } = window.require('electron');
     ipcRenderer.send('ventana-cerrar');
@@ -1327,10 +1328,260 @@ document.getElementById('btnFiltroItems').addEventListener('click', () => {
   document.getElementById('statItemsFecha').textContent = items + ' ítems el ' + fecha.split('-').reverse().join('/');
 });
 
+// ── Resumen Ejecutivo del Mes ─────────────────────────────
+document.getElementById('btnResumenMes').addEventListener('click', () => {
+  const mes = document.getElementById('filtroResumenMes').value;
+  if (!mes) { showToast('Selecciona un mes', true); return; }
+  renderResumenEjecutivo(mes);
+  document.getElementById('btnResumenPDF').style.display = '';
+  document.getElementById('btnResumenExcel').style.display = '';
+});
+
+function renderResumenEjecutivo(mes) {
+  const ordenesMes = historial.filter(s => s.fecha && s.fecha.slice(0,7) === mes);
+  const totalMes = ordenesMes.length;
+
+  // Mes anterior
+  const [anio, mesNum] = mes.split('-').map(Number);
+  const mesAnterior = mesNum === 1 ? `${anio-1}-12` : `${anio}-${String(mesNum-1).padStart(2,'0')}`;
+  const totalMesAnterior = historial.filter(s => s.fecha && s.fecha.slice(0,7) === mesAnterior).length;
+  let comparacion = '—';
+  if (totalMesAnterior > 0) {
+    const diff = Math.round(((totalMes - totalMesAnterior) / totalMesAnterior) * 100);
+    comparacion = (diff >= 0 ? '+' : '') + diff + '%';
+  }
+
+  // Promedio por día
+  const diasEnMes = new Date(anio, mesNum, 0).getDate();
+  const promedio = totalMes > 0 ? (totalMes / diasEnMes).toFixed(1) : '0';
+
+  // Día más activo
+  const conteosDia = {};
+  ordenesMes.forEach(s => {
+    const dia = s.fecha.slice(0,10);
+    conteosDia[dia] = (conteosDia[dia] || 0) + 1;
+  });
+  let diaMasActivo = '—';
+  let maxDia = 0;
+  Object.entries(conteosDia).forEach(([dia, count]) => {
+    if (count > maxDia) { maxDia = count; diaMasActivo = dia.split('-').reverse().join('/') + ' (' + count + ')'; }
+  });
+
+  // Ítems despachados
+  const itemsMes = ordenesMes.reduce((a, s) => a + (s.total || 0), 0);
+
+  // Hora pico
+  const conteosHora = {};
+  ordenesMes.forEach(s => {
+    if (s.fecha && s.fecha.length >= 16) {
+      const hora = s.fecha.slice(11,13);
+      conteosHora[hora] = (conteosHora[hora] || 0) + 1;
+    }
+  });
+  let horaPico = '—';
+  let maxHora = 0;
+  Object.entries(conteosHora).forEach(([hora, count]) => {
+    if (count > maxHora) { maxHora = count; horaPico = hora + ':00 (' + count + ' órdenes)'; }
+  });
+
+  // Recepciones del mes
+  const recepcionesMes = recepciones.filter(r => r.fecha && r.fecha.slice(0,7) === mes).length;
+
+  // Anuladas
+  const anuladasMes = ordenesMes.filter(s => s.anulada).length;
+
+  // Pendientes de recepción
+  const pendientes = ordenesMes.filter(s => !s.anulada && !recepciones.some(r => r.nroOrden === s.nro)).length;
+
+  // Top 3 productos
+  const conteoProds = {};
+  ordenesMes.forEach(s => {
+    if (s.productos) s.productos.forEach(p => {
+      const key = p.descripcion || p.codigo;
+      conteoProds[key] = (conteoProds[key] || 0) + (parseFloat(p.cantidad) || 0);
+    });
+  });
+  const topProds = Object.entries(conteoProds).sort((a,b) => b[1] - a[1]).slice(0,3);
+
+  // Top 3 clientes
+  const conteoClientes = {};
+  ordenesMes.forEach(s => {
+    if (s.solicitante) conteoClientes[s.solicitante] = (conteoClientes[s.solicitante] || 0) + 1;
+  });
+  const topClientes = Object.entries(conteoClientes).sort((a,b) => b[1] - a[1]).slice(0,3);
+
+  // Renderizar
+  document.getElementById('reTotal').textContent = totalMes;
+  document.getElementById('reComparacion').textContent = comparacion;
+  document.getElementById('reComparacion').style.color = comparacion.startsWith('+') ? '#065f46' : comparacion.startsWith('-') ? '#c81e1e' : '';
+  document.getElementById('rePromedioDia').textContent = promedio;
+  document.getElementById('reDiaMasActivo').textContent = diaMasActivo;
+  document.getElementById('reItemsMes').textContent = itemsMes.toLocaleString();
+  document.getElementById('reHoraPico').textContent = horaPico;
+  document.getElementById('reRecepciones').textContent = recepcionesMes;
+  document.getElementById('reAnuladas').textContent = anuladasMes;
+  document.getElementById('rePendientes').textContent = pendientes;
+
+  // Semana más activa
+  const semanas = { 'Semana 1': 0, 'Semana 2': 0, 'Semana 3': 0, 'Semana 4': 0, 'Semana 5': 0 };
+  ordenesMes.forEach(s => {
+    if (s.fecha) {
+      const dia = parseInt(s.fecha.slice(8,10));
+      if (dia <= 7) semanas['Semana 1']++;
+      else if (dia <= 14) semanas['Semana 2']++;
+      else if (dia <= 21) semanas['Semana 3']++;
+      else if (dia <= 28) semanas['Semana 4']++;
+      else semanas['Semana 5']++;
+    }
+  });
+  let semanaActiva = '—';
+  let maxSemana = 0;
+  Object.entries(semanas).forEach(([sem, count]) => {
+    if (count > maxSemana) { maxSemana = count; semanaActiva = sem + ' (' + count + ')'; }
+  });
+  document.getElementById('reSemanaActiva').textContent = semanaActiva;
+
+  document.getElementById('reTopProductos').innerHTML = topProds.length > 0
+    ? topProds.map((p, i) => `${i+1}. <strong>${p[0]}</strong> — ${p[1]} unid.`).join('<br>')
+    : 'Sin datos';
+  document.getElementById('reTopClientes').innerHTML = topClientes.length > 0
+    ? topClientes.map((c, i) => `${i+1}. <strong>${c[0]}</strong> — ${c[1]} órdenes`).join('<br>')
+    : 'Sin datos';
+
+  // Récord histórico
+  const conteoMeses = {};
+  historial.forEach(s => {
+    if (s.fecha) {
+      const m = s.fecha.slice(0,7);
+      conteoMeses[m] = (conteoMeses[m] || 0) + 1;
+    }
+  });
+  let mejorMes = '—';
+  let maxMes = 0;
+  const meses = ['','Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  Object.entries(conteoMeses).forEach(([m, count]) => {
+    if (count > maxMes) {
+      maxMes = count;
+      const [a, mn] = m.split('-');
+      mejorMes = meses[parseInt(mn)] + ' ' + a + ' (' + count + ' órdenes)';
+    }
+  });
+  document.getElementById('reRecord').textContent = '🏆 ' + mejorMes;
+}
+
+// Exportar Resumen Ejecutivo a PDF
+document.getElementById('btnResumenPDF').addEventListener('click', () => {
+  const mes = document.getElementById('filtroResumenMes').value;
+  if (!mes) return;
+  const meses = ['','Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  const [a, mn] = mes.split('-');
+  const titulo = meses[parseInt(mn)] + ' ' + a;
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>
+    body{font-family:Arial,sans-serif;padding:30px;color:#333}
+    h1{text-align:center;color:#1a56db;margin-bottom:20px}
+    .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}
+    .card{border:1px solid #e5e7eb;border-radius:8px;padding:14px;text-align:center}
+    .card .num{font-size:1.5rem;font-weight:bold;color:#1a56db}
+    .card .label{font-size:0.8rem;color:#666;margin-top:4px}
+    .section{margin-top:16px}
+    .section h3{font-size:0.95rem;margin-bottom:6px}
+  </style></head><body>
+    <h1>Resumen Ejecutivo — ${titulo}</h1>
+    <div class="grid">
+      <div class="card"><div class="num">${document.getElementById('reTotal').textContent}</div><div class="label">Total Órdenes</div></div>
+      <div class="card"><div class="num">${document.getElementById('reComparacion').textContent}</div><div class="label">vs Mes Anterior</div></div>
+      <div class="card"><div class="num">${document.getElementById('rePromedioDia').textContent}</div><div class="label">Promedio/Día</div></div>
+      <div class="card"><div class="num">${document.getElementById('reDiaMasActivo').textContent}</div><div class="label">Día Más Activo</div></div>
+      <div class="card"><div class="num">${document.getElementById('reItemsMes').textContent}</div><div class="label">Ítems Despachados</div></div>
+      <div class="card"><div class="num">${document.getElementById('reHoraPico').textContent}</div><div class="label">Hora Pico</div></div>
+      <div class="card"><div class="num">${document.getElementById('reRecepciones').textContent}</div><div class="label">Recepciones</div></div>
+      <div class="card"><div class="num">${document.getElementById('reAnuladas').textContent}</div><div class="label">Anuladas</div></div>
+      <div class="card"><div class="num">${document.getElementById('reSemanaActiva').textContent}</div><div class="label">Semana Más Activa</div></div>
+    </div>
+    <div class="section"><h3>🏆 Top 3 Productos</h3><p>${document.getElementById('reTopProductos').innerHTML}</p></div>
+    <div class="section"><h3>⭐ Top 3 Clientes</h3><p>${document.getElementById('reTopClientes').innerHTML}</p></div>
+    <div class="section"><h3>🏅 Récord Histórico</h3><p>${document.getElementById('reRecord').textContent}</p></div>
+    <p style="text-align:center;margin-top:30px;font-size:0.8rem;color:#888">Bodega A&M — Generado el ${new Date().toLocaleDateString('es-CL')}</p>
+  </body></html>`;
+  if (window.require) {
+    const { ipcRenderer } = window.require('electron');
+    ipcRenderer.send('vistaPreviewPDF', html);
+  }
+});
+
+// Exportar Resumen Ejecutivo a Excel
+document.getElementById('btnResumenExcel').addEventListener('click', () => {
+  const mes = document.getElementById('filtroResumenMes').value;
+  if (!mes) return;
+  let csv = '\uFEFF';
+  csv += 'Resumen Ejecutivo - ' + mes + '\n\n';
+  csv += 'Indicador;Valor\n';
+  csv += 'Total Órdenes;' + document.getElementById('reTotal').textContent + '\n';
+  csv += 'vs Mes Anterior;' + document.getElementById('reComparacion').textContent + '\n';
+  csv += 'Promedio/Día;' + document.getElementById('rePromedioDia').textContent + '\n';
+  csv += 'Día Más Activo;' + document.getElementById('reDiaMasActivo').textContent + '\n';
+  csv += 'Ítems Despachados;' + document.getElementById('reItemsMes').textContent + '\n';
+  csv += 'Hora Pico;' + document.getElementById('reHoraPico').textContent + '\n';
+  csv += 'Recepciones;' + document.getElementById('reRecepciones').textContent + '\n';
+  csv += 'Anuladas;' + document.getElementById('reAnuladas').textContent + '\n';
+  csv += 'Semana Más Activa;' + document.getElementById('reSemanaActiva').textContent + '\n';
+  csv += 'Récord Histórico;' + document.getElementById('reRecord').textContent + '\n';
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `Resumen_Ejecutivo_${mes}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('✔ Excel descargado');
+});
+
 document.getElementById('btnFiltroMes').addEventListener('click', () => {
   const mes = document.getElementById('filtroMes').value;
   renderTopMes(mes);
 });
+
+// ── Comparar 2 Meses ─────────────────────────────────────
+document.getElementById('btnCompararMeses').addEventListener('click', () => {
+  const mes1 = document.getElementById('compararMes1').value;
+  const mes2 = document.getElementById('compararMes2').value;
+  if (!mes1 || !mes2) { showToast('Selecciona ambos meses', true); return; }
+  compararMeses(mes1, mes2);
+});
+
+function compararMeses(mes1, mes2) {
+  const ordenes1 = historial.filter(s => s.fecha && s.fecha.slice(0,7) === mes1);
+  const ordenes2 = historial.filter(s => s.fecha && s.fecha.slice(0,7) === mes2);
+  const items1 = ordenes1.reduce((a, s) => a + (s.total || 0), 0);
+  const items2 = ordenes2.reduce((a, s) => a + (s.total || 0), 0);
+  const anuladas1 = ordenes1.filter(s => s.anulada).length;
+  const anuladas2 = ordenes2.filter(s => s.anulada).length;
+  const rec1 = recepciones.filter(r => r.fecha && r.fecha.slice(0,7) === mes1).length;
+  const rec2 = recepciones.filter(r => r.fecha && r.fecha.slice(0,7) === mes2).length;
+
+  const mesesNombres = ['','Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  const nombre1 = mesesNombres[parseInt(mes1.split('-')[1])] + ' ' + mes1.split('-')[0];
+  const nombre2 = mesesNombres[parseInt(mes2.split('-')[1])] + ' ' + mes2.split('-')[0];
+
+  document.getElementById('compTitulo1').textContent = nombre1;
+  document.getElementById('compTitulo2').textContent = nombre2;
+
+  function diff(a, b) {
+    if (a === 0 && b === 0) return '—';
+    const d = b - a;
+    const pct = a > 0 ? Math.round((d / a) * 100) : '∞';
+    const color = d > 0 ? '#065f46' : d < 0 ? '#c81e1e' : '#333';
+    return `<span style="color:${color};font-weight:bold">${d >= 0 ? '+' : ''}${d} (${pct}%)</span>`;
+  }
+
+  document.getElementById('tbodyComparacion').innerHTML = `
+    <tr><td>Total Órdenes</td><td>${ordenes1.length}</td><td>${ordenes2.length}</td><td>${diff(ordenes1.length, ordenes2.length)}</td></tr>
+    <tr><td>Ítems Despachados</td><td>${items1}</td><td>${items2}</td><td>${diff(items1, items2)}</td></tr>
+    <tr><td>Recepciones</td><td>${rec1}</td><td>${rec2}</td><td>${diff(rec1, rec2)}</td></tr>
+    <tr><td>Anuladas</td><td>${anuladas1}</td><td>${anuladas2}</td><td>${diff(anuladas1, anuladas2)}</td></tr>
+  `;
+  document.getElementById('comparacionMeses').style.display = '';
+}
 
 // Exportar Top Mes a Excel
 document.getElementById('btnExcelTopMes').addEventListener('click', () => {
@@ -1633,7 +1884,7 @@ document.getElementById('btnGuardarProducto').addEventListener('click', () => {
 
 function renderCatalogo(filtro = '') {
   if (catalogo.length === 0) {
-    tbodyCat.innerHTML = '<tr><td colspan="4" class="empty-msg">No hay productos en el catálogo</td></tr>';
+    tbodyCat.innerHTML = '<tr><td colspan="5" class="empty-msg">No hay productos en el catálogo</td></tr>';
     return;
   }
   const datos = filtro
@@ -1642,19 +1893,60 @@ function renderCatalogo(filtro = '') {
         (p.codigo && p.codigo.toLowerCase().includes(filtro.toLowerCase())))
     : catalogo.slice(0, 50);
 
-  tbodyCat.innerHTML = datos.map((p) => `
-    <tr>
+  tbodyCat.innerHTML = datos.map((p) => {
+    const idx = catalogo.indexOf(p);
+    return `<tr>
+      <td><input type="checkbox" class="chk-catalogo" data-idx="${idx}" /></td>
       <td>${p.codigo || '-'}</td>
       <td>${p.nombre}</td>
       <td>${p.unidad}</td>
-      <td><button class="btn-delete" onclick="eliminarDelCatalogo(${catalogo.indexOf(p)})" title="Eliminar">✕</button></td>
-    </tr>`).join('');
+      <td>
+        <button class="btn-add" style="padding:3px 8px;font-size:0.78rem;margin-right:4px" onclick="editarProductoCatalogo(${idx})">✏</button>
+        <button class="btn-delete" onclick="eliminarDelCatalogo(${idx})" title="Eliminar">✕</button>
+      </td>
+    </tr>`;
+  }).join('');
 
   if (!filtro && catalogo.length > 50) {
-    tbodyCat.innerHTML += `<tr><td colspan="4" style="text-align:center;color:#888;font-style:italic;padding:10px">
+    tbodyCat.innerHTML += `<tr><td colspan="5" style="text-align:center;color:#888;font-style:italic;padding:10px">
       Mostrando 50 de ${catalogo.length} productos. Usa el buscador para ver más.
     </td></tr>`;
   }
+}
+
+function editarProductoCatalogo(i) {
+  const p = catalogo[i];
+  const nuevoCodigo = prompt('Código:', p.codigo);
+  if (nuevoCodigo === null) return;
+  const nuevoNombre = prompt('Nombre:', p.nombre);
+  if (nuevoNombre === null || !nuevoNombre.trim()) return;
+  const nuevaUnidad = prompt('Unidad (unidad, kg, litro, caja, metro):', p.unidad);
+  if (nuevaUnidad === null) return;
+
+  // Eliminar el anterior de Firebase si cambió el código
+  if (window.fbListo && p.codigo !== nuevoCodigo.trim()) {
+    fbEliminar('catalogo', p.codigo || p.nombre);
+  }
+  catalogo[i] = { codigo: nuevoCodigo.trim(), nombre: nuevoNombre.trim(), unidad: nuevaUnidad.trim() || 'unidad' };
+  localStorage.setItem('catalogoProductos', JSON.stringify(catalogo));
+  if (window.fbListo) fbGuardar('catalogo', catalogo[i].codigo || catalogo[i].nombre, catalogo[i]);
+  renderCatalogo();
+  showToast('✔ Producto actualizado');
+}
+
+function eliminarMasivoCatalogo() {
+  const checks = document.querySelectorAll('.chk-catalogo:checked');
+  if (checks.length === 0) { showToast('Selecciona al menos un producto', true); return; }
+  if (!confirm(`¿Eliminar ${checks.length} producto(s) seleccionado(s)?`)) return;
+  const indices = Array.from(checks).map(c => parseInt(c.dataset.idx)).sort((a,b) => b - a);
+  indices.forEach(i => {
+    const p = catalogo[i];
+    if (window.fbListo) fbEliminar('catalogo', p.codigo || p.nombre);
+    catalogo.splice(i, 1);
+  });
+  localStorage.setItem('catalogoProductos', JSON.stringify(catalogo));
+  renderCatalogo();
+  showToast(`✔ ${indices.length} producto(s) eliminado(s)`);
 }
 
 function eliminarDelCatalogo(i) {
@@ -2013,7 +2305,7 @@ document.getElementById('btnGuardarCliente').addEventListener('click', () => {
 function renderClientes(filtro = '') {
   const tbody = document.getElementById('tbodyClientes');
   if (clientes.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="5" class="empty-msg">No hay clientes registrados</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="6" class="empty-msg">No hay clientes registrados</td></tr>';
     return;
   }
   const datos = filtro
@@ -2022,20 +2314,63 @@ function renderClientes(filtro = '') {
         (c.rut && c.rut.toLowerCase().includes(filtro.toLowerCase())))
     : clientes.slice(0, 50);
 
-  tbody.innerHTML = datos.map((c) => `
-    <tr>
+  tbody.innerHTML = datos.map((c) => {
+    const idx = clientes.indexOf(c);
+    return `<tr>
+      <td><input type="checkbox" class="chk-cliente" data-idx="${idx}" /></td>
       <td>${c.rut || '-'}</td>
       <td>${c.nombre}</td>
       <td>${c.telefono || '-'}</td>
       <td>${c.direccion || '-'}</td>
-      <td><button class="btn-delete" onclick="eliminarCliente(${clientes.indexOf(c)})" title="Eliminar">✕</button></td>
-    </tr>`).join('');
+      <td>
+        <button class="btn-add" style="padding:3px 8px;font-size:0.78rem;margin-right:4px" onclick="editarCliente(${idx})">✏</button>
+        <button class="btn-delete" onclick="eliminarCliente(${idx})" title="Eliminar">✕</button>
+      </td>
+    </tr>`;
+  }).join('');
 
   if (!filtro && clientes.length > 50) {
-    tbody.innerHTML += `<tr><td colspan="5" style="text-align:center;color:#888;font-style:italic;padding:10px">
+    tbody.innerHTML += `<tr><td colspan="6" style="text-align:center;color:#888;font-style:italic;padding:10px">
       Mostrando 50 de ${clientes.length} clientes. Usa el buscador para ver más.
     </td></tr>`;
   }
+}
+
+function editarCliente(i) {
+  const c = clientes[i];
+  const nuevoRut = prompt('RUT:', c.rut || '');
+  if (nuevoRut === null) return;
+  const nuevoNombre = prompt('Nombre / Razón Social:', c.nombre);
+  if (nuevoNombre === null || !nuevoNombre.trim()) return;
+  const nuevoTelefono = prompt('Teléfono:', c.telefono || '');
+  if (nuevoTelefono === null) return;
+  const nuevaDireccion = prompt('Dirección:', c.direccion || '');
+  if (nuevaDireccion === null) return;
+
+  // Eliminar el anterior de Firebase si cambió el RUT
+  if (window.fbListo && (c.rut || c.nombre) !== (nuevoRut.trim() || nuevoNombre.trim())) {
+    fbEliminar('clientes', c.rut || c.nombre);
+  }
+  clientes[i] = { rut: nuevoRut.trim(), nombre: nuevoNombre.trim(), telefono: nuevoTelefono.trim(), direccion: nuevaDireccion.trim() };
+  localStorage.setItem('clientesBodega', JSON.stringify(clientes));
+  if (window.fbListo) fbGuardar('clientes', clientes[i].rut || clientes[i].nombre, clientes[i]);
+  renderClientes();
+  showToast('✔ Cliente actualizado');
+}
+
+function eliminarMasivoClientes() {
+  const checks = document.querySelectorAll('.chk-cliente:checked');
+  if (checks.length === 0) { showToast('Selecciona al menos un cliente', true); return; }
+  if (!confirm(`¿Eliminar ${checks.length} cliente(s) seleccionado(s)?`)) return;
+  const indices = Array.from(checks).map(c => parseInt(c.dataset.idx)).sort((a,b) => b - a);
+  indices.forEach(i => {
+    const c = clientes[i];
+    if (window.fbListo) fbEliminar('clientes', c.rut || c.nombre);
+    clientes.splice(i, 1);
+  });
+  localStorage.setItem('clientesBodega', JSON.stringify(clientes));
+  renderClientes();
+  showToast(`✔ ${indices.length} cliente(s) eliminado(s)`);
 }
 
 function eliminarCliente(i) {
