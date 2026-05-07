@@ -17,27 +17,57 @@
     const db = getFirestore(fireApp);
 
     window.fbGuardar  = async (col, id, data) => {
-      try { await setDoc(doc(db, col, id), data); } catch(e) { console.error('fbGuardar:', e); }
+    window.fbGuardar  = async (col, id, data) => {
+      try { await setDoc(doc(db, col, id), data); _fbSumarEscrituras(1); } catch(e) { console.error('fbGuardar:', e); }
     };
     window.fbEliminar = async (col, id) => {
-      try { await deleteDoc(doc(db, col, id)); } catch(e) { console.error('fbEliminar:', e); }
+      try { await deleteDoc(doc(db, col, id)); _fbSumarEliminaciones(1); } catch(e) { console.error('fbEliminar:', e); }
     };
 
-    // ── Contador de lecturas diarias ──────────────────────────
+    // ── Contadores de operaciones diarias ─────────────────────
     const hoyKey = new Date().toISOString().slice(0, 10);
     const contadorGuardado = JSON.parse(localStorage.getItem('fbContadorLecturas') || '{}');
+    const contadorEscGuardado = JSON.parse(localStorage.getItem('fbContadorEscrituras') || '{}');
+    const contadorElimGuardado = JSON.parse(localStorage.getItem('fbContadorEliminaciones') || '{}');
+
     if (contadorGuardado.fecha !== hoyKey) {
       window._fbLecturas = { fecha: hoyKey, count: 0 };
     } else {
       window._fbLecturas = contadorGuardado;
     }
+    if (contadorEscGuardado.fecha !== hoyKey) {
+      window._fbEscrituras = { fecha: hoyKey, count: 0 };
+    } else {
+      window._fbEscrituras = contadorEscGuardado;
+    }
+    if (contadorElimGuardado.fecha !== hoyKey) {
+      window._fbEliminaciones = { fecha: hoyKey, count: 0 };
+    } else {
+      window._fbEliminaciones = contadorElimGuardado;
+    }
+
     function _fbSumarLecturas(n) {
       window._fbLecturas.count += n;
       localStorage.setItem('fbContadorLecturas', JSON.stringify(window._fbLecturas));
-      // Alerta al 80% del límite (40,000 de 50,000)
-      if (window._fbLecturas.count >= 40000 && !window._fbAlertaMostrada) {
-        window._fbAlertaMostrada = true;
-        if (typeof showToast === 'function') showToast('⚠️ Llevas ~' + window._fbLecturas.count.toLocaleString() + ' lecturas hoy. Cerca del límite diario (50,000)', true);
+      if (window._fbLecturas.count >= 40000 && !window._fbAlertaLectura) {
+        window._fbAlertaLectura = true;
+        if (typeof showToast === 'function') showToast('⚠️ Llevas ~' + window._fbLecturas.count.toLocaleString() + ' lecturas hoy. Cerca del límite (50,000)', true);
+      }
+    }
+    function _fbSumarEscrituras(n) {
+      window._fbEscrituras.count += n;
+      localStorage.setItem('fbContadorEscrituras', JSON.stringify(window._fbEscrituras));
+      if (window._fbEscrituras.count >= 16000 && !window._fbAlertaEscritura) {
+        window._fbAlertaEscritura = true;
+        if (typeof showToast === 'function') showToast('⚠️ Llevas ~' + window._fbEscrituras.count.toLocaleString() + ' escrituras hoy. Cerca del límite (20,000)', true);
+      }
+    }
+    function _fbSumarEliminaciones(n) {
+      window._fbEliminaciones.count += n;
+      localStorage.setItem('fbContadorEliminaciones', JSON.stringify(window._fbEliminaciones));
+      if (window._fbEliminaciones.count >= 16000 && !window._fbAlertaEliminacion) {
+        window._fbAlertaEliminacion = true;
+        if (typeof showToast === 'function') showToast('⚠️ Llevas ~' + window._fbEliminaciones.count.toLocaleString() + ' eliminaciones hoy. Cerca del límite (20,000)', true);
       }
     }
 

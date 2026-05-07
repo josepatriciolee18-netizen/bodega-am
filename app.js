@@ -2981,6 +2981,22 @@ async function diagActualizarConexion() {
     lecturasEl.textContent = count.toLocaleString() + ' / 50,000 (' + pct + '%)';
     lecturasEl.style.color = pct >= 80 ? '#c81e1e' : pct >= 50 ? '#92400e' : '#065f46';
   }
+  // Mostrar contador de escrituras
+  const escriturasEl = document.getElementById('diagEscriturasHoy');
+  if (escriturasEl && window._fbEscrituras) {
+    const count = window._fbEscrituras.count;
+    const pct = Math.round((count / 20000) * 100);
+    escriturasEl.textContent = count.toLocaleString() + ' / 20,000 (' + pct + '%)';
+    escriturasEl.style.color = pct >= 80 ? '#c81e1e' : pct >= 50 ? '#92400e' : '#065f46';
+  }
+  // Mostrar contador de eliminaciones
+  const eliminacionesEl = document.getElementById('diagEliminacionesHoy');
+  if (eliminacionesEl && window._fbEliminaciones) {
+    const count = window._fbEliminaciones.count;
+    const pct = Math.round((count / 20000) * 100);
+    eliminacionesEl.textContent = count.toLocaleString() + ' / 20,000 (' + pct + '%)';
+    eliminacionesEl.style.color = pct >= 80 ? '#c81e1e' : pct >= 50 ? '#92400e' : '#065f46';
+  }
 }
 
 // ── Storage Calculator ────────────────────────────────────────
