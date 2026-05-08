@@ -4308,7 +4308,28 @@ function generarInformeCaja(mes, mes2, guardarEnEscritorio) {
 
   const fechaGen = new Date().toLocaleDateString('es-CL');
 
-  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>
+  
+  // Comparación con mes2 (si se seleccionó)
+  let mes2Data = null;
+  if (mes2) {
+    const ventas2 = ventasCaja.filter(v => v.fecha && v.fecha.slice(0,7) === mes2);
+    const [anio2, mesNum2] = mes2.split('-');
+    const nombreMes2 = mesesNombres[parseInt(mesNum2)] + ' ' + anio2;
+    const total2 = ventas2.reduce((a,v) => a + v.monto, 0);
+    const efectivo2 = ventas2.filter(v => v.metodo==='Efectivo');
+    const debito2 = ventas2.filter(v => v.metodo==='Débito');
+    const credito2 = ventas2.filter(v => v.metodo==='Crédito');
+    const boletas2 = ventas2.filter(v => v.tipoDoc==='Boleta');
+    const facturas2 = ventas2.filter(v => v.tipoDoc==='Factura');
+    const porDia2 = {};
+    ventas2.forEach(v => { porDia2[v.fecha] = (porDia2[v.fecha] || 0) + v.monto; });
+    const diasConVentas2 = Object.keys(porDia2).length;
+    const promDiario2 = diasConVentas2 > 0 ? Math.round(total2 / diasConVentas2) : 0;
+    const diffTotal = total > 0 || total2 > 0 ? Math.round(((total - total2) / (total2 || 1)) * 100) : 0;
+    mes2Data = { nombreMes2, total2, ventas2, efectivo2, debito2, credito2, boletas2, facturas2, diasConVentas2, promDiario2, diffTotal };
+  }
+
+const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>
     @page { size: letter; margin: 20mm; }
     body { font-family: 'Segoe UI', Arial, sans-serif; color: #333; line-height: 1.5; }
     .portada { text-align: center; padding-top: 120px; page-break-after: always; }
@@ -4611,6 +4632,44 @@ function generarInformeCaja(mes, mes2, guardarEnEscritorio) {
       El seguimiento mensual constante es la base para una gestión financiera efectiva del negocio.
     </div>
   </div>
+
+  ${mes2Data ? `
+  <!-- COMPARACIÓN CON MES SELECCIONADO -->
+  <div class="seccion" style="page-break-inside:auto">
+    <h2>Comparación: ${nombreMes} vs ${mes2Data.nombreMes2}</h2>
+    <p style="font-size:0.85rem;color:#555;margin-bottom:14px;line-height:1.6">
+      Esta sección compara el rendimiento entre los dos meses seleccionados.<br>
+      Se contrastan los principales indicadores financieros para evaluar la evolución del negocio.<br>
+      Los valores positivos (verde) indican mejora del mes principal respecto al mes comparado.<br>
+      Los valores negativos (rojo) indican que el mes comparado tuvo mejor desempeño.<br>
+      Esta comparación permite identificar tendencias y tomar decisiones informadas.<br>
+      Analice las diferencias en cada indicador para entender qué factores influyeron.<br>
+      Use esta información para establecer metas realistas para los próximos meses.
+    </p>
+    <table>
+      <tr><th>Indicador</th><th>${nombreMes}</th><th>${mes2Data.nombreMes2}</th><th>Diferencia</th></tr>
+      <tr><td>Total Ingresos</td><td>$${total.toLocaleString()}</td><td>$${mes2Data.total2.toLocaleString()}</td><td style="color:${total >= mes2Data.total2 ? '#065f46' : '#c81e1e'};font-weight:bold">${total >= mes2Data.total2 ? '+' : ''}${mes2Data.diffTotal}%</td></tr>
+      <tr><td>Cantidad de Ventas</td><td>${ventas.length}</td><td>${mes2Data.ventas2.length}</td><td style="color:${ventas.length >= mes2Data.ventas2.length ? '#065f46' : '#c81e1e'};font-weight:bold">${ventas.length >= mes2Data.ventas2.length ? '+' : ''}${ventas.length - mes2Data.ventas2.length}</td></tr>
+      <tr><td>Promedio Diario</td><td>$${promDiario.toLocaleString()}</td><td>$${mes2Data.promDiario2.toLocaleString()}</td><td style="color:${promDiario >= mes2Data.promDiario2 ? '#065f46' : '#c81e1e'};font-weight:bold">${promDiario >= mes2Data.promDiario2 ? '+' : ''}$${(promDiario - mes2Data.promDiario2).toLocaleString()}</td></tr>
+      <tr><td>Días con Ventas</td><td>${diasConVentas}</td><td>${mes2Data.diasConVentas2}</td><td>${diasConVentas - mes2Data.diasConVentas2 >= 0 ? '+' : ''}${diasConVentas - mes2Data.diasConVentas2}</td></tr>
+      <tr><td>Ventas Efectivo</td><td>${efectivo.length}</td><td>${mes2Data.efectivo2.length}</td><td>${efectivo.length - mes2Data.efectivo2.length >= 0 ? '+' : ''}${efectivo.length - mes2Data.efectivo2.length}</td></tr>
+      <tr><td>Ventas Débito</td><td>${debito.length}</td><td>${mes2Data.debito2.length}</td><td>${debito.length - mes2Data.debito2.length >= 0 ? '+' : ''}${debito.length - mes2Data.debito2.length}</td></tr>
+      <tr><td>Ventas Crédito</td><td>${credito.length}</td><td>${mes2Data.credito2.length}</td><td>${credito.length - mes2Data.credito2.length >= 0 ? '+' : ''}${credito.length - mes2Data.credito2.length}</td></tr>
+      <tr><td>Boletas</td><td>${boletas.length}</td><td>${mes2Data.boletas2.length}</td><td>${boletas.length - mes2Data.boletas2.length >= 0 ? '+' : ''}${boletas.length - mes2Data.boletas2.length}</td></tr>
+      <tr><td>Facturas</td><td>${facturas.length}</td><td>${mes2Data.facturas2.length}</td><td>${facturas.length - mes2Data.facturas2.length >= 0 ? '+' : ''}${facturas.length - mes2Data.facturas2.length}</td></tr>
+    </table>
+    <div style="margin-top:12px;padding:12px 14px;background:#f0f4ff;border-radius:6px;font-size:0.82rem;color:#444;border-left:3px solid #1a56db;line-height:1.6">
+      <strong>Conclusión de esta sección:</strong><br>
+      ${mes2Data.diffTotal >= 0 ? nombreMes + ' superó a ' + mes2Data.nombreMes2 + ' en un ' + mes2Data.diffTotal + '% en ingresos totales.' : mes2Data.nombreMes2 + ' superó a ' + nombreMes + ' en un ' + Math.abs(mes2Data.diffTotal) + '% en ingresos totales.'}<br>
+      En cantidad de operaciones, ${nombreMes} tuvo ${ventas.length} ventas vs ${mes2Data.ventas2.length} de ${mes2Data.nombreMes2}.<br>
+      El promedio diario pasó de $${mes2Data.promDiario2.toLocaleString()} a $${promDiario.toLocaleString()} (${promDiario >= mes2Data.promDiario2 ? 'mejora' : 'retroceso'}).<br>
+      ${diasConVentas >= mes2Data.diasConVentas2 ? 'Se trabajó más días en ' + nombreMes + ', lo que contribuyó al resultado.' : 'Se trabajó menos días en ' + nombreMes + ', lo que pudo afectar el resultado.'}<br>
+      Analice los factores externos (estacionalidad, feriados, clima) que pudieron influir en las diferencias.<br>
+      Use esta comparación para establecer metas realistas y estrategias de mejora continua.<br>
+      Se recomienda comparar al menos 3 períodos para identificar tendencias confiables.
+    </div>
+  </div>
+  ` : ''}
 
   <!-- RETIROS DE CAJA -->
   <div class="seccion" style="page-break-inside:auto">
