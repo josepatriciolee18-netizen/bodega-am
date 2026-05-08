@@ -878,18 +878,18 @@
           </div>
           <div class="field" style="flex:1">
             <label>Entregar a</label>
-            <select id="retiroDestinatario">
-              <option value="">-- Seleccionar --</option>
-              <option value="Gloria Almonacid">Gloria Almonacid</option>
-              <option value="Pedro Almonacid">Pedro Almonacid</option>
-            </select>
+            <input type="text" id="retiroDestinatario" list="listaDestinatarios" placeholder="Nombre..." />
+            <datalist id="listaDestinatarios">
+              <option value="Gloria Almonacid">
+              <option value="Pedro Almonacid">
+            </datalist>
           </div>
           <div class="field" style="flex:1">
             <label>Quien retira</label>
-            <select id="retiroQuienRetira">
-              <option value="">-- Seleccionar --</option>
-              <option value="Jose Lee">Jose Lee</option>
-            </select>
+            <input type="text" id="retiroQuienRetira" list="listaQuienRetira" placeholder="Nombre..." />
+            <datalist id="listaQuienRetira">
+              <option value="Jose Lee">
+            </datalist>
           </div>
           <div class="field" style="flex:1">
             <label>Nota (opcional)</label>
