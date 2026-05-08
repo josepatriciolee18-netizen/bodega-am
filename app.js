@@ -3253,6 +3253,7 @@ if (window.require) {
 // ══════════════════════════════════════════════════════════════
 
 let ventasCaja = JSON.parse(localStorage.getItem('ventasCaja') || '[]');
+let retirosCaja = JSON.parse(localStorage.getItem('retirosCaja') || '[]');
 function obtenerFechaLocalChile() {
   const ahora = new Date();
   const offset = ahora.getTimezoneOffset();
@@ -3290,6 +3291,8 @@ document.getElementById('btnRegistrarVenta').addEventListener('click', () => {
   document.getElementById('cajaMetodo').value = '';
   document.getElementById('cajaTipoDoc').value = '';
   renderCaja();
+renderRetiros();
+actualizarSaldoCaja();
   showToast('✔ Venta registrada');
 });
 
@@ -3300,7 +3303,7 @@ document.getElementById('btnCajaFiltrar').addEventListener('click', () => {
   renderCaja();
 });
 
-document.getElementById('btnCajaHoy').addEventListener('click', () => {
+document.getElementById('btnCajaHoy').addEventListener('click', () => { renderRetiros(); actualizarSaldoCaja();
   cajaFechaActual = obtenerFechaLocalChile();
   document.getElementById('cajaFiltroFecha').value = '';
   renderCaja();
@@ -3406,6 +3409,101 @@ function editarVentaCaja(id) {
     showToast('✔ Venta actualizada');
   });
 }
+
+// ── Retiros de Caja ──────────────────────────────────────────
+function registrarRetiro() {
+  const monto = parseInt(document.getElementById('retiroMonto').value);
+  const destinatario = document.getElementById('retiroDestinatario').value;
+  const nota = document.getElementById('retiroNota').value.trim();
+
+  if (!monto || monto <= 0) { showToast('Ingresa un monto válido', true); return; }
+  if (!destinatario) { showToast('Selecciona a quién se entrega', true); return; }
+
+  const ahora = new Date();
+  const retiro = {
+    id: Date.now().toString(36),
+    monto: monto,
+    destinatario: destinatario,
+    nota: nota,
+    fecha: ahora.toISOString().slice(0, 10),
+    hora: ahora.toTimeString().slice(0, 5),
+    operador: usuarioActivo ? usuarioActivo.nombre : 'Sistema'
+  };
+
+  retirosCaja.unshift(retiro);
+  localStorage.setItem('retirosCaja', JSON.stringify(retirosCaja));
+
+  // Sync to Firebase
+  if (window.fbGuardar) {
+    fbGuardar('retirosCaja', retiro.id, retiro).catch(() => {});
+  }
+
+  document.getElementById('retiroMonto').value = '';
+  document.getElementById('retiroDestinatario').value = '';
+  document.getElementById('retiroNota').value = '';
+
+  renderRetiros();
+  actualizarSaldoCaja();
+  showToast('✔ Retiro de $' + monto.toLocaleString() + ' registrado');
+  registrarActividad('Retiro de Caja', 'Retiro de $' + monto.toLocaleString() + ' a ' + destinatario);
+}
+
+function eliminarRetiro(id) {
+  if (!confirm('¿Eliminar este retiro?')) return;
+  retirosCaja = retirosCaja.filter(r => r.id !== id);
+  localStorage.setItem('retirosCaja', JSON.stringify(retirosCaja));
+  if (window.fbEliminar) fbEliminar('retirosCaja', id).catch(() => {});
+  renderRetiros();
+  actualizarSaldoCaja();
+  showToast('Retiro eliminado');
+}
+
+function renderRetiros() {
+  const hoy = document.getElementById('cajaFiltroFecha') ? document.getElementById('cajaFiltroFecha').value || new Date().toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10);
+  const retirosHoy = retirosCaja.filter(r => r.fecha === hoy);
+  const tbody = document.getElementById('tbodyRetiros');
+  if (!tbody) return;
+
+  if (retirosHoy.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="8" class="empty-msg">No hay retiros registrados hoy</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = retirosHoy.map((r, i) => `<tr>
+    <td>${i + 1}</td>
+    <td>${r.fecha.split('-').reverse().join('/')}</td>
+    <td>${r.hora}</td>
+    <td style="color:#c81e1e;font-weight:bold">-$${r.monto.toLocaleString()}</td>
+    <td>${r.destinatario}</td>
+    <td>${r.operador}</td>
+    <td>${r.nota || '-'}</td>
+    <td><button class="btn-delete" onclick="eliminarRetiro('${r.id}')" title="Eliminar">🗑</button></td>
+  </tr>`).join('');
+}
+
+function actualizarSaldoCaja() {
+  const hoy = document.getElementById('cajaFiltroFecha') ? document.getElementById('cajaFiltroFecha').value || new Date().toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10);
+  const ventasHoy = ventasCaja.filter(v => v.fecha === hoy);
+  const retirosHoy = retirosCaja.filter(r => r.fecha === hoy);
+
+  const totalVentas = ventasHoy.reduce((a, v) => a + v.monto, 0);
+  const totalRetiros = retirosHoy.reduce((a, r) => a + r.monto, 0);
+  const saldo = totalVentas - totalRetiros;
+
+  const elSaldo = document.getElementById('cajaSaldo');
+  const elVentas = document.getElementById('cajaSaldoVentas');
+  const elRetiros = document.getElementById('cajaSaldoRetiros');
+
+  if (elSaldo) {
+    elSaldo.textContent = '$' + saldo.toLocaleString();
+    elSaldo.style.color = saldo >= 0 ? '#065f46' : '#c81e1e';
+  }
+  if (elVentas) elVentas.textContent = '$' + totalVentas.toLocaleString();
+  if (elRetiros) elRetiros.textContent = '$' + totalRetiros.toLocaleString();
+}
+
+document.getElementById('btnRegistrarRetiro').addEventListener('click', registrarRetiro);
+
 
 // Exportar Caja a Excel
 document.getElementById('btnCajaExcel').addEventListener('click', () => {
@@ -3853,6 +3951,10 @@ function generarInformeCaja(mes, mes2, guardarEnEscritorio) {
   metodos.sort((a,b) => b.c - a.c);
   const metodoTop = metodos[0];
 
+  // Retiros del mes
+  const retirosMes = retirosCaja.filter(r => r.fecha && r.fecha.slice(0,7) === mes);
+  const totalRetirosMes = retirosMes.reduce((a, r) => a + r.monto, 0);
+
   // Por hora del día
   const porHora = Array(24).fill(0);
   const ventasPorHora = Array(24).fill(0);
@@ -3922,11 +4024,12 @@ function generarInformeCaja(mes, mes2, guardarEnEscritorio) {
       <li>6. Análisis por Día de la Semana</li>
       <li>7. Mejor y Peor Día del Mes</li>
       <li>8. Comparación con Mes Anterior</li>
-      <li>9. Horarios Pico de Ventas</li>
-      <li>10. Gráfico de Tendencia Diaria</li>
-      <li>11. Detalle Diario Resumido</li>
-      <li>12. Detalle Completo de Ventas</li>
-      <li>13. Conclusión y Recomendaciones</li>
+      <li>9. Retiros de Caja</li>
+      <li>10. Horarios Pico de Ventas</li>
+      <li>11. Gráfico de Tendencia Diaria</li>
+      <li>12. Detalle Diario Resumido</li>
+      <li>13. Detalle Completo de Ventas</li>
+      <li>14. Conclusión y Recomendaciones</li>
     </ul>
   </div>
 
@@ -4170,9 +4273,39 @@ function generarInformeCaja(mes, mes2, guardarEnEscritorio) {
     </div>
   </div>
 
+  <!-- RETIROS DE CAJA -->
+  <div class="seccion" style="page-break-inside:auto">
+    <h2>9. Retiros de Caja</h2>
+    <p style="font-size:0.85rem;color:#555;margin-bottom:14px;line-height:1.6">
+      Registro de todos los retiros de efectivo realizados durante el mes.<br>
+      Los retiros corresponden a entregas de dinero desde la caja hacia los propietarios del negocio.<br>
+      Se detalla el monto, destinatario, fecha, hora y operador que realizó cada retiro.<br>
+      Esta información permite llevar un control preciso del efectivo que sale de la caja.<br>
+      El saldo neto (ventas - retiros) indica cuánto dinero debería quedar físicamente en caja.<br>
+      Mantenga un registro consistente de retiros para evitar descuadres al cierre del día.<br>
+      Compare el total de retiros con el total de ventas en efectivo para verificar coherencia.
+    </p>
+    <div class="kpi-grid" style="grid-template-columns:1fr 1fr 1fr;margin-bottom:16px">
+      <div class="kpi"><div class="num">${retirosMes.length}</div><div class="label">Total Retiros</div></div>
+      <div class="kpi"><div class="num">$${totalRetirosMes.toLocaleString()}</div><div class="label">Monto Retirado</div></div>
+      <div class="kpi"><div class="num">$${(total - totalRetirosMes).toLocaleString()}</div><div class="label">Ingreso Neto</div></div>
+    </div>
+    ${retirosMes.length > 0 ? '<table><tr><th>#</th><th>Fecha</th><th>Hora</th><th>Monto</th><th>Entregar a</th><th>Operador</th><th>Nota</th></tr>' + retirosMes.map((r,i) => '<tr><td>' + (i+1) + '</td><td>' + r.fecha.split('-').reverse().join('/') + '</td><td>' + r.hora + '</td><td style="color:#c81e1e;font-weight:bold">-$' + r.monto.toLocaleString() + '</td><td>' + r.destinatario + '</td><td>' + r.operador + '</td><td>' + (r.nota||'-') + '</td></tr>').join('') + '</table>' : '<p style="text-align:center;color:#888">No se registraron retiros en este mes</p>'}
+    <div style="margin-top:12px;padding:12px 14px;background:#f0f4ff;border-radius:6px;font-size:0.82rem;color:#444;border-left:3px solid #1a56db;line-height:1.6">
+      <strong>Conclusión de esta sección:</strong><br>
+      Durante ${nombreMes} se realizaron ${retirosMes.length} retiros de caja por un total de $${totalRetirosMes.toLocaleString()}.<br>
+      El ingreso neto del mes (ventas menos retiros) fue de $${(total - totalRetirosMes).toLocaleString()}.<br>
+      ${retirosMes.length > 0 ? 'El retiro promedio fue de $' + Math.round(totalRetirosMes / retirosMes.length).toLocaleString() + ' por operación.' : 'No se registraron retiros durante este período.'}<br>
+      Los retiros representan el ${total > 0 ? Math.round((totalRetirosMes/total)*100) : 0}% del total de ventas del mes.<br>
+      Es importante que cada retiro quede documentado para mantener la trazabilidad del efectivo.<br>
+      Verifique que el saldo físico en caja coincida con el saldo calculado por el sistema.<br>
+      Un control riguroso de retiros previene descuadres y facilita la rendición de cuentas.
+    </div>
+  </div>
+
   <!-- 9. HORARIOS PICO -->
   <div class="seccion" style="page-break-inside:auto">
-    <h2>9. Horarios Pico de Ventas</h2>
+    <h2>10. Horarios Pico de Ventas</h2>
     <p style="font-size:0.85rem;color:#555;margin-bottom:14px;line-height:1.6">
       Esta sección analiza en qué horas del día se concentran las ventas del mes.<br>
       Se muestra el monto acumulado y la cantidad de transacciones para cada franja horaria.<br>
@@ -4205,7 +4338,7 @@ function generarInformeCaja(mes, mes2, guardarEnEscritorio) {
 
   <!-- 10. GRÁFICO DE TENDENCIA DIARIA -->
   <div class="seccion" style="page-break-inside:auto">
-    <h2>10. Gráfico de Tendencia Diaria</h2>
+    <h2>11. Gráfico de Tendencia Diaria</h2>
     <p style="font-size:0.85rem;color:#555;margin-bottom:14px;line-height:1.6">
       Visualización gráfica de la evolución de ventas día a día durante el mes.<br>
       Cada barra representa el monto total vendido en un día específico del mes.<br>
@@ -4242,7 +4375,7 @@ function generarInformeCaja(mes, mes2, guardarEnEscritorio) {
 
     <!-- 11. DETALLE DIARIO RESUMIDO -->
   <div class="seccion">
-    <h2>11. Detalle Diario Resumido</h2>
+    <h2>12. Detalle Diario Resumido</h2>
     <p style="font-size:0.85rem;color:#555;margin-bottom:14px;line-height:1.6">
       Tabla con el resumen de ventas día por día durante todo el mes analizado.<br>
       Para cada fecha se muestra el monto total recaudado y la cantidad de transacciones realizadas.<br>
@@ -4274,7 +4407,7 @@ function generarInformeCaja(mes, mes2, guardarEnEscritorio) {
 
   <!-- 12. DETALLE COMPLETO -->
   <div class="seccion">
-    <h2>12. Detalle Completo de Ventas</h2>
+    <h2>13. Detalle Completo de Ventas</h2>
     <p style="font-size:0.85rem;color:#555;margin-bottom:14px;line-height:1.6">
       Listado exhaustivo de cada transacción individual registrada durante el mes.<br>
       Cada fila incluye: número correlativo, fecha, hora, monto, método de pago y tipo de documento.<br>
@@ -4303,7 +4436,7 @@ function generarInformeCaja(mes, mes2, guardarEnEscritorio) {
 
   <!-- 13. CONCLUSIÓN -->
   <div class="seccion">
-    <h2>13. Conclusión y Recomendaciones</h2>
+    <h2>14. Conclusión y Recomendaciones</h2>
     <div class="conclusion">
       ${generarConclusionAleatoria(nombreMes, total, ventas, metodoTop, mejorDia, mejorMonto, peorDia, peorMonto, promDiario, diasConVentas, diffPct, diaSemNombre, semanas, boletas, facturas, sinDoc, efectivo, debito, credito, transferencia)}
     </div>
