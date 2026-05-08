@@ -1,10 +1,18 @@
-const { app, BrowserWindow, ipcMain, dialog, Notification } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, Notification, powerSaveBlocker } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const os = require('os');
 
 let win;
 let autoUpdater;
+let powerBlockerId = null;
+
+// Prevenir que el sistema suspenda la app
+try {
+  powerBlockerId = powerSaveBlocker.start('prevent-app-suspension');
+} catch(e) {
+  console.error('PowerSaveBlocker no disponible:', e);
+}
 
 // ── Auto-Updater (con protección contra errores) ──────────
 try {
@@ -98,7 +106,18 @@ function createWindow() {
   }, 30 * 60 * 1000);
 }
 
-app.whenReady().then(createWindow);
+app.whenReady().then(() => {
+  createWindow();
+
+  // Manejar suspensión/reanudación del sistema
+  const { powerMonitor } = require('electron');
+  powerMonitor.on('resume', () => {
+    // Al volver de suspensión, NO recargar — solo refrescar conexión
+    if (win && !win.isDestroyed()) {
+      win.webContents.executeJavaScript('if(window.fbListo && window.cargarDesdeFirebase) cargarDesdeFirebase();');
+    }
+  });
+});
 
 // Permitir que el renderer pida buscar actualizaciones manualmente
 ipcMain.on('check-for-updates', () => {

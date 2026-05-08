@@ -178,15 +178,20 @@ function verificarSesion() {
   const sesion = localStorage.getItem('sesionActiva');
   if (sesion) {
     const sesionGuardada = JSON.parse(sesion);
-    // Siempre cargar permisos frescos desde la lista de usuarios actual
-    const usuarioFresco = usuarios.find(u => u.login === sesionGuardada.login && u.activo);
-    if (usuarioFresco) {
-      usuarioActivo = usuarioFresco;
-      localStorage.setItem('sesionActiva', JSON.stringify(usuarioFresco));
+    // Si la lista de usuarios está vacía, usar la sesión guardada directamente (aún no cargó Firebase)
+    if (usuarios.length === 0) {
+      usuarioActivo = sesionGuardada;
     } else {
-      // Usuario no existe o fue desactivado — cerrar sesión
-      localStorage.removeItem('sesionActiva');
-      return;
+      // Siempre cargar permisos frescos desde la lista de usuarios actual
+      const usuarioFresco = usuarios.find(u => u.login === sesionGuardada.login && u.activo);
+      if (usuarioFresco) {
+        usuarioActivo = usuarioFresco;
+        localStorage.setItem('sesionActiva', JSON.stringify(usuarioFresco));
+      } else {
+        // Usuario no existe o fue desactivado — cerrar sesión
+        localStorage.removeItem('sesionActiva');
+        return;
+      }
     }
     // Solo mostrar app si no estamos en pantalla de actualización
     const updateScreen = document.getElementById('updateScreen');
@@ -4662,7 +4667,7 @@ function generarInformeCaja(mes, mes2, guardarEnEscritorio) {
   <div class="seccion">
     <h2>14. Conclusión y Recomendaciones</h2>
     <div class="conclusion">
-      ${generarConclusionAleatoria(nombreMes, total, ventas, metodoTop, mejorDia, mejorMonto, peorDia, peorMonto, promDiario, diasConVentas, diffPct, diaSemNombre, semanas, boletas, facturas, sinDoc, efectivo, debito, credito)}
+      ${generarConclusionAleatoria(nombreMes, total, ventas, metodoTop, mejorDia, mejorMonto, peorDia, peorMonto, promDiario, diasConVentas, diffPct, diaSemNombre, semanas, boletas, facturas, efectivo, debito, credito)}
     </div>
   </div>
 
