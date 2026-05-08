@@ -3414,40 +3414,80 @@ function editarVentaCaja(id) {
 
 function generarPDFRetiro(retiro) {
   const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>
-    @page { size: 80mm 200mm; margin: 5mm; }
+    @page { size: letter; margin: 20mm; }
     * { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 0; box-sizing: border-box; }
-    body { padding: 14px; font-size: 16px; }
-    .header { text-align: center; border-bottom: 2px dashed #000; padding-bottom: 10px; margin-bottom: 14px; }
-    .header h1 { font-size: 22px; margin-bottom: 4px; }
-    .header p { font-size: 14px; color: #555; }
-    .titulo { text-align: center; font-size: 18px; font-weight: bold; margin: 12px 0; color: #c81e1e; border: 2px solid #c81e1e; padding: 8px; border-radius: 4px; }
-    .row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dotted #ccc; font-size: 15px; }
-    .row .label { color: #555; }
-    .row .value { font-weight: bold; }
-    .monto { text-align: center; font-size: 32px; font-weight: bold; color: #c81e1e; margin: 18px 0; }
-    .footer { margin-top: 20px; border-top: 2px dashed #000; padding-top: 10px; text-align: center; font-size: 12px; color: #888; }
-    .firma { margin-top: 40px; display: flex; justify-content: space-between; }
-    .firma div { text-align: center; width: 45%; }
-    .firma .linea { border-top: 1px solid #000; margin-top: 40px; padding-top: 6px; font-size: 12px; }
+    body { padding: 30px; background: white; }
+    .container { max-width: 500px; margin: 0 auto; border: 2px solid #1a56db; border-radius: 12px; overflow: hidden; }
+    .header { background: linear-gradient(135deg, #1a56db, #3b82f6); color: white; padding: 24px; text-align: center; }
+    .header h1 { font-size: 24px; margin-bottom: 4px; letter-spacing: 1px; }
+    .header p { font-size: 13px; opacity: 0.9; }
+    .badge { display: inline-block; background: #dc2626; color: white; font-size: 12px; font-weight: bold; padding: 4px 12px; border-radius: 20px; margin-top: 10px; letter-spacing: 0.5px; }
+    .monto-box { text-align: center; padding: 24px; background: #fef2f2; border-bottom: 1px solid #fecaca; }
+    .monto-box .monto { font-size: 36px; font-weight: bold; color: #dc2626; }
+    .monto-box .label { font-size: 12px; color: #888; margin-top: 4px; }
+    .detalles { padding: 20px 24px; }
+    .detalle-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #f1f5f9; }
+    .detalle-row:last-child { border-bottom: none; }
+    .detalle-row .icon { font-size: 18px; margin-right: 10px; }
+    .detalle-row .info { display: flex; align-items: center; }
+    .detalle-row .label { font-size: 13px; color: #64748b; }
+    .detalle-row .value { font-size: 15px; font-weight: 600; color: #1e293b; }
+    .firmas { display: flex; justify-content: space-between; padding: 30px 24px 20px; gap: 20px; }
+    .firma-box { flex: 1; text-align: center; }
+    .firma-linea { border-top: 2px solid #1a56db; margin-top: 50px; padding-top: 8px; }
+    .firma-nombre { font-size: 13px; font-weight: 600; color: #1a56db; }
+    .firma-rol { font-size: 10px; color: #888; }
+    .footer { background: #f8fafc; padding: 12px; text-align: center; font-size: 10px; color: #94a3b8; border-top: 1px solid #e2e8f0; }
   </style></head><body>
-    <div class="header">
-      <h1>Bodega A&amp;M</h1>
-      <p>Comprobante de Retiro de Caja</p>
-    </div>
-    <div class="titulo">RETIRO DE CAJA</div>
-    <div class="monto">-$${retiro.monto.toLocaleString()}</div>
-    <div class="row"><span class="label">Fecha:</span><span class="value">${retiro.fecha.split('-').reverse().join('/')}</span></div>
-    <div class="row"><span class="label">Hora:</span><span class="value">${retiro.hora}</span></div>
-    <div class="row"><span class="label">Entregar a:</span><span class="value">${retiro.destinatario}</span></div>
-    <div class="row"><span class="label">Quien retira:</span><span class="value">${retiro.quienRetira || 'Jose Lee'}</span></div>
-    <div class="row"><span class="label">Nota:</span><span class="value">${retiro.nota || 'Sin nota'}</span></div>
-    <div class="firma">
-      <div><div class="linea">${retiro.quienRetira || 'Jose Lee'} (Retira)</div></div>
-      <div><div class="linea">${retiro.destinatario} (Recibe)</div></div>
-    </div>
-    <div class="footer">
-      <p>Documento interno - Bodega A&amp;M</p>
-      <p>Generado el ${new Date().toLocaleDateString('es-CL')} a las ${new Date().toTimeString().slice(0,5)}</p>
+    <div class="container">
+      <div class="header">
+        <h1>BODEGA A&amp;M</h1>
+        <p>Comprobante de Retiro de Caja</p>
+        <div class="badge">RETIRO</div>
+      </div>
+      <div class="monto-box">
+        <div class="monto">-$${retiro.monto.toLocaleString()}</div>
+        <div class="label">Monto retirado</div>
+      </div>
+      <div class="detalles">
+        <div class="detalle-row">
+          <div class="info"><span class="icon">📅</span><span class="label">Fecha</span></div>
+          <span class="value">${retiro.fecha.split('-').reverse().join('/')}</span>
+        </div>
+        <div class="detalle-row">
+          <div class="info"><span class="icon">🕒</span><span class="label">Hora</span></div>
+          <span class="value">${retiro.hora}</span>
+        </div>
+        <div class="detalle-row">
+          <div class="info"><span class="icon">👤</span><span class="label">Quien retira</span></div>
+          <span class="value">${retiro.quienRetira || 'Jose Lee'}</span>
+        </div>
+        <div class="detalle-row">
+          <div class="info"><span class="icon">📨</span><span class="label">Entregar a</span></div>
+          <span class="value">${retiro.destinatario}</span>
+        </div>
+        <div class="detalle-row">
+          <div class="info"><span class="icon">📝</span><span class="label">Nota</span></div>
+          <span class="value">${retiro.nota || 'Sin nota'}</span>
+        </div>
+      </div>
+      <div class="firmas">
+        <div class="firma-box">
+          <div class="firma-linea">
+            <div class="firma-nombre">${retiro.quienRetira || 'Jose Lee'}</div>
+            <div class="firma-rol">Retira</div>
+          </div>
+        </div>
+        <div class="firma-box">
+          <div class="firma-linea">
+            <div class="firma-nombre">${retiro.destinatario}</div>
+            <div class="firma-rol">Recibe</div>
+          </div>
+        </div>
+      </div>
+      <div class="footer">
+        Documento interno &mdash; Bodega A&amp;M &mdash; Generado el ${new Date().toLocaleDateString('es-CL')} a las ${new Date().toTimeString().slice(0,5)}
+      </div>
     </div>
   </body></html>`;
 
