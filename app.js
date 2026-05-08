@@ -3769,6 +3769,240 @@ document.getElementById('btnCajaDiaLento').addEventListener('click', () => {
   document.getElementById('cajaDiaLentoResult').textContent = '📉 ' + peorDia.split('-').reverse().join('/') + ' — $' + minMonto.toLocaleString() + ' (día más lento)';
 });
 
+// ── Informe Mensual Completo PDF ──────────────────────────────
+document.getElementById('btnCajaInforme').addEventListener('click', () => {
+  const mes = document.getElementById('cajaInformeMes').value;
+  if (!mes) { showToast('Selecciona un mes', true); return; }
+  generarInformeCaja(mes);
+});
+
+function generarInformeCaja(mes) {
+  const ventas = ventasCaja.filter(v => v.fecha && v.fecha.slice(0,7) === mes);
+  if (ventas.length === 0) { showToast('No hay ventas en este mes', true); return; }
+
+  const mesesNombres = ['','Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  const [anio, mesNum] = mes.split('-');
+  const nombreMes = mesesNombres[parseInt(mesNum)] + ' ' + anio;
+
+  // Cálculos
+  const total = ventas.reduce((a,v) => a + v.monto, 0);
+  const efectivo = ventas.filter(v => v.metodo==='Efectivo');
+  const debito = ventas.filter(v => v.metodo==='Débito');
+  const credito = ventas.filter(v => v.metodo==='Crédito');
+  const transferencia = ventas.filter(v => v.metodo==='Transferencia');
+  const boletas = ventas.filter(v => v.tipoDoc==='Boleta');
+  const facturas = ventas.filter(v => v.tipoDoc==='Factura');
+  const sinDoc = ventas.filter(v => v.tipoDoc==='Sin Documento' || !v.tipoDoc);
+
+  // Por día
+  const porDia = {};
+  ventas.forEach(v => { porDia[v.fecha] = (porDia[v.fecha] || 0) + v.monto; });
+  const diasOrdenados = Object.entries(porDia).sort((a,b) => a[0].localeCompare(b[0]));
+  let mejorDia = '', mejorMonto = 0, peorDia = '', peorMonto = Infinity;
+  diasOrdenados.forEach(([dia, monto]) => {
+    if (monto > mejorMonto) { mejorMonto = monto; mejorDia = dia; }
+    if (monto < peorMonto) { peorMonto = monto; peorDia = dia; }
+  });
+
+  // Por semana
+  const semanas = [0,0,0,0];
+  ventas.forEach(v => { const d = parseInt(v.fecha.slice(8,10)); semanas[Math.min(Math.floor((d-1)/7),3)] += v.monto; });
+
+  // Por día de semana
+  const diasSemNombres = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+  const porDiaSem = [0,0,0,0,0,0,0];
+  ventas.forEach(v => { const d = new Date(v.fecha+'T12:00:00').getDay(); porDiaSem[d] += v.monto; });
+  let diaSemMax = 0, diaSemNombre = '';
+  porDiaSem.forEach((m,i) => { if (m > diaSemMax) { diaSemMax = m; diaSemNombre = diasSemNombres[i]; } });
+
+  // Mes anterior
+  const mesAnt = parseInt(mesNum) === 1 ? `${parseInt(anio)-1}-12` : `${anio}-${String(parseInt(mesNum)-1).padStart(2,'0')}`;
+  const ventasAnt = ventasCaja.filter(v => v.fecha && v.fecha.slice(0,7) === mesAnt);
+  const totalAnt = ventasAnt.reduce((a,v) => a + v.monto, 0);
+  const diffPct = totalAnt > 0 ? Math.round(((total - totalAnt) / totalAnt) * 100) : 0;
+
+  // Promedio diario
+  const diasConVentas = Object.keys(porDia).length;
+  const promDiario = diasConVentas > 0 ? Math.round(total / diasConVentas) : 0;
+
+  // Método más usado
+  const metodos = [{n:'Efectivo',c:efectivo.length},{n:'Débito',c:debito.length},{n:'Crédito',c:credito.length},{n:'Transferencia',c:transferencia.length}];
+  metodos.sort((a,b) => b.c - a.c);
+  const metodoTop = metodos[0];
+
+  const fechaGen = new Date().toLocaleDateString('es-CL');
+
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>
+    @page { size: letter; margin: 20mm; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; color: #333; line-height: 1.5; }
+    .portada { text-align: center; padding-top: 120px; page-break-after: always; }
+    .portada h1 { font-size: 2.2rem; color: #1a56db; margin-bottom: 10px; }
+    .portada h2 { font-size: 1.5rem; color: #555; font-weight: normal; }
+    .portada .fecha { margin-top: 60px; color: #888; }
+    .indice { page-break-after: always; }
+    .indice h2 { color: #1a56db; border-bottom: 2px solid #1a56db; padding-bottom: 8px; }
+    .indice ul { list-style: none; padding: 0; }
+    .indice li { padding: 8px 0; border-bottom: 1px dotted #ccc; font-size: 1.1rem; }
+    .seccion { page-break-before: always; }
+    .seccion h2 { color: #1a56db; border-bottom: 2px solid #e5e7eb; padding-bottom: 8px; margin-bottom: 16px; }
+    table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 0.9rem; }
+    th { background: #1a56db; color: white; padding: 8px 10px; text-align: left; }
+    td { padding: 7px 10px; border-bottom: 1px solid #eee; }
+    tr:nth-child(even) { background: #f8fafc; }
+    .kpi-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin: 16px 0; }
+    .kpi { background: #f0f4ff; border-radius: 8px; padding: 14px; text-align: center; }
+    .kpi .num { font-size: 1.4rem; font-weight: bold; color: #1a56db; }
+    .kpi .label { font-size: 0.8rem; color: #666; margin-top: 4px; }
+    .conclusion { background: #f0fdf4; border-left: 4px solid #10b981; padding: 16px; border-radius: 8px; margin-top: 16px; }
+    .footer { text-align: center; margin-top: 40px; font-size: 0.8rem; color: #888; border-top: 1px solid #eee; padding-top: 10px; }
+  </style></head><body>
+
+  <!-- PORTADA -->
+  <div class="portada">
+    <h1>📦 Bodega A&M</h1>
+    <h2>Informe Mensual de Caja</h2>
+    <h2 style="color:#1a56db;font-weight:bold">${nombreMes}</h2>
+    <p class="fecha">Generado el ${fechaGen}</p>
+  </div>
+
+  <!-- ÍNDICE -->
+  <div class="indice">
+    <h2>Índice</h2>
+    <ul>
+      <li>1. Resumen Ejecutivo</li>
+      <li>2. Desglose por Método de Pago</li>
+      <li>3. Desglose por Tipo de Documento</li>
+      <li>4. Análisis por Semana</li>
+      <li>5. Análisis por Día de la Semana</li>
+      <li>6. Mejor y Peor Día del Mes</li>
+      <li>7. Comparación con Mes Anterior</li>
+      <li>8. Detalle Diario Resumido</li>
+      <li>9. Detalle Completo de Ventas</li>
+      <li>10. Conclusión y Observaciones</li>
+    </ul>
+  </div>
+
+  <!-- 1. RESUMEN EJECUTIVO -->
+  <div class="seccion">
+    <h2>1. Resumen Ejecutivo</h2>
+    <div class="kpi-grid">
+      <div class="kpi"><div class="num">$${total.toLocaleString()}</div><div class="label">Total del Mes</div></div>
+      <div class="kpi"><div class="num">${ventas.length}</div><div class="label">Total Ventas</div></div>
+      <div class="kpi"><div class="num">$${promDiario.toLocaleString()}</div><div class="label">Promedio Diario</div></div>
+      <div class="kpi"><div class="num">${diasConVentas}</div><div class="label">Días con Ventas</div></div>
+      <div class="kpi"><div class="num">${metodoTop.n}</div><div class="label">Método Más Usado</div></div>
+      <div class="kpi"><div class="num">${diffPct >= 0 ? '+' : ''}${diffPct}%</div><div class="label">vs Mes Anterior</div></div>
+    </div>
+  </div>
+
+  <!-- 2. DESGLOSE POR MÉTODO -->
+  <div class="seccion">
+    <h2>2. Desglose por Método de Pago</h2>
+    <table>
+      <tr><th>Método</th><th>Monto</th><th>Ventas</th><th>%</th></tr>
+      <tr><td>Efectivo</td><td>$${efectivo.reduce((a,v)=>a+v.monto,0).toLocaleString()}</td><td>${efectivo.length}</td><td>${ventas.length>0?Math.round((efectivo.length/ventas.length)*100):0}%</td></tr>
+      <tr><td>Débito</td><td>$${debito.reduce((a,v)=>a+v.monto,0).toLocaleString()}</td><td>${debito.length}</td><td>${ventas.length>0?Math.round((debito.length/ventas.length)*100):0}%</td></tr>
+      <tr><td>Crédito</td><td>$${credito.reduce((a,v)=>a+v.monto,0).toLocaleString()}</td><td>${credito.length}</td><td>${ventas.length>0?Math.round((credito.length/ventas.length)*100):0}%</td></tr>
+      <tr><td>Transferencia</td><td>$${transferencia.reduce((a,v)=>a+v.monto,0).toLocaleString()}</td><td>${transferencia.length}</td><td>${ventas.length>0?Math.round((transferencia.length/ventas.length)*100):0}%</td></tr>
+      <tr style="font-weight:bold;background:#e0e7ff"><td>TOTAL</td><td>$${total.toLocaleString()}</td><td>${ventas.length}</td><td>100%</td></tr>
+    </table>
+  </div>
+
+  <!-- 3. DESGLOSE POR TIPO DOCUMENTO -->
+  <div class="seccion">
+    <h2>3. Desglose por Tipo de Documento</h2>
+    <table>
+      <tr><th>Tipo</th><th>Monto</th><th>Cantidad</th><th>%</th></tr>
+      <tr><td>Boleta</td><td>$${boletas.reduce((a,v)=>a+v.monto,0).toLocaleString()}</td><td>${boletas.length}</td><td>${ventas.length>0?Math.round((boletas.length/ventas.length)*100):0}%</td></tr>
+      <tr><td>Factura</td><td>$${facturas.reduce((a,v)=>a+v.monto,0).toLocaleString()}</td><td>${facturas.length}</td><td>${ventas.length>0?Math.round((facturas.length/ventas.length)*100):0}%</td></tr>
+      <tr><td>Sin Documento</td><td>$${sinDoc.reduce((a,v)=>a+v.monto,0).toLocaleString()}</td><td>${sinDoc.length}</td><td>${ventas.length>0?Math.round((sinDoc.length/ventas.length)*100):0}%</td></tr>
+    </table>
+  </div>
+
+  <!-- 4. ANÁLISIS POR SEMANA -->
+  <div class="seccion">
+    <h2>4. Análisis por Semana</h2>
+    <table>
+      <tr><th>Semana</th><th>Período</th><th>Monto</th><th>% del Total</th></tr>
+      <tr><td>Semana 1</td><td>Días 1-7</td><td>$${semanas[0].toLocaleString()}</td><td>${total>0?Math.round((semanas[0]/total)*100):0}%</td></tr>
+      <tr><td>Semana 2</td><td>Días 8-14</td><td>$${semanas[1].toLocaleString()}</td><td>${total>0?Math.round((semanas[1]/total)*100):0}%</td></tr>
+      <tr><td>Semana 3</td><td>Días 15-21</td><td>$${semanas[2].toLocaleString()}</td><td>${total>0?Math.round((semanas[2]/total)*100):0}%</td></tr>
+      <tr><td>Semana 4</td><td>Días 22+</td><td>$${semanas[3].toLocaleString()}</td><td>${total>0?Math.round((semanas[3]/total)*100):0}%</td></tr>
+    </table>
+  </div>
+
+  <!-- 5. ANÁLISIS POR DÍA DE LA SEMANA -->
+  <div class="seccion">
+    <h2>5. Análisis por Día de la Semana</h2>
+    <table>
+      <tr><th>Día</th><th>Monto Total</th><th>% del Total</th></tr>
+      ${diasSemNombres.map((n,i) => `<tr${porDiaSem[i]===diaSemMax?' style="background:#d1fae5;font-weight:bold"':''}><td>${n}</td><td>$${porDiaSem[i].toLocaleString()}</td><td>${total>0?Math.round((porDiaSem[i]/total)*100):0}%</td></tr>`).join('')}
+    </table>
+    <p style="margin-top:8px"><strong>Día más activo:</strong> ${diaSemNombre}</p>
+  </div>
+
+  <!-- 6. MEJOR Y PEOR DÍA -->
+  <div class="seccion">
+    <h2>6. Mejor y Peor Día del Mes</h2>
+    <div class="kpi-grid" style="grid-template-columns:1fr 1fr">
+      <div class="kpi" style="background:#d1fae5"><div class="num">$${mejorMonto.toLocaleString()}</div><div class="label">🏆 Mejor Día: ${mejorDia.split('-').reverse().join('/')}</div></div>
+      <div class="kpi" style="background:#fee2e2"><div class="num">$${peorMonto.toLocaleString()}</div><div class="label">📉 Peor Día: ${peorDia.split('-').reverse().join('/')}</div></div>
+    </div>
+  </div>
+
+  <!-- 7. COMPARACIÓN CON MES ANTERIOR -->
+  <div class="seccion">
+    <h2>7. Comparación con Mes Anterior</h2>
+    <table>
+      <tr><th>Indicador</th><th>${nombreMes}</th><th>Mes Anterior</th><th>Diferencia</th></tr>
+      <tr><td>Total</td><td>$${total.toLocaleString()}</td><td>$${totalAnt.toLocaleString()}</td><td style="color:${diffPct>=0?'#065f46':'#c81e1e'};font-weight:bold">${diffPct>=0?'+':''}${diffPct}%</td></tr>
+      <tr><td>Cantidad Ventas</td><td>${ventas.length}</td><td>${ventasAnt.length}</td><td>${ventas.length - ventasAnt.length >= 0 ? '+' : ''}${ventas.length - ventasAnt.length}</td></tr>
+    </table>
+  </div>
+
+  <!-- 8. DETALLE DIARIO RESUMIDO -->
+  <div class="seccion">
+    <h2>8. Detalle Diario Resumido</h2>
+    <table>
+      <tr><th>Fecha</th><th>Monto</th><th>Ventas</th></tr>
+      ${diasOrdenados.map(([dia, monto]) => {
+        const cantDia = ventas.filter(v => v.fecha === dia).length;
+        return `<tr><td>${dia.split('-').reverse().join('/')}</td><td>$${monto.toLocaleString()}</td><td>${cantDia}</td></tr>`;
+      }).join('')}
+    </table>
+  </div>
+
+  <!-- 9. DETALLE COMPLETO -->
+  <div class="seccion">
+    <h2>9. Detalle Completo de Ventas</h2>
+    <table>
+      <tr><th>#</th><th>Fecha</th><th>Hora</th><th>Monto</th><th>Método</th><th>Documento</th></tr>
+      ${ventas.map((v,i) => `<tr><td>${i+1}</td><td>${v.fecha.split('-').reverse().join('/')}</td><td>${v.hora||'-'}</td><td>$${v.monto.toLocaleString()}</td><td>${v.metodo}</td><td>${v.tipoDoc||'-'}</td></tr>`).join('')}
+    </table>
+  </div>
+
+  <!-- 10. CONCLUSIÓN -->
+  <div class="seccion">
+    <h2>10. Conclusión y Observaciones</h2>
+    <div class="conclusion">
+      <p>El mes de <strong>${nombreMes}</strong> cerró con un total de <strong>$${total.toLocaleString()}</strong> en <strong>${ventas.length} ventas</strong>.</p>
+      <p>El método de pago más utilizado fue <strong>${metodoTop.n}</strong> con ${metodoTop.c} transacciones (${Math.round((metodoTop.c/ventas.length)*100)}%).</p>
+      <p>El mejor día fue el <strong>${mejorDia.split('-').reverse().join('/')}</strong> con $${mejorMonto.toLocaleString()}, mientras que el día más lento fue el <strong>${peorDia.split('-').reverse().join('/')}</strong> con $${peorMonto.toLocaleString()}.</p>
+      <p>El promedio diario fue de <strong>$${promDiario.toLocaleString()}</strong> en ${diasConVentas} días con actividad.</p>
+      <p>Respecto al mes anterior, ${diffPct >= 0 ? 'se registró un crecimiento del' : 'hubo una disminución del'} <strong>${Math.abs(diffPct)}%</strong> en ingresos.</p>
+      <p>El día de la semana con mayor movimiento fue <strong>${diaSemNombre}</strong>.</p>
+    </div>
+  </div>
+
+  <div class="footer">Bodega A&M — Informe generado automáticamente el ${fechaGen}</div>
+  </body></html>`;
+
+  if (window.require) {
+    const { ipcRenderer } = window.require('electron');
+    ipcRenderer.send('vistaPreviewPDF', html);
+  }
+}
+
 // ══════════════════════════════════════════════════════════════
 // ── PANEL DE DIAGNÓSTICOS ─────────────────────────────────────
 // ══════════════════════════════════════════════════════════════
