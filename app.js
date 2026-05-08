@@ -3254,6 +3254,7 @@ if (window.require) {
 
 let ventasCaja = JSON.parse(localStorage.getItem('ventasCaja') || '[]');
 let retirosCaja = JSON.parse(localStorage.getItem('retirosCaja') || '[]');
+let movimientosCaja = JSON.parse(localStorage.getItem('movimientosCaja') || '[]');
 function obtenerFechaLocalChile() {
   const ahora = new Date();
   const offset = ahora.getTimezoneOffset();
@@ -3292,6 +3293,7 @@ document.getElementById('btnRegistrarVenta').addEventListener('click', () => {
   document.getElementById('cajaTipoDoc').value = '';
   renderCaja();
 renderRetiros();
+renderMovimientos();
 actualizarSaldoCaja();
   showToast('✔ Venta registrada');
 });
@@ -3784,6 +3786,96 @@ function cargarCajaDesdeFirebase() {
 }
 
 renderCaja();
+
+// ── Ingresos y Egresos ──────────────────────────────────────────
+function registrarMovimiento() {
+  const tipo = document.getElementById('movTipo').value;
+  const monto = parseInt(document.getElementById('movMonto').value);
+  const motivo = document.getElementById('movMotivo').value.trim();
+  const quien = document.getElementById('movQuien').value.trim();
+  const fechaInput = document.getElementById('movFecha').value;
+
+  if (!monto || monto <= 0) { showToast('Ingresa un monto válido', true); return; }
+  if (!motivo) { showToast('Ingresa un motivo', true); return; }
+  if (!quien) { showToast('Ingresa quién realiza el movimiento', true); return; }
+
+  const ahora = new Date();
+  const mov = {
+    id: Date.now().toString(36),
+    tipo: tipo,
+    monto: monto,
+    motivo: motivo,
+    quien: quien,
+    fecha: fechaInput || ahora.toISOString().slice(0, 10),
+    hora: ahora.toTimeString().slice(0, 5)
+  };
+
+  movimientosCaja.unshift(mov);
+  localStorage.setItem('movimientosCaja', JSON.stringify(movimientosCaja));
+  if (window.fbGuardar) fbGuardar('movimientosCaja', mov.id, mov).catch(() => {});
+
+  document.getElementById('movMonto').value = '';
+  document.getElementById('movMotivo').value = '';
+  document.getElementById('movQuien').value = '';
+
+  renderMovimientos();
+  showToast('✔ ' + tipo + ' de $' + monto.toLocaleString() + ' registrado');
+  registrarActividad(tipo + ' de Caja', tipo + ' de $' + monto.toLocaleString() + ' - ' + motivo);
+}
+
+function eliminarMovimiento(id) {
+  if (!confirm('¿Eliminar este movimiento?')) return;
+  movimientosCaja = movimientosCaja.filter(m => m.id !== id);
+  localStorage.setItem('movimientosCaja', JSON.stringify(movimientosCaja));
+  if (window.fbEliminar) fbEliminar('movimientosCaja', id).catch(() => {});
+  renderMovimientos();
+  showToast('Movimiento eliminado');
+}
+
+function renderMovimientos() {
+  const tbody = document.getElementById('tbodyMovimientos');
+  if (!tbody) return;
+
+  const datos = movimientosCaja.slice(0, 50);
+
+  if (datos.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="7" class="empty-msg">No hay movimientos registrados</td></tr>';
+  } else {
+    tbody.innerHTML = datos.map((m, i) => `<tr>
+      <td>${i + 1}</td>
+      <td><span style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:0.75rem;font-weight:bold;background:${m.tipo==='Ingreso'?'#d1fae5':'#fee2e2'};color:${m.tipo==='Ingreso'?'#065f46':'#c81e1e'}">${m.tipo}</span></td>
+      <td>${m.fecha.split('-').reverse().join('/')}</td>
+      <td style="font-weight:bold;color:${m.tipo==='Ingreso'?'#065f46':'#c81e1e'}">${m.tipo==='Ingreso'?'+':'-'}$${m.monto.toLocaleString()}</td>
+      <td>${m.motivo}</td>
+      <td>${m.quien}</td>
+      <td><button class="btn-delete" onclick="eliminarMovimiento('${m.id}')" title="Eliminar">🗑</button></td>
+    </tr>`).join('');
+  }
+
+  // Update totals
+  const ingresos = movimientosCaja.filter(m => m.tipo === 'Ingreso').reduce((a, m) => a + m.monto, 0);
+  const egresos = movimientosCaja.filter(m => m.tipo === 'Egreso').reduce((a, m) => a + m.monto, 0);
+  const balance = ingresos - egresos;
+
+  const elIng = document.getElementById('movTotalIngresos');
+  const elEgr = document.getElementById('movTotalEgresos');
+  const elBal = document.getElementById('movBalance');
+
+  if (elIng) elIng.textContent = '$' + ingresos.toLocaleString();
+  if (elEgr) elEgr.textContent = '$' + egresos.toLocaleString();
+  if (elBal) {
+    elBal.textContent = '$' + balance.toLocaleString();
+    elBal.style.color = balance >= 0 ? '#065f46' : '#c81e1e';
+  }
+}
+
+// Set default date for movimientos
+(function() {
+  const el = document.getElementById('movFecha');
+  if (el) el.value = new Date().toISOString().slice(0, 10);
+})();
+
+document.getElementById('btnRegistrarMov').addEventListener('click', registrarMovimiento);
 
 // Comparar semanas
 document.getElementById('btnCompararSemanas').addEventListener('click', () => {
