@@ -770,6 +770,15 @@
             </select>
           </div>
           <div class="field" style="flex:1">
+            <label>Tipo Documento</label>
+            <select id="cajaTipoDoc">
+              <option value="">-- Seleccionar --</option>
+              <option value="Boleta">Boleta</option>
+              <option value="Factura">Factura</option>
+              <option value="Sin Documento">Sin Documento</option>
+            </select>
+          </div>
+          <div class="field" style="flex:1">
             <label>Fecha</label>
             <input type="date" id="cajaFechaRegistro" />
           </div>
@@ -791,7 +800,7 @@
         </div>
         <table id="tablaCaja">
           <thead>
-            <tr><th>#</th><th>Hora</th><th>Monto</th><th>Método</th><th></th></tr>
+            <tr><th>#</th><th>Hora</th><th>Monto</th><th>Método</th><th>Documento</th><th></th></tr>
           </thead>
           <tbody id="tbodyCaja">
             <tr><td colspan="5" class="empty-msg">No hay ventas registradas hoy</td></tr>

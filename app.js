@@ -3258,9 +3258,11 @@ let cajaFechaActual = new Date().toISOString().slice(0, 10);
 document.getElementById('btnRegistrarVenta').addEventListener('click', () => {
   const monto = parseInt(document.getElementById('cajaMonto').value);
   const metodo = document.getElementById('cajaMetodo').value;
+  const tipoDoc = document.getElementById('cajaTipoDoc').value;
   const fechaInput = document.getElementById('cajaFechaRegistro').value;
   if (!monto || monto <= 0) { showToast('Ingresa un monto válido', true); return; }
   if (!metodo) { showToast('Selecciona un método de pago', true); return; }
+  if (!tipoDoc) { showToast('Selecciona el tipo de documento', true); return; }
 
   const fechaVenta = fechaInput || new Date().toISOString().slice(0, 10);
 
@@ -3270,6 +3272,7 @@ document.getElementById('btnRegistrarVenta').addEventListener('click', () => {
     hora: new Date().toTimeString().slice(0, 5),
     monto: monto,
     metodo: metodo,
+    tipoDoc: tipoDoc,
     usuario: usuarioActivo ? usuarioActivo.nombre : ''
   };
 
@@ -3279,6 +3282,7 @@ document.getElementById('btnRegistrarVenta').addEventListener('click', () => {
 
   document.getElementById('cajaMonto').value = '';
   document.getElementById('cajaMetodo').value = '';
+  document.getElementById('cajaTipoDoc').value = '';
   document.getElementById('cajaFechaRegistro').value = '';
   renderCaja();
   showToast('✔ Venta registrada');
@@ -3302,7 +3306,7 @@ function renderCaja() {
   const ventasDia = ventasCaja.filter(v => v.fecha === cajaFechaActual);
 
   if (ventasDia.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="5" class="empty-msg">No hay ventas registradas</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="6" class="empty-msg">No hay ventas registradas</td></tr>';
   } else {
     tbody.innerHTML = ventasDia.map((v, i) => `
       <tr>
@@ -3310,6 +3314,7 @@ function renderCaja() {
         <td>${v.hora}</td>
         <td>$${v.monto.toLocaleString()}</td>
         <td><span class="badge" style="background:${v.metodo==='Efectivo'?'#d1fae5':v.metodo==='Débito'?'#dbeafe':v.metodo==='Crédito'?'#fef3c7':'#e0e7ff'};color:#333;padding:3px 8px;border-radius:4px;font-size:0.8rem">${v.metodo}</span></td>
+        <td style="font-size:0.8rem">${v.tipoDoc || '-'}</td>
         <td><button class="btn-add" style="padding:2px 6px;font-size:0.75rem;margin-right:4px" onclick="editarVentaCaja('${v.id}')">✏</button><button class="btn-delete" onclick="eliminarVentaCaja('${v.id}')">✕</button></td>
       </tr>`).join('');
   }
@@ -3364,6 +3369,13 @@ function editarVentaCaja(id) {
             <option value="Transferencia" ${v.metodo==='Transferencia'?'selected':''}>Transferencia</option>
           </select>
         </div>
+        <div class="field" style="margin-top:10px"><label>Tipo Documento</label>
+          <select id="editVentaTipoDoc">
+            <option value="Boleta" ${v.tipoDoc==='Boleta'?'selected':''}>Boleta</option>
+            <option value="Factura" ${v.tipoDoc==='Factura'?'selected':''}>Factura</option>
+            <option value="Sin Documento" ${v.tipoDoc==='Sin Documento'?'selected':''}>Sin Documento</option>
+          </select>
+        </div>
         <div class="field" style="margin-top:10px"><label>Fecha</label><input type="date" id="editVentaFecha" value="${v.fecha}" /></div>
       </div>
       <div class="modal-footer">
@@ -3375,10 +3387,12 @@ function editarVentaCaja(id) {
   overlay.querySelector('#btnGuardarEditVenta').addEventListener('click', () => {
     const nuevoMonto = parseInt(document.getElementById('editVentaMonto').value);
     const nuevoMetodo = document.getElementById('editVentaMetodo').value;
+    const nuevoTipoDoc = document.getElementById('editVentaTipoDoc').value;
     const nuevaFecha = document.getElementById('editVentaFecha').value;
     if (!nuevoMonto || nuevoMonto <= 0) { showToast('Monto inválido', true); return; }
     ventasCaja[idx].monto = nuevoMonto;
     ventasCaja[idx].metodo = nuevoMetodo;
+    ventasCaja[idx].tipoDoc = nuevoTipoDoc;
     ventasCaja[idx].fecha = nuevaFecha || v.fecha;
     localStorage.setItem('ventasCaja', JSON.stringify(ventasCaja));
     if (window.fbListo) fbGuardar('caja', v.id, ventasCaja[idx]);
