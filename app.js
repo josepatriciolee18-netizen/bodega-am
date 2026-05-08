@@ -3434,26 +3434,26 @@ function generarPDFRetiro(retiro) {
     * { font-family: 'Times New Roman', serif; margin: 0; padding: 0; box-sizing: border-box; }
     body { padding: 40px; color: #000; line-height: 1.6; }
     .encabezado { text-align: center; border-bottom: 3px double #000; padding-bottom: 16px; margin-bottom: 20px; }
-    .encabezado h1 { font-size: 20px; font-weight: bold; letter-spacing: 2px; text-transform: uppercase; }
-    .encabezado p { font-size: 11px; color: #444; margin-top: 2px; }
+    .encabezado h1 { font-size: 24px; font-weight: bold; letter-spacing: 2px; text-transform: uppercase; }
+    .encabezado p { font-size: 13px; color: #444; margin-top: 2px; }
     .titulo-doc { text-align: center; margin: 20px 0; }
-    .titulo-doc h2 { font-size: 16px; text-transform: uppercase; letter-spacing: 1px; border: 2px solid #000; display: inline-block; padding: 6px 24px; }
-    .nro-comprobante { text-align: right; font-size: 12px; margin-bottom: 16px; }
-    .nro-comprobante span { font-weight: bold; font-size: 14px; }
+    .titulo-doc h2 { font-size: 18px; text-transform: uppercase; letter-spacing: 1px; border: 2px solid #000; display: inline-block; padding: 6px 24px; }
+    .nro-comprobante { text-align: right; font-size: 14px; margin-bottom: 16px; }
+    .nro-comprobante span { font-weight: bold; font-size: 16px; }
     .datos-tabla { width: 100%; border-collapse: collapse; margin: 20px 0; }
-    .datos-tabla td { padding: 10px 12px; border: 1px solid #000; font-size: 13px; }
+    .datos-tabla td { padding: 12px 14px; border: 1px solid #000; font-size: 15px; }
     .datos-tabla td.label { background: #f5f5f5; font-weight: bold; width: 35%; }
     .monto-grande { text-align: center; margin: 24px 0; padding: 16px; border: 2px solid #000; }
-    .monto-grande .cifra { font-size: 28px; font-weight: bold; }
-    .monto-grande .palabras { font-size: 11px; font-style: italic; margin-top: 4px; color: #333; }
-    .declaracion { margin: 24px 0; font-size: 12px; text-align: justify; padding: 12px; border: 1px solid #ccc; background: #fafafa; }
+    .monto-grande .cifra { font-size: 34px; font-weight: bold; }
+    .monto-grande .palabras { font-size: 13px; font-style: italic; margin-top: 4px; color: #333; }
+    .declaracion { margin: 24px 0; font-size: 14px; text-align: justify; padding: 12px; border: 1px solid #ccc; background: #fafafa; }
     .firmas { display: flex; justify-content: space-between; margin-top: 60px; padding: 0 20px; }
     .firma-box { text-align: center; width: 40%; }
     .firma-linea { border-top: 1px solid #000; padding-top: 6px; margin-top: 60px; }
-    .firma-nombre { font-size: 12px; font-weight: bold; }
-    .firma-cargo { font-size: 10px; color: #555; }
-    .pie { margin-top: 40px; text-align: center; font-size: 9px; color: #888; border-top: 1px solid #ccc; padding-top: 10px; }
-    .fecha-lugar { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 16px; }
+    .firma-nombre { font-size: 14px; font-weight: bold; }
+    .firma-cargo { font-size: 12px; color: #555; }
+    .pie { margin-top: 40px; text-align: center; font-size: 11px; color: #888; border-top: 1px solid #ccc; padding-top: 10px; }
+    .fecha-lugar { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 16px; }
   </style></head><body>
 
     <div class="encabezado">
