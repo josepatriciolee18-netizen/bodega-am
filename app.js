@@ -3430,30 +3430,30 @@ function generarPDFRetiro(retiro) {
   const montoEnPalabras = convertirMontoAPalabras(retiro.monto);
 
   const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>
-    @page { size: letter; margin: 20mm; }
+    @page { size: letter; margin: 15mm; }
     * { font-family: 'Times New Roman', serif; margin: 0; padding: 0; box-sizing: border-box; }
-    body { padding: 50px 60px; color: #000; line-height: 1.8; }
-    .encabezado { text-align: center; border-bottom: 3px double #000; padding-bottom: 20px; margin-bottom: 30px; }
+    body { padding: 20px 40px; color: #000; line-height: 1.5; }
+    .encabezado { text-align: center; border-bottom: 3px double #000; padding-bottom: 10px; margin-bottom: 14px; }
     .encabezado h1 { font-size: 24px; font-weight: bold; letter-spacing: 2px; text-transform: uppercase; }
     .encabezado p { font-size: 13px; color: #444; margin-top: 2px; }
-    .titulo-doc { text-align: center; margin: 30px 0; }
+    .titulo-doc { text-align: center; margin: 14px 0; }
     .titulo-doc h2 { font-size: 18px; text-transform: uppercase; letter-spacing: 1px; border: 2px solid #000; display: inline-block; padding: 6px 24px; }
-    .nro-comprobante { text-align: right; font-size: 14px; margin-bottom: 16px; }
+    .nro-comprobante { text-align: right; font-size: 14px; margin-bottom: 10px; }
     .nro-comprobante span { font-weight: bold; font-size: 16px; }
     .datos-tabla { width: 100%; border-collapse: collapse; margin: 20px 0; }
-    .datos-tabla td { padding: 12px 14px; border: 1px solid #000; font-size: 15px; }
+    .datos-tabla td { padding: 8px 12px; border: 1px solid #000; font-size: 14px; }
     .datos-tabla td.label { background: #f5f5f5; font-weight: bold; width: 35%; }
-    .monto-grande { text-align: center; margin: 30px 0; padding: 20px; border: 2px solid #000; }
-    .monto-grande .cifra { font-size: 34px; font-weight: bold; }
+    .monto-grande { text-align: center; margin: 16px 0; padding: 14px; border: 2px solid #000; }
+    .monto-grande .cifra { font-size: 30px; font-weight: bold; }
     .monto-grande .palabras { font-size: 13px; font-style: italic; margin-top: 4px; color: #333; }
-    .declaracion { margin: 30px 0; font-size: 14px; text-align: justify; padding: 16px; border: 1px solid #ccc; background: #fafafa; }
-    .firmas { display: flex; justify-content: space-between; margin-top: 80px; padding: 0 20px; }
+    .declaracion { margin: 16px 0; font-size: 13px; text-align: justify; padding: 12px; border: 1px solid #ccc; background: #fafafa; }
+    .firmas { display: flex; justify-content: space-between; margin-top: 40px; padding: 0 20px; }
     .firma-box { text-align: center; width: 40%; }
-    .firma-linea { border-top: 1px solid #000; padding-top: 6px; margin-top: 70px; }
+    .firma-linea { border-top: 1px solid #000; padding-top: 6px; margin-top: 40px; }
     .firma-nombre { font-size: 14px; font-weight: bold; }
     .firma-cargo { font-size: 12px; color: #555; }
-    .pie { margin-top: 40px; text-align: center; font-size: 11px; color: #888; border-top: 1px solid #ccc; padding-top: 10px; }
-    .fecha-lugar { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 16px; }
+    .pie { margin-top: 30px; text-align: center; font-size: 10px; color: #888; border-top: 1px solid #ccc; padding-top: 8px; }
+    .fecha-lugar { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 10px; }
   </style></head><body>
 
     <div class="encabezado">
