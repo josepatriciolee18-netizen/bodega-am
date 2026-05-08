@@ -3773,10 +3773,11 @@ document.getElementById('btnCajaDiaLento').addEventListener('click', () => {
 document.getElementById('btnCajaInforme').addEventListener('click', () => {
   const mes = document.getElementById('cajaInformeMes').value;
   if (!mes) { showToast('Selecciona un mes', true); return; }
-  generarInformeCaja(mes);
+  const mes2 = document.getElementById('cajaInformeMes2').value || null;
+  generarInformeCaja(mes, mes2);
 });
 
-function generarInformeCaja(mes) {
+function generarInformeCaja(mes, mes2) {
   const ventas = ventasCaja.filter(v => v.fecha && v.fecha.slice(0,7) === mes);
   if (ventas.length === 0) { showToast('No hay ventas en este mes', true); return; }
 
