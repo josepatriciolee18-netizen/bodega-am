@@ -3854,6 +3854,18 @@ function generarInformeCaja(mes, mes2, guardarEnEscritorio) {
   metodos.sort((a,b) => b.c - a.c);
   const metodoTop = metodos[0];
 
+  // Por hora del día
+  const porHora = Array(24).fill(0);
+  const ventasPorHora = Array(24).fill(0);
+  ventas.forEach(v => {
+    if (v.hora) {
+      const h = parseInt(v.hora.split(':')[0]);
+      if (h >= 0 && h < 24) { porHora[h] += v.monto; ventasPorHora[h]++; }
+    }
+  });
+  let horaPico = 0, horaMax = 0;
+  porHora.forEach((m, i) => { if (m > horaMax) { horaMax = m; horaPico = i; } });
+
   const fechaGen = new Date().toLocaleDateString('es-CL');
 
   const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>
@@ -3911,9 +3923,11 @@ function generarInformeCaja(mes, mes2, guardarEnEscritorio) {
       <li>6. Análisis por Día de la Semana</li>
       <li>7. Mejor y Peor Día del Mes</li>
       <li>8. Comparación con Mes Anterior</li>
-      <li>9. Detalle Diario Resumido</li>
-      <li>10. Detalle Completo de Ventas</li>
-      <li>11. Conclusión y Recomendaciones</li>
+      <li>9. Horarios Pico de Ventas</li>
+      <li>10. Gráfico de Tendencia Diaria</li>
+      <li>11. Detalle Diario Resumido</li>
+      <li>12. Detalle Completo de Ventas</li>
+      <li>13. Conclusión y Recomendaciones</li>
     </ul>
   </div>
 
@@ -4159,9 +4173,79 @@ function generarInformeCaja(mes, mes2, guardarEnEscritorio) {
     </div>
   </div>
 
-  <!-- 8. DETALLE DIARIO RESUMIDO -->
+  <!-- 9. HORARIOS PICO -->
+  <div class="seccion" style="page-break-inside:auto">
+    <h2>9. Horarios Pico de Ventas</h2>
+    <p style="font-size:0.85rem;color:#555;margin-bottom:14px;line-height:1.6">
+      Esta sección analiza en qué horas del día se concentran las ventas del mes.<br>
+      Se muestra el monto acumulado y la cantidad de transacciones para cada franja horaria.<br>
+      Identificar los horarios pico permite optimizar la atención al cliente y la dotación de personal.<br>
+      Las horas con baja actividad pueden aprovecharse para tareas administrativas o reposición.<br>
+      El gráfico de barras visualiza rápidamente las horas de mayor y menor movimiento.<br>
+      Esta información es clave para definir horarios de apertura y cierre óptimos.<br>
+      Compare con meses anteriores para confirmar si los patrones horarios son consistentes.
+    </p>
+    <table>
+      <tr><th>Hora</th><th>Monto</th><th>Ventas</th><th>Barra</th></tr>
+      ${porHora.map((m, i) => {
+        if (ventasPorHora[i] === 0) return '';
+        const pct = horaMax > 0 ? Math.round((m / horaMax) * 100) : 0;
+        return '<tr' + (i === horaPico ? ' style="background:#d1fae5;font-weight:bold"' : '') + '><td>' + String(i).padStart(2,'0') + ':00 - ' + String(i).padStart(2,'0') + ':59</td><td>$' + m.toLocaleString() + '</td><td>' + ventasPorHora[i] + '</td><td><div style="height:14px;background:#1a56db;border-radius:3px;width:' + pct + '%"></div></td></tr>';
+      }).filter(r => r).join('')}
+    </table>
+    <p style="margin-top:8px"><strong>Hora pico:</strong> ${String(horaPico).padStart(2,'0')}:00 - ${String(horaPico).padStart(2,'0')}:59 con $${horaMax.toLocaleString()} en ventas</p>
+    <div style="margin-top:12px;padding:12px 14px;background:#f0f4ff;border-radius:6px;font-size:0.82rem;color:#444;border-left:3px solid #1a56db;line-height:1.6">
+      <strong>Conclusión de esta sección:</strong><br>
+      La hora con mayor actividad fue las ${String(horaPico).padStart(2,'0')}:00, acumulando $${horaMax.toLocaleString()} en ventas.<br>
+      ${ventasPorHora[horaPico]} transacciones se realizaron en esa franja horaria durante todo el mes.<br>
+      Los horarios con mayor movimiento deben contar con personal suficiente para atender la demanda.<br>
+      Las horas sin ventas registradas indican períodos donde el local podría estar cerrado o sin clientes.<br>
+      Si hay ventas concentradas en pocas horas, considere extender horarios o crear incentivos fuera de pico.<br>
+      Conocer los horarios pico también ayuda a planificar los horarios de colación del personal.<br>
+      Use esta información para decidir si conviene abrir más temprano o cerrar más tarde según la demanda real.
+    </div>
+  </div>
+
+  <!-- 10. GRÁFICO DE TENDENCIA DIARIA -->
+  <div class="seccion" style="page-break-inside:auto">
+    <h2>10. Gráfico de Tendencia Diaria</h2>
+    <p style="font-size:0.85rem;color:#555;margin-bottom:14px;line-height:1.6">
+      Visualización gráfica de la evolución de ventas día a día durante el mes.<br>
+      Cada barra representa el monto total vendido en un día específico del mes.<br>
+      La línea punteada indica el promedio diario como referencia visual.<br>
+      Los días por encima del promedio se muestran en azul oscuro, los que están por debajo en azul claro.<br>
+      Este gráfico permite identificar rápidamente tendencias, picos y caídas en las ventas.<br>
+      Es útil para detectar patrones como caídas de fin de semana o picos a inicio de mes.<br>
+      Compare visualmente con el gráfico del mes anterior para evaluar la evolución del negocio.
+    </p>
+    <div style="display:flex;align-items:flex-end;gap:2px;height:180px;border-bottom:2px solid #333;padding-bottom:4px;margin-bottom:8px">
+      ${diasOrdenados.map(([dia, monto]) => {
+        const pct = mejorMonto > 0 ? Math.round((monto / mejorMonto) * 100) : 0;
+        const color = monto >= promDiario ? '#1a56db' : '#93c5fd';
+        const d = dia.slice(8,10);
+        return '<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%"><div style="width:100%;background:' + color + ';border-radius:3px 3px 0 0;height:' + pct + '%;min-height:2px" title="' + dia + ': $' + monto.toLocaleString() + '"></div><span style="font-size:7px;margin-top:2px">' + d + '</span></div>';
+      }).join('')}
+    </div>
+    <div style="display:flex;align-items:center;gap:12px;font-size:0.75rem;color:#555;margin-top:4px">
+      <div><span style="display:inline-block;width:12px;height:12px;background:#1a56db;border-radius:2px;vertical-align:middle;margin-right:4px"></span>Sobre promedio</div>
+      <div><span style="display:inline-block;width:12px;height:12px;background:#93c5fd;border-radius:2px;vertical-align:middle;margin-right:4px"></span>Bajo promedio</div>
+      <div>Promedio diario: $${promDiario.toLocaleString()}</div>
+    </div>
+    <div style="margin-top:12px;padding:12px 14px;background:#f0f4ff;border-radius:6px;font-size:0.82rem;color:#444;border-left:3px solid #1a56db;line-height:1.6">
+      <strong>Conclusión de esta sección:</strong><br>
+      El gráfico muestra la evolución de ventas durante los ${diasConVentas} días operativos del mes.<br>
+      El promedio diario fue de $${promDiario.toLocaleString()}, representado como línea de referencia.<br>
+      ${diasOrdenados.filter(([,m]) => m >= promDiario).length} días superaron el promedio (barras azul oscuro) y ${diasOrdenados.filter(([,m]) => m < promDiario).length} quedaron por debajo (azul claro).<br>
+      El día más alto alcanzó $${mejorMonto.toLocaleString()} y el más bajo $${peorMonto.toLocaleString()}.<br>
+      Una tendencia ascendente indica crecimiento progresivo; descendente sugiere pérdida de impulso.<br>
+      Los picos aislados pueden corresponder a eventos especiales, promociones o días de alta demanda estacional.<br>
+      Utilice este gráfico para planificar acciones comerciales en los períodos de menor actividad.
+    </div>
+  </div>
+
+    <!-- 11. DETALLE DIARIO RESUMIDO -->
   <div class="seccion">
-    <h2>9. Detalle Diario Resumido</h2>
+    <h2>11. Detalle Diario Resumido</h2>
     <p style="font-size:0.85rem;color:#555;margin-bottom:14px;line-height:1.6">
       Tabla con el resumen de ventas día por día durante todo el mes analizado.<br>
       Para cada fecha se muestra el monto total recaudado y la cantidad de transacciones realizadas.<br>
@@ -4191,9 +4275,9 @@ function generarInformeCaja(mes, mes2, guardarEnEscritorio) {
     </div>
   </div>
 
-  <!-- 9. DETALLE COMPLETO -->
+  <!-- 12. DETALLE COMPLETO -->
   <div class="seccion">
-    <h2>10. Detalle Completo de Ventas</h2>
+    <h2>12. Detalle Completo de Ventas</h2>
     <p style="font-size:0.85rem;color:#555;margin-bottom:14px;line-height:1.6">
       Listado exhaustivo de cada transacción individual registrada durante el mes.<br>
       Cada fila incluye: número correlativo, fecha, hora, monto, método de pago y tipo de documento.<br>
@@ -4220,9 +4304,9 @@ function generarInformeCaja(mes, mes2, guardarEnEscritorio) {
     </div>
   </div>
 
-  <!-- 10. CONCLUSIÓN -->
+  <!-- 13. CONCLUSIÓN -->
   <div class="seccion">
-    <h2>11. Conclusión y Recomendaciones</h2>
+    <h2>13. Conclusión y Recomendaciones</h2>
     <div class="conclusion">
       ${generarConclusionAleatoria(nombreMes, total, ventas, metodoTop, mejorDia, mejorMonto, peorDia, peorMonto, promDiario, diasConVentas, diffPct, diaSemNombre, semanas, boletas, facturas, sinDoc, efectivo, debito, credito, transferencia)}
     </div>
