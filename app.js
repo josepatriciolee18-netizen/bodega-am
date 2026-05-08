@@ -3870,9 +3870,9 @@ function generarInformeCaja(mes, mes2) {
   <div class="indice">
     <h2>Índice</h2>
     <ul>
-      <li>1. Resumen Ejecutivo</li>
-      <li>2. Desglose por Método de Pago</li>
-      <li>3. Desglose por Tipo de Documento</li>
+      <li>1. Introducción</li>
+      <li>2. Resumen Ejecutivo</li>
+      <li>3. Desglose por Método de Pago</li>
       <li>4. Análisis por Semana</li>
       <li>5. Análisis por Día de la Semana</li>
       <li>6. Mejor y Peor Día del Mes</li>
@@ -3883,9 +3883,22 @@ function generarInformeCaja(mes, mes2) {
     </ul>
   </div>
 
-  <!-- 1. RESUMEN EJECUTIVO -->
+  <!-- 1. INTRODUCCIÓN -->
   <div class="seccion">
-    <h2>1. Resumen Ejecutivo</h2>
+    <h2>1. Introducción</h2>
+    <p>El presente informe tiene como objetivo proporcionar un análisis detallado y completo de las operaciones de caja realizadas durante el mes de <strong>${nombreMes}</strong> en Bodega A&M.</p>
+    <p>Este documento recopila toda la información financiera registrada en el sistema de caja, incluyendo los ingresos por ventas, los métodos de pago utilizados por los clientes, la distribución por tipo de documento tributario, y el comportamiento de las transacciones a lo largo del período analizado.</p>
+    <p>El análisis abarca múltiples dimensiones: desde el comportamiento diario y semanal de las ventas, hasta la comparación con períodos anteriores, permitiendo identificar tendencias, patrones de consumo y oportunidades de mejora en la gestión financiera del negocio.</p>
+    <p>La información contenida en este informe es de carácter interno y confidencial, destinada exclusivamente a facilitar la toma de decisiones estratégicas por parte de la administración de Bodega A&M.</p>
+    <p>Los datos presentados fueron extraídos directamente del sistema de registro de caja digital, garantizando la precisión y confiabilidad de las cifras reportadas. Cada transacción fue registrada en tiempo real durante las operaciones diarias del establecimiento, asegurando la integridad de la información.</p>
+    <p>Se recomienda utilizar este informe como herramienta de referencia para evaluar el desempeño financiero del mes, identificar los días y métodos de pago más relevantes, y planificar estrategias comerciales para los períodos siguientes.</p>
+    <p>El documento se estructura en secciones que van desde un resumen ejecutivo con los indicadores clave, pasando por análisis detallados por método de pago, tipo de documento, comportamiento semanal y diario, hasta llegar a una conclusión con recomendaciones concretas para la mejora continua del negocio.</p>
+    <p>Este informe fue generado de forma automática por el sistema de gestión de Bodega A&M el día ${fechaGen}, y corresponde al período comprendido entre el 1 y el último día del mes de ${nombreMes}.</p>
+  </div>
+
+  <!-- 2. RESUMEN EJECUTIVO -->
+  <div class="seccion">
+    <h2>2. Resumen Ejecutivo</h2>
     <div class="kpi-grid">
       <div class="kpi"><div class="num">$${total.toLocaleString()}</div><div class="label">Total del Mes</div></div>
       <div class="kpi"><div class="num">${ventas.length}</div><div class="label">Total Ventas</div></div>
@@ -3984,14 +3997,26 @@ function generarInformeCaja(mes, mes2) {
 
   <!-- 10. CONCLUSIÓN -->
   <div class="seccion">
-    <h2>10. Conclusión y Observaciones</h2>
+    <h2>10. Conclusión y Recomendaciones</h2>
     <div class="conclusion">
-      <p>El mes de <strong>${nombreMes}</strong> cerró con un total de <strong>$${total.toLocaleString()}</strong> en <strong>${ventas.length} ventas</strong>.</p>
-      <p>El método de pago más utilizado fue <strong>${metodoTop.n}</strong> con ${metodoTop.c} transacciones (${Math.round((metodoTop.c/ventas.length)*100)}%).</p>
-      <p>El mejor día fue el <strong>${mejorDia.split('-').reverse().join('/')}</strong> con $${mejorMonto.toLocaleString()}, mientras que el día más lento fue el <strong>${peorDia.split('-').reverse().join('/')}</strong> con $${peorMonto.toLocaleString()}.</p>
-      <p>El promedio diario fue de <strong>$${promDiario.toLocaleString()}</strong> en ${diasConVentas} días con actividad.</p>
-      <p>Respecto al mes anterior, ${diffPct >= 0 ? 'se registró un crecimiento del' : 'hubo una disminución del'} <strong>${Math.abs(diffPct)}%</strong> en ingresos.</p>
-      <p>El día de la semana con mayor movimiento fue <strong>${diaSemNombre}</strong>.</p>
+      <p><strong>Resumen del Período:</strong> El mes de <strong>${nombreMes}</strong> cerró con un ingreso total de <strong>$${total.toLocaleString()}</strong> distribuido en <strong>${ventas.length} transacciones</strong> realizadas durante ${diasConVentas} días de operación efectiva. El promedio diario de ingresos alcanzó los $${promDiario.toLocaleString()}.</p>
+      <p><strong>Análisis de Métodos de Pago:</strong> El método de pago predominante fue <strong>${metodoTop.n}</strong> con ${metodoTop.c} transacciones, representando el ${Math.round((metodoTop.c/ventas.length)*100)}% del total de operaciones. Se observa que los clientes tienen preferencias claras en cuanto a la forma de pago, lo cual debe considerarse para la planificación financiera.</p>
+      <p><strong>Documentación Tributaria:</strong> Del total de ventas registradas, ${boletas.length} fueron respaldadas con boleta (${Math.round((boletas.length/ventas.length)*100)}%), ${facturas.length} con factura (${Math.round((facturas.length/ventas.length)*100)}%) y ${sinDoc.length} sin documento formal (${Math.round((sinDoc.length/ventas.length)*100)}%). Se recomienda mantener un registro documentado de todas las transacciones para efectos tributarios y de auditoría.</p>
+      <p><strong>Rendimiento Diario:</strong> El mejor día del mes fue el <strong>${mejorDia.split('-').reverse().join('/')}</strong> con ingresos de $${mejorMonto.toLocaleString()}, mientras que el día con menor actividad fue el <strong>${peorDia.split('-').reverse().join('/')}</strong> con $${peorMonto.toLocaleString()}. La diferencia entre ambos fue de $${(mejorMonto - peorMonto).toLocaleString()}, lo que evidencia la variabilidad natural en el flujo de clientes.</p>
+      <p><strong>Tendencia Comparativa:</strong> Respecto al mes anterior, ${diffPct >= 0 ? 'se registró un crecimiento del <strong>' + diffPct + '%</strong> en ingresos totales, lo que indica una tendencia positiva y un buen desempeño comercial. Este crecimiento debe consolidarse manteniendo las estrategias actuales.' : 'se observó una disminución del <strong>' + Math.abs(diffPct) + '%</strong> en ingresos. Se recomienda analizar los factores que pudieron influir en esta baja y evaluar acciones correctivas.'}</p>
+      <p><strong>Patrones Semanales:</strong> El análisis por día de la semana revela que <strong>${diaSemNombre}</strong> es el día con mayor volumen de ventas. Se recomienda asegurar disponibilidad completa de personal y stock suficiente durante ese día para maximizar los ingresos del negocio.</p>
+      <p><strong>Distribución por Semanas:</strong> La semana con mayor actividad registró $${Math.max(...semanas).toLocaleString()} en ingresos. Se sugiere planificar el abastecimiento y la logística considerando estos patrones de demanda recurrentes a lo largo del mes.</p>
+      <p><strong>Observaciones Adicionales:</strong> El negocio operó ${diasConVentas} días durante el mes, con un flujo constante de transacciones. La estabilidad en las operaciones diarias es un indicador positivo de la salud financiera del establecimiento y de la fidelidad de la clientela.</p>
+      <p><strong>Recomendaciones:</strong></p>
+      <ul style="margin-left:20px;line-height:2">
+        <li>Mantener el registro diario y consistente de todas las transacciones para asegurar la trazabilidad financiera completa del negocio.</li>
+        <li>Evaluar la posibilidad de incentivar métodos de pago electrónicos mediante descuentos o promociones para reducir el manejo de efectivo.</li>
+        <li>Considerar implementar promociones específicas en los días de menor actividad para equilibrar la carga de trabajo semanal.</li>
+        <li>Realizar este análisis mensualmente de forma sistemática para detectar tendencias a tiempo y tomar decisiones informadas.</li>
+        <li>Establecer metas mensuales de venta basadas en el promedio histórico y trabajar activamente para superarlas.</li>
+        <li>Revisar periódicamente la proporción de ventas con y sin documento tributario para asegurar el cumplimiento normativo vigente.</li>
+      </ul>
+      <p style="margin-top:16px"><strong>Nota Final:</strong> Este informe fue generado automáticamente por el sistema de gestión de Bodega A&M. Los datos reflejan fielmente las operaciones registradas durante el período analizado. Para consultas o aclaraciones adicionales, contactar al administrador del sistema.</p>
     </div>
   </div>
 
