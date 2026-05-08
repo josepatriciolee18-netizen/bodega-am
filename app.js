@@ -3253,7 +3253,13 @@ if (window.require) {
 // ══════════════════════════════════════════════════════════════
 
 let ventasCaja = JSON.parse(localStorage.getItem('ventasCaja') || '[]');
-let cajaFechaActual = new Date().toISOString().slice(0, 10);
+function obtenerFechaLocalChile() {
+  const ahora = new Date();
+  const offset = ahora.getTimezoneOffset();
+  const local = new Date(ahora.getTime() - offset * 60000);
+  return local.toISOString().slice(0, 10);
+}
+let cajaFechaActual = obtenerFechaLocalChile();
 
 document.getElementById('btnRegistrarVenta').addEventListener('click', () => {
   const monto = parseInt(document.getElementById('cajaMonto').value);
@@ -3264,7 +3270,7 @@ document.getElementById('btnRegistrarVenta').addEventListener('click', () => {
   if (!metodo) { showToast('Selecciona un método de pago', true); return; }
   if (!tipoDoc) { showToast('Selecciona el tipo de documento', true); return; }
 
-  const fechaVenta = fechaInput || new Date().toISOString().slice(0, 10);
+  const fechaVenta = fechaInput || obtenerFechaLocalChile();
 
   const venta = {
     id: Date.now().toString(36) + Math.random().toString(36).substr(2, 5),
@@ -3283,7 +3289,6 @@ document.getElementById('btnRegistrarVenta').addEventListener('click', () => {
   document.getElementById('cajaMonto').value = '';
   document.getElementById('cajaMetodo').value = '';
   document.getElementById('cajaTipoDoc').value = '';
-  document.getElementById('cajaFechaRegistro').value = '';
   renderCaja();
   showToast('✔ Venta registrada');
 });
@@ -3296,7 +3301,7 @@ document.getElementById('btnCajaFiltrar').addEventListener('click', () => {
 });
 
 document.getElementById('btnCajaHoy').addEventListener('click', () => {
-  cajaFechaActual = new Date().toISOString().slice(0, 10);
+  cajaFechaActual = obtenerFechaLocalChile();
   document.getElementById('cajaFiltroFecha').value = '';
   renderCaja();
 });
