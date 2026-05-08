@@ -3931,21 +3931,30 @@ function generarInformeCaja(mes, mes2, guardarEnEscritorio) {
   </div>
 
   <!-- 2. RESUMEN EJECUTIVO -->
-  <div class="seccion">
+  <div class="seccion" style="page-break-inside:auto">
     <h2>2. Resumen Ejecutivo</h2>
-    <p style="font-size:0.82rem;color:#555;margin-bottom:8px;line-height:1.4">
-      Indicadores clave del mes: ingreso total, cantidad de ventas, promedio diario, días operativos, método preferido y variación vs mes anterior. Estos KPIs ofrecen una visión rápida del rendimiento financiero mensual.
+    <p style="font-size:0.82rem;color:#555;margin-bottom:10px;line-height:1.5">
+      Esta sección presenta los indicadores clave de rendimiento (KPI) del mes de ${nombreMes}.<br>
+      Se muestra el ingreso total, cantidad de ventas, promedio diario, días operativos, método preferido y variación vs mes anterior.<br>
+      Estos indicadores ofrecen una fotografía rápida del desempeño financiero mensual.
     </p>
     <div class="kpi-grid">
-      <div class="kpi"><div class="num">$${total.toLocaleString()}</div><div class="label">Total del Mes</div></div>
+      <div class="kpi"><div class="num">${total.toLocaleString()}</div><div class="label">Total del Mes</div></div>
       <div class="kpi"><div class="num">${ventas.length}</div><div class="label">Total Ventas</div></div>
-      <div class="kpi"><div class="num">$${promDiario.toLocaleString()}</div><div class="label">Promedio Diario</div></div>
+      <div class="kpi"><div class="num">${promDiario.toLocaleString()}</div><div class="label">Promedio Diario</div></div>
       <div class="kpi"><div class="num">${diasConVentas}</div><div class="label">Días con Ventas</div></div>
       <div class="kpi"><div class="num">${metodoTop.n}</div><div class="label">Método Más Usado</div></div>
       <div class="kpi"><div class="num">${diffPct >= 0 ? '+' : ''}${diffPct}%</div><div class="label">vs Mes Anterior</div></div>
-
-    <div style="margin-top:8px;padding:8px 10px;background:#f0f4ff;border-radius:6px;font-size:0.78rem;color:#444;border-left:3px solid #1a56db;line-height:1.4">
-      <strong>Conclusión:</strong> En ${nombreMes} se procesaron ${ventas.length} ventas por $${total.toLocaleString()} (promedio $${promDiario.toLocaleString()}/día en ${diasConVentas} días). Método preferido: ${metodoTop.n} (${metodoTop.c} ops). ${diffPct >= 0 ? "Crecimiento del " + diffPct + "% vs mes anterior." : "Caída del " + Math.abs(diffPct) + "% vs mes anterior."}
+    </div>
+    <div style="margin-top:12px;padding:12px 14px;background:#f0f4ff;border-radius:6px;font-size:0.82rem;color:#444;border-left:3px solid #1a56db;line-height:1.6">
+      <strong>Conclusión de esta sección:</strong><br>
+      Durante ${nombreMes} se procesaron ${ventas.length} transacciones que generaron ingresos por $${total.toLocaleString()}.<br>
+      El promedio diario de ventas fue de $${promDiario.toLocaleString()}, calculado sobre ${diasConVentas} días con actividad comercial registrada.<br>
+      El método de pago preferido por los clientes fue ${metodoTop.n}, concentrando ${metodoTop.c} operaciones del total.<br>
+      ${diffPct >= 0 ? 'Se observa un crecimiento del ' + diffPct + '% respecto al mes anterior, indicando tendencia positiva.' : 'Se registró una caída del ' + Math.abs(diffPct) + '% respecto al mes anterior, lo que requiere atención.'}<br>
+      Estos números reflejan el pulso general del negocio y sirven como base para decisiones estratégicas.<br>
+      Se recomienda revisar las secciones siguientes para entender el comportamiento detrás de estos indicadores.<br>
+      El análisis por método de pago y tipo de documento complementa esta visión general.
     </div>
   </div>
 
