@@ -3424,88 +3424,145 @@ function editarVentaCaja(id) {
 // ── Retiros de Caja ──────────────────────────────────────────
 
 function generarPDFRetiro(retiro) {
+  // Generar número correlativo basado en cantidad de retiros
+  const nroComprobante = String(retirosCaja.indexOf(retiro) + 1).padStart(4, '0');
+
+  const montoEnPalabras = convertirMontoAPalabras(retiro.monto);
+
   const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>
     @page { size: letter; margin: 20mm; }
-    * { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 0; box-sizing: border-box; }
-    body { padding: 30px; background: white; }
-    .container { max-width: 500px; margin: 0 auto; border: 2px solid #1a56db; border-radius: 12px; overflow: hidden; }
-    .header { background: linear-gradient(135deg, #1a56db, #3b82f6); color: white; padding: 24px; text-align: center; }
-    .header h1 { font-size: 24px; margin-bottom: 4px; letter-spacing: 1px; }
-    .header p { font-size: 13px; opacity: 0.9; }
-    .badge { display: inline-block; background: #dc2626; color: white; font-size: 12px; font-weight: bold; padding: 4px 12px; border-radius: 20px; margin-top: 10px; letter-spacing: 0.5px; }
-    .monto-box { text-align: center; padding: 24px; background: #fef2f2; border-bottom: 1px solid #fecaca; }
-    .monto-box .monto { font-size: 36px; font-weight: bold; color: #dc2626; }
-    .monto-box .label { font-size: 12px; color: #888; margin-top: 4px; }
-    .detalles { padding: 20px 24px; }
-    .detalle-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #f1f5f9; }
-    .detalle-row:last-child { border-bottom: none; }
-    .detalle-row .icon { font-size: 18px; margin-right: 10px; }
-    .detalle-row .info { display: flex; align-items: center; }
-    .detalle-row .label { font-size: 13px; color: #64748b; }
-    .detalle-row .value { font-size: 15px; font-weight: 600; color: #1e293b; }
-    .firmas { display: flex; justify-content: space-between; padding: 30px 24px 20px; gap: 20px; }
-    .firma-box { flex: 1; text-align: center; }
-    .firma-linea { border-top: 2px solid #1a56db; margin-top: 50px; padding-top: 8px; }
-    .firma-nombre { font-size: 13px; font-weight: 600; color: #1a56db; }
-    .firma-rol { font-size: 10px; color: #888; }
-    .footer { background: #f8fafc; padding: 12px; text-align: center; font-size: 10px; color: #94a3b8; border-top: 1px solid #e2e8f0; }
+    * { font-family: 'Times New Roman', serif; margin: 0; padding: 0; box-sizing: border-box; }
+    body { padding: 40px; color: #000; line-height: 1.6; }
+    .encabezado { text-align: center; border-bottom: 3px double #000; padding-bottom: 16px; margin-bottom: 20px; }
+    .encabezado h1 { font-size: 20px; font-weight: bold; letter-spacing: 2px; text-transform: uppercase; }
+    .encabezado p { font-size: 11px; color: #444; margin-top: 2px; }
+    .titulo-doc { text-align: center; margin: 20px 0; }
+    .titulo-doc h2 { font-size: 16px; text-transform: uppercase; letter-spacing: 1px; border: 2px solid #000; display: inline-block; padding: 6px 24px; }
+    .nro-comprobante { text-align: right; font-size: 12px; margin-bottom: 16px; }
+    .nro-comprobante span { font-weight: bold; font-size: 14px; }
+    .datos-tabla { width: 100%; border-collapse: collapse; margin: 20px 0; }
+    .datos-tabla td { padding: 10px 12px; border: 1px solid #000; font-size: 13px; }
+    .datos-tabla td.label { background: #f5f5f5; font-weight: bold; width: 35%; }
+    .monto-grande { text-align: center; margin: 24px 0; padding: 16px; border: 2px solid #000; }
+    .monto-grande .cifra { font-size: 28px; font-weight: bold; }
+    .monto-grande .palabras { font-size: 11px; font-style: italic; margin-top: 4px; color: #333; }
+    .declaracion { margin: 24px 0; font-size: 12px; text-align: justify; padding: 12px; border: 1px solid #ccc; background: #fafafa; }
+    .firmas { display: flex; justify-content: space-between; margin-top: 60px; padding: 0 20px; }
+    .firma-box { text-align: center; width: 40%; }
+    .firma-linea { border-top: 1px solid #000; padding-top: 6px; margin-top: 60px; }
+    .firma-nombre { font-size: 12px; font-weight: bold; }
+    .firma-cargo { font-size: 10px; color: #555; }
+    .pie { margin-top: 40px; text-align: center; font-size: 9px; color: #888; border-top: 1px solid #ccc; padding-top: 10px; }
+    .fecha-lugar { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 16px; }
   </style></head><body>
-    <div class="container">
-      <div class="header">
-        <h1>BODEGA A&amp;M</h1>
-        <p>Comprobante de Retiro de Caja</p>
-        <div class="badge">RETIRO</div>
-      </div>
-      <div class="monto-box">
-        <div class="monto">-$${retiro.monto.toLocaleString()}</div>
-        <div class="label">Monto retirado</div>
-      </div>
-      <div class="detalles">
-        <div class="detalle-row">
-          <div class="info"><span class="icon">📅</span><span class="label">Fecha</span></div>
-          <span class="value">${retiro.fecha.split('-').reverse().join('/')}</span>
-        </div>
-        <div class="detalle-row">
-          <div class="info"><span class="icon">🕒</span><span class="label">Hora</span></div>
-          <span class="value">${retiro.hora}</span>
-        </div>
-        <div class="detalle-row">
-          <div class="info"><span class="icon">👤</span><span class="label">Quien retira</span></div>
-          <span class="value">${retiro.quienRetira || 'Jose Lee'}</span>
-        </div>
-        <div class="detalle-row">
-          <div class="info"><span class="icon">📨</span><span class="label">Entregar a</span></div>
-          <span class="value">${retiro.destinatario}</span>
-        </div>
-        <div class="detalle-row">
-          <div class="info"><span class="icon">📝</span><span class="label">Nota</span></div>
-          <span class="value">${retiro.nota || 'Sin nota'}</span>
-        </div>
-      </div>
-      <div class="firmas">
-        <div class="firma-box">
-          <div class="firma-linea">
-            <div class="firma-nombre">${retiro.quienRetira || 'Jose Lee'}</div>
-            <div class="firma-rol">Retira</div>
-          </div>
-        </div>
-        <div class="firma-box">
-          <div class="firma-linea">
-            <div class="firma-nombre">${retiro.destinatario}</div>
-            <div class="firma-rol">Recibe</div>
-          </div>
+
+    <div class="encabezado">
+      <h1>Bodega A&amp;M</h1>
+      <p>Comercializadora de Productos</p>
+    </div>
+
+    <div class="titulo-doc">
+      <h2>Comprobante de Egreso de Caja</h2>
+    </div>
+
+    <div class="nro-comprobante">
+      N° Comprobante: <span>${nroComprobante}</span>
+    </div>
+
+    <div class="fecha-lugar">
+      <span>Fecha: ${retiro.fecha.split('-').reverse().join('/')}</span>
+      <span>Hora: ${retiro.hora}</span>
+    </div>
+
+    <table class="datos-tabla">
+      <tr><td class="label">Monto</td><td>$ ${retiro.monto.toLocaleString()}.-</td></tr>
+      <tr><td class="label">Monto en palabras</td><td>${montoEnPalabras}</td></tr>
+      <tr><td class="label">Beneficiario</td><td>${retiro.destinatario}</td></tr>
+      <tr><td class="label">Entregado por</td><td>${retiro.quienRetira || 'Jose Lee'}</td></tr>
+      <tr><td class="label">Concepto</td><td>${retiro.nota || 'Retiro de caja'}</td></tr>
+    </table>
+
+    <div class="monto-grande">
+      <div class="cifra">$ ${retiro.monto.toLocaleString()}.-</div>
+      <div class="palabras">(${montoEnPalabras})</div>
+    </div>
+
+    <div class="declaracion">
+      Declaro haber recibido de parte de <strong>${retiro.quienRetira || 'Jose Lee'}</strong>, en representación de Bodega A&amp;M, la suma de <strong>$ ${retiro.monto.toLocaleString()}.-</strong> (${montoEnPalabras}), correspondiente a: <strong>${retiro.nota || 'retiro de caja'}</strong>. El presente comprobante se extiende como constancia de la entrega y recepción conforme del monto indicado.
+    </div>
+
+    <div class="firmas">
+      <div class="firma-box">
+        <div class="firma-linea">
+          <div class="firma-nombre">${retiro.quienRetira || 'Jose Lee'}</div>
+          <div class="firma-cargo">Entrega</div>
         </div>
       </div>
-      <div class="footer">
-        Documento interno &mdash; Bodega A&amp;M &mdash; Generado el ${new Date().toLocaleDateString('es-CL')} a las ${new Date().toTimeString().slice(0,5)}
+      <div class="firma-box">
+        <div class="firma-linea">
+          <div class="firma-nombre">${retiro.destinatario}</div>
+          <div class="firma-cargo">Recibe Conforme</div>
+        </div>
       </div>
     </div>
+
+    <div class="pie">
+      Documento interno — Bodega A&amp;M — Comprobante generado el ${new Date().toLocaleDateString('es-CL')} a las ${new Date().toTimeString().slice(0,5)}<br>
+      Este documento no tiene valor tributario. Solo para control interno.
+    </div>
+
   </body></html>`;
 
   if (window.require) {
     const { ipcRenderer } = window.require('electron');
     ipcRenderer.send('vistaPreviewPDF', html);
   }
+}
+
+// Convertir monto a palabras
+function convertirMontoAPalabras(monto) {
+  const unidades = ['', 'un', 'dos', 'tres', 'cuatro', 'cinco', 'seis', 'siete', 'ocho', 'nueve'];
+  const decenas = ['', 'diez', 'veinte', 'treinta', 'cuarenta', 'cincuenta', 'sesenta', 'setenta', 'ochenta', 'noventa'];
+  const especiales = ['diez', 'once', 'doce', 'trece', 'catorce', 'quince', 'dieciséis', 'diecisiete', 'dieciocho', 'diecinueve'];
+  const centenas = ['', 'ciento', 'doscientos', 'trescientos', 'cuatrocientos', 'quinientos', 'seiscientos', 'setecientos', 'ochocientos', 'novecientos'];
+
+  if (monto === 0) return 'cero pesos';
+  if (monto === 100) return 'cien pesos';
+
+  let resultado = '';
+
+  if (monto >= 1000000) {
+    const millones = Math.floor(monto / 1000000);
+    resultado += (millones === 1 ? 'un millón ' : convertirGrupo(millones, unidades, decenas, especiales, centenas) + ' millones ');
+    monto %= 1000000;
+  }
+
+  if (monto >= 1000) {
+    const miles = Math.floor(monto / 1000);
+    resultado += (miles === 1 ? 'mil ' : convertirGrupo(miles, unidades, decenas, especiales, centenas) + ' mil ');
+    monto %= 1000;
+  }
+
+  if (monto > 0) {
+    resultado += convertirGrupo(monto, unidades, decenas, especiales, centenas);
+  }
+
+  return resultado.trim() + ' pesos';
+}
+
+function convertirGrupo(n, unidades, decenas, especiales, centenas) {
+  if (n === 0) return '';
+  if (n === 100) return 'cien';
+  let r = '';
+  if (n >= 100) { r += centenas[Math.floor(n / 100)] + ' '; n %= 100; }
+  if (n >= 10 && n < 20) { r += especiales[n - 10]; return r.trim(); }
+  if (n >= 20) {
+    r += decenas[Math.floor(n / 10)];
+    if (n % 10 !== 0) r += ' y ' + unidades[n % 10];
+    return r.trim();
+  }
+  if (n > 0) r += unidades[n];
+  return r.trim();
 }
 
 function registrarRetiro() {
