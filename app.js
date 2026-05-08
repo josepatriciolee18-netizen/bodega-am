@@ -4034,10 +4034,7 @@ function generarInformeCaja(mes, mes2) {
 
   if (window.require) {
     const { ipcRenderer } = window.require('electron');
-    ipcRenderer.send('imprimirCarta', html);
-    ipcRenderer.once('pdf-guardado', (event, ruta) => {
-      showToast('✔ Informe guardado en: ' + ruta);
-    });
+    ipcRenderer.send('vistaPreviewPDF', html);
   }
 }
 
