@@ -3416,19 +3416,19 @@ function generarPDFRetiro(retiro) {
   const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>
     @page { size: 80mm 200mm; margin: 5mm; }
     * { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 0; box-sizing: border-box; }
-    body { padding: 10px; font-size: 12px; }
-    .header { text-align: center; border-bottom: 2px dashed #000; padding-bottom: 8px; margin-bottom: 10px; }
-    .header h1 { font-size: 16px; margin-bottom: 2px; }
-    .header p { font-size: 10px; color: #555; }
-    .titulo { text-align: center; font-size: 14px; font-weight: bold; margin: 10px 0; color: #c81e1e; border: 1px solid #c81e1e; padding: 6px; border-radius: 4px; }
-    .row { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px dotted #ccc; font-size: 11px; }
+    body { padding: 14px; font-size: 16px; }
+    .header { text-align: center; border-bottom: 2px dashed #000; padding-bottom: 10px; margin-bottom: 14px; }
+    .header h1 { font-size: 22px; margin-bottom: 4px; }
+    .header p { font-size: 14px; color: #555; }
+    .titulo { text-align: center; font-size: 18px; font-weight: bold; margin: 12px 0; color: #c81e1e; border: 2px solid #c81e1e; padding: 8px; border-radius: 4px; }
+    .row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dotted #ccc; font-size: 15px; }
     .row .label { color: #555; }
     .row .value { font-weight: bold; }
-    .monto { text-align: center; font-size: 22px; font-weight: bold; color: #c81e1e; margin: 14px 0; }
-    .footer { margin-top: 16px; border-top: 2px dashed #000; padding-top: 8px; text-align: center; font-size: 9px; color: #888; }
-    .firma { margin-top: 30px; display: flex; justify-content: space-between; }
+    .monto { text-align: center; font-size: 32px; font-weight: bold; color: #c81e1e; margin: 18px 0; }
+    .footer { margin-top: 20px; border-top: 2px dashed #000; padding-top: 10px; text-align: center; font-size: 12px; color: #888; }
+    .firma { margin-top: 40px; display: flex; justify-content: space-between; }
     .firma div { text-align: center; width: 45%; }
-    .firma .linea { border-top: 1px solid #000; margin-top: 30px; padding-top: 4px; font-size: 9px; }
+    .firma .linea { border-top: 1px solid #000; margin-top: 40px; padding-top: 6px; font-size: 12px; }
   </style></head><body>
     <div class="header">
       <h1>Bodega A&amp;M</h1>
@@ -3574,7 +3574,7 @@ function renderRetiros() {
     <td>${r.destinatario}</td>
     <td>${r.operador}</td>
     <td>${r.nota || '-'}</td>
-    <td><button class="btn-secondary" style="padding:2px 8px;font-size:0.75rem;margin-right:4px" onclick="editarRetiro('${r.id}')">✏</button><button class="btn-delete" onclick="eliminarRetiro('${r.id}')" title="Eliminar">🗑</button></td>
+    <td><button class="btn-add" style="padding:2px 8px;font-size:0.75rem;margin-right:4px" onclick="generarPDFRetiro(retirosCaja.find(x=>x.id==='${r.id}'))">🖨</button><button class="btn-secondary" style="padding:2px 8px;font-size:0.75rem;margin-right:4px" onclick="editarRetiro('${r.id}')">✏</button><button class="btn-delete" onclick="eliminarRetiro('${r.id}')" title="Eliminar">🗑</button></td>
   </tr>`).join('');
 }
 
