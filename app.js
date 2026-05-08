@@ -3777,6 +3777,13 @@ document.getElementById('btnCajaInforme').addEventListener('click', () => {
   generarInformeCaja(mes, mes2);
 });
 
+document.getElementById('btnCajaInformeGuardar').addEventListener('click', () => {
+  const mes = document.getElementById('cajaInformeMes').value;
+  if (!mes) { showToast('Selecciona un mes', true); return; }
+  const mes2 = document.getElementById('cajaInformeMes2').value || null;
+  generarInformeCaja(mes, mes2, true);
+});
+
 function generarConclusionAleatoria(nombreMes, total, ventas, metodoTop, mejorDia, mejorMonto, peorDia, peorMonto, promDiario, diasConVentas, diffPct, diaSemNombre, semanas, boletas, facturas, sinDoc, efectivo, debito, credito, transferencia) {
   const pctMetodo = Math.round((metodoTop.c/ventas.length)*100);
   const pctBoletas = Math.round((boletas.length/ventas.length)*100);
@@ -3793,7 +3800,7 @@ function generarConclusionAleatoria(nombreMes, total, ventas, metodoTop, mejorDi
   return conclusiones[Math.floor(Math.random() * conclusiones.length)];
 }
 
-function generarInformeCaja(mes, mes2) {
+function generarInformeCaja(mes, mes2, guardarEnEscritorio) {
   const ventas = ventasCaja.filter(v => v.fecha && v.fecha.slice(0,7) === mes);
   if (ventas.length === 0) { showToast('No hay ventas en este mes', true); return; }
 
@@ -3946,6 +3953,22 @@ function generarInformeCaja(mes, mes2) {
       <tr><td>Transferencia</td><td>$${transferencia.reduce((a,v)=>a+v.monto,0).toLocaleString()}</td><td>${transferencia.length}</td><td>${ventas.length>0?Math.round((transferencia.length/ventas.length)*100):0}%</td></tr>
       <tr style="font-weight:bold;background:#e0e7ff"><td>TOTAL</td><td>$${total.toLocaleString()}</td><td>${ventas.length}</td><td>100%</td></tr>
     </table>
+    <div style="display:flex;align-items:center;justify-content:space-around;margin-top:20px;flex-wrap:wrap">
+      <div style="width:160px;height:160px;border-radius:50%;background:conic-gradient(#10b981 0% ${ventas.length>0?Math.round((efectivo.length/ventas.length)*100):0}%, #3b82f6 ${ventas.length>0?Math.round((efectivo.length/ventas.length)*100):0}% ${ventas.length>0?Math.round(((efectivo.length+debito.length)/ventas.length)*100):0}%, #f59e0b ${ventas.length>0?Math.round(((efectivo.length+debito.length)/ventas.length)*100):0}% ${ventas.length>0?Math.round(((efectivo.length+debito.length+credito.length)/ventas.length)*100):0}%, #8b5cf6 ${ventas.length>0?Math.round(((efectivo.length+debito.length+credito.length)/ventas.length)*100):0}% 100%)"></div>
+      <div style="font-size:0.85rem">
+        <div style="margin:6px 0"><span style="display:inline-block;width:14px;height:14px;background:#10b981;border-radius:50%;vertical-align:middle;margin-right:6px"></span>Efectivo: ${ventas.length>0?Math.round((efectivo.length/ventas.length)*100):0}%</div>
+        <div style="margin:6px 0"><span style="display:inline-block;width:14px;height:14px;background:#3b82f6;border-radius:50%;vertical-align:middle;margin-right:6px"></span>Débito: ${ventas.length>0?Math.round((debito.length/ventas.length)*100):0}%</div>
+        <div style="margin:6px 0"><span style="display:inline-block;width:14px;height:14px;background:#f59e0b;border-radius:50%;vertical-align:middle;margin-right:6px"></span>Crédito: ${ventas.length>0?Math.round((credito.length/ventas.length)*100):0}%</div>
+        <div style="margin:6px 0"><span style="display:inline-block;width:14px;height:14px;background:#8b5cf6;border-radius:50%;vertical-align:middle;margin-right:6px"></span>Transferencia: ${ventas.length>0?Math.round((transferencia.length/ventas.length)*100):0}%</div>
+      </div>
+    </div>
+    <div style="margin-top:20px">
+      <p style="font-weight:600;margin-bottom:8px">Distribución por Monto:</p>
+      <div style="display:flex;align-items:center;margin:4px 0"><span style="width:100px;font-size:0.8rem">Efectivo</span><div style="height:20px;background:#10b981;border-radius:3px;width:${total>0?Math.round((efectivo.reduce((a,v)=>a+v.monto,0)/total)*100):0}%"></div><span style="margin-left:6px;font-size:0.8rem">${total>0?Math.round((efectivo.reduce((a,v)=>a+v.monto,0)/total)*100):0}%</span></div>
+      <div style="display:flex;align-items:center;margin:4px 0"><span style="width:100px;font-size:0.8rem">Débito</span><div style="height:20px;background:#3b82f6;border-radius:3px;width:${total>0?Math.round((debito.reduce((a,v)=>a+v.monto,0)/total)*100):0}%"></div><span style="margin-left:6px;font-size:0.8rem">${total>0?Math.round((debito.reduce((a,v)=>a+v.monto,0)/total)*100):0}%</span></div>
+      <div style="display:flex;align-items:center;margin:4px 0"><span style="width:100px;font-size:0.8rem">Crédito</span><div style="height:20px;background:#f59e0b;border-radius:3px;width:${total>0?Math.round((credito.reduce((a,v)=>a+v.monto,0)/total)*100):0}%"></div><span style="margin-left:6px;font-size:0.8rem">${total>0?Math.round((credito.reduce((a,v)=>a+v.monto,0)/total)*100):0}%</span></div>
+      <div style="display:flex;align-items:center;margin:4px 0"><span style="width:100px;font-size:0.8rem">Transferencia</span><div style="height:20px;background:#8b5cf6;border-radius:3px;width:${total>0?Math.round((transferencia.reduce((a,v)=>a+v.monto,0)/total)*100):0}%"></div><span style="margin-left:6px;font-size:0.8rem">${total>0?Math.round((transferencia.reduce((a,v)=>a+v.monto,0)/total)*100):0}%</span></div>
+    </div>
   </div>
 
   <!-- 3. DESGLOSE POR TIPO DOCUMENTO -->
@@ -4034,7 +4057,14 @@ function generarInformeCaja(mes, mes2) {
 
   if (window.require) {
     const { ipcRenderer } = window.require('electron');
-    ipcRenderer.send('vistaPreviewPDF', html);
+    if (guardarEnEscritorio) {
+      ipcRenderer.send('imprimirCarta', html);
+      ipcRenderer.once('pdf-guardado', (event, ruta) => {
+        showToast('✔ Informe guardado en: ' + ruta);
+      });
+    } else {
+      ipcRenderer.send('vistaPreviewPDF', html);
+    }
   }
 }
 
