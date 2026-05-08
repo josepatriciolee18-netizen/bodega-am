@@ -3846,6 +3846,50 @@ function cargarCajaDesdeFirebase() {
 
 renderCaja();
 
+// ── Historial de Retiros ──────────────────────────────────────────
+function renderHistRetiros(filtro) {
+  let datos = retirosCaja;
+  if (filtro === 'mes') {
+    const mes = document.getElementById('histRetirosMes').value;
+    if (!mes) { showToast('Selecciona un mes', true); return; }
+    datos = retirosCaja.filter(r => r.fecha && r.fecha.slice(0, 7) === mes);
+  }
+
+  // Sort by date descending
+  datos = [...datos].sort((a, b) => (b.fecha + b.hora).localeCompare(a.fecha + a.hora));
+
+  const tbody = document.getElementById('tbodyHistRetiros');
+  const totalMonto = datos.reduce((a, r) => a + r.monto, 0);
+
+  document.getElementById('histRetirosMonto').textContent = '$' + totalMonto.toLocaleString();
+  document.getElementById('histRetirosCant').textContent = datos.length;
+
+  if (datos.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="8" class="empty-msg">No hay retiros en este período</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = datos.map((r, i) => `<tr>
+    <td>${i + 1}</td>
+    <td>${r.fecha.split('-').reverse().join('/')}</td>
+    <td>${r.hora}</td>
+    <td style="color:#c81e1e;font-weight:bold">-$${r.monto.toLocaleString()}</td>
+    <td>${r.destinatario}</td>
+    <td>${r.quienRetira || '-'}</td>
+    <td>${r.nota || '-'}</td>
+    <td><button class="btn-add" style="padding:2px 8px;font-size:0.75rem" onclick="generarPDFRetiro(retirosCaja.find(x=>x.id==='${r.id}'))">🖨</button></td>
+  </tr>`).join('');
+}
+
+document.getElementById('btnHistRetiros').addEventListener('click', () => renderHistRetiros('mes'));
+document.getElementById('btnHistRetirosTodos').addEventListener('click', () => renderHistRetiros('todos'));
+
+// Set default month
+(function() {
+  const el = document.getElementById('histRetirosMes');
+  if (el) el.value = new Date().toISOString().slice(0, 7);
+})();
+
 // ── Ingresos y Egresos ──────────────────────────────────────────
 function registrarMovimiento() {
   const tipo = document.getElementById('movTipo').value;

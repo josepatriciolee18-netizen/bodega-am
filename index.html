@@ -903,6 +903,33 @@
         </div>
       </section>
 
+      <!-- HISTORIAL DE RETIROS -->
+      <section class="section">
+        <h2>📜 Historial de Retiros</h2>
+        <div class="filtros" style="margin-bottom:12px">
+          <div class="field">
+            <label>Mes</label>
+            <input type="month" id="histRetirosMes" />
+          </div>
+          <button type="button" id="btnHistRetiros" class="btn-add">🔍 Ver</button>
+          <button type="button" id="btnHistRetirosTodos" class="btn-secondary">Ver Todos</button>
+        </div>
+        <div id="histRetirosSummary" style="display:flex;gap:12px;margin-bottom:12px">
+          <div style="padding:8px 14px;background:#fee2e2;border-radius:6px;font-size:0.9rem"><strong>Total:</strong> <span id="histRetirosMonto" style="color:#c81e1e">$0</span></div>
+          <div style="padding:8px 14px;background:#f0f4ff;border-radius:6px;font-size:0.9rem"><strong>Cantidad:</strong> <span id="histRetirosCant">0</span></div>
+        </div>
+        <div style="overflow-x:auto">
+          <table>
+            <thead>
+              <tr><th>#</th><th>Fecha</th><th>Hora</th><th>Monto</th><th>Entregar a</th><th>Quien retira</th><th>Nota</th><th></th></tr>
+            </thead>
+            <tbody id="tbodyHistRetiros">
+              <tr><td colspan="8" class="empty-msg">Selecciona un mes para ver el historial</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
       <!-- INGRESOS Y EGRESOS -->
       <section class="section">
         <h2>📋 Ingresos y Egresos</h2>
