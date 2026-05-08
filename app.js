@@ -3255,12 +3255,15 @@ let cajaFechaActual = new Date().toISOString().slice(0, 10);
 document.getElementById('btnRegistrarVenta').addEventListener('click', () => {
   const monto = parseInt(document.getElementById('cajaMonto').value);
   const metodo = document.getElementById('cajaMetodo').value;
+  const fechaInput = document.getElementById('cajaFechaRegistro').value;
   if (!monto || monto <= 0) { showToast('Ingresa un monto válido', true); return; }
   if (!metodo) { showToast('Selecciona un método de pago', true); return; }
 
+  const fechaVenta = fechaInput || new Date().toISOString().slice(0, 10);
+
   const venta = {
     id: Date.now().toString(36) + Math.random().toString(36).substr(2, 5),
-    fecha: new Date().toISOString().slice(0, 10),
+    fecha: fechaVenta,
     hora: new Date().toTimeString().slice(0, 5),
     monto: monto,
     metodo: metodo,
@@ -3273,6 +3276,7 @@ document.getElementById('btnRegistrarVenta').addEventListener('click', () => {
 
   document.getElementById('cajaMonto').value = '';
   document.getElementById('cajaMetodo').value = '';
+  document.getElementById('cajaFechaRegistro').value = '';
   renderCaja();
   showToast('✔ Venta registrada');
 });
@@ -3303,7 +3307,7 @@ function renderCaja() {
         <td>${v.hora}</td>
         <td>$${v.monto.toLocaleString()}</td>
         <td><span class="badge" style="background:${v.metodo==='Efectivo'?'#d1fae5':v.metodo==='Débito'?'#dbeafe':v.metodo==='Crédito'?'#fef3c7':'#e0e7ff'};color:#333;padding:3px 8px;border-radius:4px;font-size:0.8rem">${v.metodo}</span></td>
-        <td><button class="btn-delete" onclick="eliminarVentaCaja('${v.id}')">✕</button></td>
+        <td><button class="btn-add" style="padding:2px 6px;font-size:0.75rem;margin-right:4px" onclick="editarVentaCaja('${v.id}')">✏</button><button class="btn-delete" onclick="eliminarVentaCaja('${v.id}')">✕</button></td>
       </tr>`).join('');
   }
 
@@ -3335,6 +3339,50 @@ function eliminarVentaCaja(id) {
     renderCaja();
     showToast('✔ Venta eliminada');
   }
+}
+
+function editarVentaCaja(id) {
+  const idx = ventasCaja.findIndex(v => v.id === id);
+  if (idx === -1) return;
+  const v = ventasCaja[idx];
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.style.display = 'flex';
+  overlay.innerHTML = `
+    <div class="modal" style="max-width:380px">
+      <div class="modal-header"><h3>✏ Editar Venta</h3><button class="modal-close" onclick="this.closest('.modal-overlay').remove()">✕</button></div>
+      <div class="modal-body" style="padding:16px">
+        <div class="field"><label>Monto ($)</label><input type="number" id="editVentaMonto" value="${v.monto}" min="1" /></div>
+        <div class="field" style="margin-top:10px"><label>Método de Pago</label>
+          <select id="editVentaMetodo">
+            <option value="Efectivo" ${v.metodo==='Efectivo'?'selected':''}>Efectivo</option>
+            <option value="Débito" ${v.metodo==='Débito'?'selected':''}>Débito</option>
+            <option value="Crédito" ${v.metodo==='Crédito'?'selected':''}>Crédito</option>
+            <option value="Transferencia" ${v.metodo==='Transferencia'?'selected':''}>Transferencia</option>
+          </select>
+        </div>
+        <div class="field" style="margin-top:10px"><label>Fecha</label><input type="date" id="editVentaFecha" value="${v.fecha}" /></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="this.closest('.modal-overlay').remove()">Cancelar</button>
+        <button class="btn-primary" id="btnGuardarEditVenta">✔ Guardar</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  overlay.querySelector('#btnGuardarEditVenta').addEventListener('click', () => {
+    const nuevoMonto = parseInt(document.getElementById('editVentaMonto').value);
+    const nuevoMetodo = document.getElementById('editVentaMetodo').value;
+    const nuevaFecha = document.getElementById('editVentaFecha').value;
+    if (!nuevoMonto || nuevoMonto <= 0) { showToast('Monto inválido', true); return; }
+    ventasCaja[idx].monto = nuevoMonto;
+    ventasCaja[idx].metodo = nuevoMetodo;
+    ventasCaja[idx].fecha = nuevaFecha || v.fecha;
+    localStorage.setItem('ventasCaja', JSON.stringify(ventasCaja));
+    if (window.fbListo) fbGuardar('caja', v.id, ventasCaja[idx]);
+    overlay.remove();
+    renderCaja();
+    showToast('✔ Venta actualizada');
+  });
 }
 
 // Exportar Caja a Excel
@@ -3413,12 +3461,49 @@ function renderCajaMes(mes) {
   const cDebito = ventasMes.filter(v => v.metodo === 'Débito').length;
   const cCredito = ventasMes.filter(v => v.metodo === 'Crédito').length;
   const cTransferencia = ventasMes.filter(v => v.metodo === 'Transferencia').length;
+  const totalVentas = ventasMes.length;
+  const pctEfectivo = totalVentas > 0 ? Math.round((cEfectivo / totalVentas) * 100) : 0;
+  const pctDebito = totalVentas > 0 ? Math.round((cDebito / totalVentas) * 100) : 0;
+  const pctCredito = totalVentas > 0 ? Math.round((cCredito / totalVentas) * 100) : 0;
+  const pctTransferencia = totalVentas > 0 ? Math.round((cTransferencia / totalVentas) * 100) : 0;
 
-  document.getElementById('cajaMesEfectivo').innerHTML = '$' + efectivo.toLocaleString() + `<br><span style="font-size:0.7rem;opacity:0.7">${cEfectivo} venta${cEfectivo!==1?'s':''}</span>`;
-  document.getElementById('cajaMesDebito').innerHTML = '$' + debito.toLocaleString() + `<br><span style="font-size:0.7rem;opacity:0.7">${cDebito} venta${cDebito!==1?'s':''}</span>`;
-  document.getElementById('cajaMesCredito').innerHTML = '$' + credito.toLocaleString() + `<br><span style="font-size:0.7rem;opacity:0.7">${cCredito} venta${cCredito!==1?'s':''}</span>`;
-  document.getElementById('cajaMesTransferencia').innerHTML = '$' + transferencia.toLocaleString() + `<br><span style="font-size:0.7rem;opacity:0.7">${cTransferencia} venta${cTransferencia!==1?'s':''}</span>`;
-  document.getElementById('cajaMesTotal').innerHTML = '$' + total.toLocaleString() + `<br><span style="font-size:0.7rem;opacity:0.7">${ventasMes.length} venta${ventasMes.length!==1?'s':''}</span>`;
+  document.getElementById('cajaMesEfectivo').innerHTML = '$' + efectivo.toLocaleString() + `<br><span style="font-size:0.7rem;opacity:0.7">${cEfectivo} venta${cEfectivo!==1?'s':''} (${pctEfectivo}%)</span>`;
+  document.getElementById('cajaMesDebito').innerHTML = '$' + debito.toLocaleString() + `<br><span style="font-size:0.7rem;opacity:0.7">${cDebito} venta${cDebito!==1?'s':''} (${pctDebito}%)</span>`;
+  document.getElementById('cajaMesCredito').innerHTML = '$' + credito.toLocaleString() + `<br><span style="font-size:0.7rem;opacity:0.7">${cCredito} venta${cCredito!==1?'s':''} (${pctCredito}%)</span>`;
+  document.getElementById('cajaMesTransferencia').innerHTML = '$' + transferencia.toLocaleString() + `<br><span style="font-size:0.7rem;opacity:0.7">${cTransferencia} venta${cTransferencia!==1?'s':''} (${pctTransferencia}%)</span>`;
+  document.getElementById('cajaMesTotal').innerHTML = '$' + total.toLocaleString() + `<br><span style="font-size:0.7rem;opacity:0.7">${totalVentas} venta${totalVentas!==1?'s':''} total</span>`;
+
+  // Estadísticas extra
+  // Venta más alta
+  const ventaAlta = ventasMes.length > 0 ? Math.max(...ventasMes.map(v => v.monto)) : 0;
+  document.getElementById('cajaMesVentaAlta').textContent = '$' + ventaAlta.toLocaleString();
+
+  // Mejor día (más ingresos)
+  const porDia = {};
+  ventasMes.forEach(v => { porDia[v.fecha] = (porDia[v.fecha] || 0) + v.monto; });
+  let mejorDia = '—';
+  let maxDia = 0;
+  Object.entries(porDia).forEach(([dia, monto]) => {
+    if (monto > maxDia) { maxDia = monto; mejorDia = dia.slice(8,10) + '/' + dia.slice(5,7) + ' ($' + monto.toLocaleString() + ')'; }
+  });
+  document.getElementById('cajaMesMejorDia').textContent = mejorDia;
+
+  // Promedio diario
+  const diasConVentas = Object.keys(porDia).length;
+  const promDiario = diasConVentas > 0 ? Math.round(total / diasConVentas) : 0;
+  document.getElementById('cajaMesPromDiario').textContent = '$' + promDiario.toLocaleString();
+
+  // Días trabajados
+  document.getElementById('cajaMesDiasTrabajados').textContent = diasConVentas + ' días';
+
+  // Método más usado
+  const metodos = { Efectivo: cEfectivo, 'Débito': cDebito, 'Crédito': cCredito, Transferencia: cTransferencia };
+  let metodoTop = '—';
+  let maxMetodo = 0;
+  Object.entries(metodos).forEach(([m, c]) => {
+    if (c > maxMetodo) { maxMetodo = c; metodoTop = m + ' (' + (totalVentas > 0 ? Math.round((c/totalVentas)*100) : 0) + '%)'; }
+  });
+  document.getElementById('cajaMesMetodoTop').textContent = metodoTop;
 }
 
 // Sincronizar caja desde Firebase
@@ -3434,6 +3519,97 @@ function cargarCajaDesdeFirebase() {
 }
 
 renderCaja();
+
+// Comparar semanas
+document.getElementById('btnCompararSemanas').addEventListener('click', () => {
+  const hoy = new Date();
+  const diaSemana = hoy.getDay() || 7; // 1=lun, 7=dom
+  const inicioEstaSemana = new Date(hoy);
+  inicioEstaSemana.setDate(hoy.getDate() - diaSemana + 1);
+  const finEstaSemana = new Date(inicioEstaSemana);
+  finEstaSemana.setDate(inicioEstaSemana.getDate() + 6);
+  const inicioSemanaAnt = new Date(inicioEstaSemana);
+  inicioSemanaAnt.setDate(inicioEstaSemana.getDate() - 7);
+  const finSemanaAnt = new Date(inicioEstaSemana);
+  finSemanaAnt.setDate(inicioEstaSemana.getDate() - 1);
+
+  const formato = d => d.toISOString().slice(0, 10);
+  const ventasEsta = ventasCaja.filter(v => v.fecha >= formato(inicioEstaSemana) && v.fecha <= formato(finEstaSemana));
+  const ventasAnt = ventasCaja.filter(v => v.fecha >= formato(inicioSemanaAnt) && v.fecha <= formato(finSemanaAnt));
+
+  const totalEsta = ventasEsta.reduce((a, v) => a + v.monto, 0);
+  const totalAnt = ventasAnt.reduce((a, v) => a + v.monto, 0);
+  const cantEsta = ventasEsta.length;
+  const cantAnt = ventasAnt.length;
+
+  function diff(a, b) {
+    const d = b - a;
+    const pct = a > 0 ? Math.round((d / a) * 100) : (b > 0 ? '∞' : 0);
+    const color = d > 0 ? '#065f46' : d < 0 ? '#c81e1e' : '#333';
+    return `<span style="color:${color};font-weight:bold">${d >= 0 ? '+' : ''}${typeof d === 'number' && d > 999 ? '$'+d.toLocaleString() : d} (${pct}%)</span>`;
+  }
+
+  document.getElementById('tbodyCompSemanas').innerHTML = `
+    <tr><td>Total Ventas</td><td>$${totalAnt.toLocaleString()}</td><td>$${totalEsta.toLocaleString()}</td><td>${diff(totalAnt, totalEsta)}</td></tr>
+    <tr><td>Cantidad</td><td>${cantAnt}</td><td>${cantEsta}</td><td>${diff(cantAnt, cantEsta)}</td></tr>
+    <tr><td>Efectivo</td><td>$${ventasAnt.filter(v=>v.metodo==='Efectivo').reduce((a,v)=>a+v.monto,0).toLocaleString()}</td><td>$${ventasEsta.filter(v=>v.metodo==='Efectivo').reduce((a,v)=>a+v.monto,0).toLocaleString()}</td><td></td></tr>
+    <tr><td>Débito</td><td>$${ventasAnt.filter(v=>v.metodo==='Débito').reduce((a,v)=>a+v.monto,0).toLocaleString()}</td><td>$${ventasEsta.filter(v=>v.metodo==='Débito').reduce((a,v)=>a+v.monto,0).toLocaleString()}</td><td></td></tr>
+    <tr><td>Crédito</td><td>$${ventasAnt.filter(v=>v.metodo==='Crédito').reduce((a,v)=>a+v.monto,0).toLocaleString()}</td><td>$${ventasEsta.filter(v=>v.metodo==='Crédito').reduce((a,v)=>a+v.monto,0).toLocaleString()}</td><td></td></tr>
+    <tr><td>Transferencia</td><td>$${ventasAnt.filter(v=>v.metodo==='Transferencia').reduce((a,v)=>a+v.monto,0).toLocaleString()}</td><td>$${ventasEsta.filter(v=>v.metodo==='Transferencia').reduce((a,v)=>a+v.monto,0).toLocaleString()}</td><td></td></tr>
+  `;
+  document.getElementById('comparacionSemanas').style.display = '';
+});
+
+// Comparar meses de caja
+document.getElementById('btnCajaCompararMeses').addEventListener('click', () => {
+  const mes1 = document.getElementById('cajaCmpMes1').value;
+  const mes2 = document.getElementById('cajaCmpMes2').value;
+  if (!mes1 || !mes2) { showToast('Selecciona ambos meses', true); return; }
+  const v1 = ventasCaja.filter(v => v.fecha && v.fecha.slice(0,7) === mes1);
+  const v2 = ventasCaja.filter(v => v.fecha && v.fecha.slice(0,7) === mes2);
+  const t1 = v1.reduce((a,v) => a + v.monto, 0);
+  const t2 = v2.reduce((a,v) => a + v.monto, 0);
+  const mesesNombres = ['','Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  document.getElementById('cajaCmpTit1').textContent = mesesNombres[parseInt(mes1.split('-')[1])] + ' ' + mes1.split('-')[0];
+  document.getElementById('cajaCmpTit2').textContent = mesesNombres[parseInt(mes2.split('-')[1])] + ' ' + mes2.split('-')[0];
+  function diff(a, b) {
+    const d = b - a;
+    const pct = a > 0 ? Math.round((d/a)*100) : (b > 0 ? '∞' : 0);
+    const color = d > 0 ? '#065f46' : d < 0 ? '#c81e1e' : '#333';
+    return `<span style="color:${color};font-weight:bold">${d>=0?'+':''}$${d.toLocaleString()} (${pct}%)</span>`;
+  }
+  function diffN(a, b) {
+    const d = b - a;
+    const pct = a > 0 ? Math.round((d/a)*100) : (b > 0 ? '∞' : 0);
+    const color = d > 0 ? '#065f46' : d < 0 ? '#c81e1e' : '#333';
+    return `<span style="color:${color};font-weight:bold">${d>=0?'+':''}${d} (${pct}%)</span>`;
+  }
+  document.getElementById('tbodyCajaCompMeses').innerHTML = `
+    <tr><td>Total</td><td>$${t1.toLocaleString()}</td><td>$${t2.toLocaleString()}</td><td>${diff(t1,t2)}</td></tr>
+    <tr><td>Cantidad ventas</td><td>${v1.length}</td><td>${v2.length}</td><td>${diffN(v1.length,v2.length)}</td></tr>
+    <tr><td>Efectivo</td><td>$${v1.filter(v=>v.metodo==='Efectivo').reduce((a,v)=>a+v.monto,0).toLocaleString()}</td><td>$${v2.filter(v=>v.metodo==='Efectivo').reduce((a,v)=>a+v.monto,0).toLocaleString()}</td><td></td></tr>
+    <tr><td>Débito</td><td>$${v1.filter(v=>v.metodo==='Débito').reduce((a,v)=>a+v.monto,0).toLocaleString()}</td><td>$${v2.filter(v=>v.metodo==='Débito').reduce((a,v)=>a+v.monto,0).toLocaleString()}</td><td></td></tr>
+    <tr><td>Crédito</td><td>$${v1.filter(v=>v.metodo==='Crédito').reduce((a,v)=>a+v.monto,0).toLocaleString()}</td><td>$${v2.filter(v=>v.metodo==='Crédito').reduce((a,v)=>a+v.monto,0).toLocaleString()}</td><td></td></tr>
+    <tr><td>Transferencia</td><td>$${v1.filter(v=>v.metodo==='Transferencia').reduce((a,v)=>a+v.monto,0).toLocaleString()}</td><td>$${v2.filter(v=>v.metodo==='Transferencia').reduce((a,v)=>a+v.monto,0).toLocaleString()}</td><td></td></tr>
+  `;
+  document.getElementById('cajaCompMeses').style.display = '';
+});
+
+// Día más lento
+document.getElementById('btnCajaDiaLento').addEventListener('click', () => {
+  const mes = document.getElementById('cajaDiaLentoMes').value;
+  if (!mes) { showToast('Selecciona un mes', true); return; }
+  const ventasMes = ventasCaja.filter(v => v.fecha && v.fecha.slice(0,7) === mes);
+  if (ventasMes.length === 0) { document.getElementById('cajaDiaLentoResult').textContent = 'Sin ventas en este mes'; return; }
+  const porDia = {};
+  ventasMes.forEach(v => { porDia[v.fecha] = (porDia[v.fecha] || 0) + v.monto; });
+  let peorDia = '';
+  let minMonto = Infinity;
+  Object.entries(porDia).forEach(([dia, monto]) => {
+    if (monto < minMonto) { minMonto = monto; peorDia = dia; }
+  });
+  document.getElementById('cajaDiaLentoResult').textContent = '📉 ' + peorDia.split('-').reverse().join('/') + ' — $' + minMonto.toLocaleString() + ' (día más lento)';
+});
 
 // ══════════════════════════════════════════════════════════════
 // ── PANEL DE DIAGNÓSTICOS ─────────────────────────────────────

@@ -89,7 +89,7 @@
       <button class="tab" data-tab="clientes">👥 Clientes</button>
       <button class="tab" data-tab="recepciones">📥 Recepción de Órdenes</button>
       <button class="tab" data-tab="usuarios">👤 Usuarios</button>
-      <button class="tab" data-tab="caja">💰 Caja</button>
+      <button class="tab" data-tab="caja">💰 Caja Bodega</button>
       <button class="tab" data-tab="papelera">🗑 Papelera</button>
       <button class="tab" data-tab="diagnosticos">🩺 Diagnósticos</button>
     </nav>
@@ -768,6 +768,10 @@
               <option value="Transferencia">Transferencia</option>
             </select>
           </div>
+          <div class="field" style="flex:1">
+            <label>Fecha</label>
+            <input type="date" id="cajaFechaRegistro" />
+          </div>
           <button type="button" id="btnRegistrarVenta" class="btn-add">+ Registrar</button>
         </div>
       </section>
@@ -821,6 +825,50 @@
           <div class="stat-card"><span class="stat-num" id="cajaMesTransferencia">$0</span><span class="stat-label">Transferencia</span></div>
           <div class="stat-card" style="background:#065f46;color:white"><span class="stat-num" id="cajaMesTotal" style="color:white">$0</span><span class="stat-label" style="color:rgba(255,255,255,0.8)">Total del Mes</span></div>
         </div>
+        <div class="stats-grid" style="margin-top:12px; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));">
+          <div class="stat-card"><span class="stat-num" id="cajaMesVentaAlta">—</span><span class="stat-label">Venta Más Alta</span></div>
+          <div class="stat-card"><span class="stat-num" id="cajaMesMejorDia">—</span><span class="stat-label">Mejor Día</span></div>
+          <div class="stat-card"><span class="stat-num" id="cajaMesPromDiario">—</span><span class="stat-label">Promedio Diario</span></div>
+          <div class="stat-card"><span class="stat-num" id="cajaMesDiasTrabajados">—</span><span class="stat-label">Días con Ventas</span></div>
+          <div class="stat-card"><span class="stat-num" id="cajaMesMetodoTop">—</span><span class="stat-label">Método Más Usado</span></div>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>📈 Comparar Semanas</h2>
+        <div style="display:flex; gap:12px; flex-wrap:wrap">
+          <button type="button" id="btnCompararSemanas" class="btn-add">🔍 Esta semana vs anterior</button>
+        </div>
+        <div id="comparacionSemanas" style="display:none; margin-top:12px">
+          <table style="width:100%;font-size:0.9rem">
+            <thead><tr><th>Indicador</th><th>Semana Anterior</th><th>Esta Semana</th><th>Diferencia</th></tr></thead>
+            <tbody id="tbodyCompSemanas"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>📊 Comparar Meses de Caja</h2>
+        <div class="filtros" style="margin-bottom:12px">
+          <div class="field"><label>Mes 1</label><input type="month" id="cajaCmpMes1" /></div>
+          <div class="field"><label>Mes 2</label><input type="month" id="cajaCmpMes2" /></div>
+          <button type="button" id="btnCajaCompararMeses" class="btn-add">🔍 Comparar</button>
+        </div>
+        <div id="cajaCompMeses" style="display:none">
+          <table style="width:100%;font-size:0.9rem">
+            <thead><tr><th>Indicador</th><th id="cajaCmpTit1">Mes 1</th><th id="cajaCmpTit2">Mes 2</th><th>Diferencia</th></tr></thead>
+            <tbody id="tbodyCajaCompMeses"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>📉 Día Más Lento</h2>
+        <div class="filtros" style="margin-bottom:12px">
+          <div class="field"><label>Mes</label><input type="month" id="cajaDiaLentoMes" /></div>
+          <button type="button" id="btnCajaDiaLento" class="btn-add">🔍 Ver</button>
+        </div>
+        <div id="cajaDiaLentoResult" style="font-size:1rem;font-weight:600;color:#c81e1e;margin-top:8px">—</div>
       </section>
     </div>
 
