@@ -3439,11 +3439,12 @@ function generarPDFRetiro(retiro) {
     <div class="row"><span class="label">Fecha:</span><span class="value">${retiro.fecha.split('-').reverse().join('/')}</span></div>
     <div class="row"><span class="label">Hora:</span><span class="value">${retiro.hora}</span></div>
     <div class="row"><span class="label">Entregar a:</span><span class="value">${retiro.destinatario}</span></div>
+    <div class="row"><span class="label">Quien retira:</span><span class="value">${retiro.quienRetira || retiro.operador}</span></div>
     <div class="row"><span class="label">Operador:</span><span class="value">${retiro.operador}</span></div>
     <div class="row"><span class="label">Nota:</span><span class="value">${retiro.nota || 'Sin nota'}</span></div>
     <div class="firma">
-      <div><div class="linea">Entrega (Operador)</div></div>
-      <div><div class="linea">Recibe (${retiro.destinatario})</div></div>
+      <div><div class="linea">${retiro.quienRetira || retiro.operador} (Retira)</div></div>
+      <div><div class="linea">${retiro.destinatario} (Recibe)</div></div>
     </div>
     <div class="footer">
       <p>Documento interno - Bodega A&amp;M</p>
@@ -3487,6 +3488,7 @@ function registrarRetiro() {
   document.getElementById('retiroMonto').value = '';
   document.getElementById('retiroDestinatario').value = '';
   document.getElementById('retiroNota').value = '';
+  document.getElementById('retiroQuienRetira').value = '';
 
   renderRetiros();
   actualizarSaldoCaja();
@@ -3520,6 +3522,11 @@ function editarRetiro(id) {
             <option value="Pedro Almonacid" ${r.destinatario==='Pedro Almonacid'?'selected':''}>Pedro Almonacid</option>
           </select>
         </div>
+        <div class="field" style="margin-top:10px"><label>Quien retira</label>
+          <select id="editRetiroQuienRetira">
+            <option value="Jose Lee" ${r.quienRetira==='Jose Lee'?'selected':''}>Jose Lee</option>
+          </select>
+        </div>
         <div class="field" style="margin-top:10px"><label>Nota</label><input type="text" id="editRetiroNota" value="${r.nota || ''}" /></div>
         <div style="display:flex;gap:10px;margin-top:16px;justify-content:flex-end">
           <button class="btn-secondary" onclick="document.getElementById('modalEditRetiro').remove()">Cancelar</button>
@@ -3535,6 +3542,7 @@ function guardarEdicionRetiro(id) {
   const monto = parseInt(document.getElementById('editRetiroMonto').value);
   const destinatario = document.getElementById('editRetiroDestinatario').value;
   const nota = document.getElementById('editRetiroNota').value.trim();
+  const quienRetira = document.getElementById('editRetiroQuienRetira').value;
 
   if (!monto || monto <= 0) { showToast('Monto inválido', true); return; }
   if (!destinatario) { showToast('Selecciona destinatario', true); return; }
@@ -3545,6 +3553,7 @@ function guardarEdicionRetiro(id) {
   retirosCaja[idx].monto = monto;
   retirosCaja[idx].destinatario = destinatario;
   retirosCaja[idx].nota = nota;
+  retirosCaja[idx].quienRetira = quienRetira;
 
   localStorage.setItem('retirosCaja', JSON.stringify(retirosCaja));
   if (window.fbGuardar) fbGuardar('retirosCaja', id, retirosCaja[idx]).catch(() => {});
@@ -4387,7 +4396,7 @@ function generarInformeCaja(mes, mes2, guardarEnEscritorio) {
       <div class="kpi"><div class="num">$${totalRetirosMes.toLocaleString()}</div><div class="label">Monto Retirado</div></div>
       <div class="kpi"><div class="num">$${(total - totalRetirosMes).toLocaleString()}</div><div class="label">Ingreso Neto</div></div>
     </div>
-    ${retirosMes.length > 0 ? '<table><tr><th>#</th><th>Fecha</th><th>Hora</th><th>Monto</th><th>Entregar a</th><th>Operador</th><th>Nota</th></tr>' + retirosMes.map((r,i) => '<tr><td>' + (i+1) + '</td><td>' + r.fecha.split('-').reverse().join('/') + '</td><td>' + r.hora + '</td><td style="color:#c81e1e;font-weight:bold">-$' + r.monto.toLocaleString() + '</td><td>' + r.destinatario + '</td><td>' + r.operador + '</td><td>' + (r.nota||'-') + '</td></tr>').join('') + '</table>' : '<p style="text-align:center;color:#888">No se registraron retiros en este mes</p>'}
+    ${retirosMes.length > 0 ? '<table><tr><th>#</th><th>Fecha</th><th>Hora</th><th>Monto</th><th>Entregar a</th><th>Quien retira</th><th>Nota</th></tr>' + retirosMes.map((r,i) => '<tr><td>' + (i+1) + '</td><td>' + r.fecha.split('-').reverse().join('/') + '</td><td>' + r.hora + '</td><td style="color:#c81e1e;font-weight:bold">-$' + r.monto.toLocaleString() + '</td><td>' + r.destinatario + '</td><td>' + (r.quienRetira||r.operador) + '</td><td>' + (r.nota||'-') + '</td></tr>').join('') + '</table>' : '<p style="text-align:center;color:#888">No se registraron retiros en este mes</p>'}
     <div style="margin-top:12px;padding:12px 14px;background:#f0f4ff;border-radius:6px;font-size:0.82rem;color:#444;border-left:3px solid #1a56db;line-height:1.6">
       <strong>Conclusión de esta sección:</strong><br>
       Durante ${nombreMes} se realizaron ${retirosMes.length} retiros de caja por un total de $${totalRetirosMes.toLocaleString()}.<br>
