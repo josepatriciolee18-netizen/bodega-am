@@ -495,6 +495,7 @@ async function cargarDesdeFirebase() {
     }));
 
     let recepcionesCargadoInicial = false;
+    const recepcionesNotificadas = new Set(JSON.parse(localStorage.getItem('recepcionesNotificadas') || '[]'));
     _unsubscribers.push(fbEscuchar('recepciones', (datos) => {
       const nuevos = datos.sort((a,b) => b.nro.localeCompare(a.nro));
       
@@ -506,15 +507,23 @@ async function cargarDesdeFirebase() {
       if (hayCambios) {
         // Detectar recepciones nuevas para notificar
         if (recepcionesCargadoInicial) {
-          const recNuevas = nuevos.filter(n => !nrosActuales.has(n.nro));
+          const recNuevas = nuevos.filter(n => !nrosActuales.has(n.nro) && !recepcionesNotificadas.has(n.nro));
           const ahora = new Date();
           recNuevas.forEach(rec => {
-            // Solo notificar recepciones de los últimos 5 minutos
+            // Solo notificar recepciones de los últimos 5 minutos que no se hayan notificado antes
             const fechaRec = new Date(rec.fecha ? rec.fecha.replace('T', ' ') : 0);
             if ((ahora - fechaRec) < 5 * 60 * 1000) {
               mostrarNotificacion('📥 Orden Recibida por Bodega', `${rec.nro} — Orden ${rec.nroOrden} recibida por ${rec.recibidoPor}`, rec.nroOrden);
+              recepcionesNotificadas.add(rec.nro);
             }
           });
+          // Guardar notificadas (mantener solo las últimas 100)
+          const arrNotif = [...recepcionesNotificadas].slice(-100);
+          localStorage.setItem('recepcionesNotificadas', JSON.stringify(arrNotif));
+        } else {
+          // En la primera carga, marcar todas las existentes como ya notificadas
+          nuevos.forEach(r => recepcionesNotificadas.add(r.nro));
+          localStorage.setItem('recepcionesNotificadas', JSON.stringify([...recepcionesNotificadas].slice(-100)));
         }
         // Firebase es la fuente de verdad
         recepciones = nuevos;
