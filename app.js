@@ -4839,6 +4839,20 @@ const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>
     <div class="conclusion">
       ${generarConclusionAleatoria(nombreMes, total, ventas, metodoTop, mejorDia, mejorMonto, peorDia, peorMonto, promDiario, diasConVentas, diffPct, diaSemNombre, semanas, boletas, facturas, efectivo, debito, credito)}
     </div>
+    ${mes2Data ? `
+    <div style="margin-top:20px;padding:16px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px">
+      <h3 style="color:#1a56db;margin-bottom:10px;font-size:1rem">Conclusión Comparativa: ${nombreMes} vs ${mes2Data.nombreMes2}</h3>
+      <p style="font-size:0.9rem;line-height:1.7">
+        ${mes2Data.diffTotal >= 0 
+          ? 'El mes de ' + nombreMes + ' superó a ' + mes2Data.nombreMes2 + ' en un <strong>' + mes2Data.diffTotal + '%</strong> en ingresos totales, pasando de $' + mes2Data.total2.toLocaleString() + ' a $' + total.toLocaleString() + '.'
+          : 'El mes de ' + mes2Data.nombreMes2 + ' fue superior a ' + nombreMes + ' en un <strong>' + Math.abs(mes2Data.diffTotal) + '%</strong> en ingresos, con $' + mes2Data.total2.toLocaleString() + ' vs $' + total.toLocaleString() + '.'}<br>
+        En volumen de operaciones, ${nombreMes} registró ${ventas.length} ventas mientras que ${mes2Data.nombreMes2} tuvo ${mes2Data.ventas2.length} (diferencia de ${ventas.length - mes2Data.ventas2.length >= 0 ? '+' : ''}${ventas.length - mes2Data.ventas2.length}).<br>
+        El promedio diario ${promDiario >= mes2Data.promDiario2 ? 'mejoró' : 'disminuyó'}, pasando de $${mes2Data.promDiario2.toLocaleString()} a $${promDiario.toLocaleString()} por día.<br>
+        ${diasConVentas >= mes2Data.diasConVentas2 ? 'Se operó más días en ' + nombreMes + ' (' + diasConVentas + ' vs ' + mes2Data.diasConVentas2 + '), lo que contribuyó al resultado.' : 'Se operó menos días en ' + nombreMes + ' (' + diasConVentas + ' vs ' + mes2Data.diasConVentas2 + '), lo que pudo afectar negativamente.'}<br>
+        <strong>Recomendación:</strong> ${mes2Data.diffTotal >= 0 ? 'Mantener las estrategias que generaron el crecimiento y buscar consolidar la tendencia positiva en los próximos meses.' : 'Investigar las causas de la caída (estacionalidad, competencia, días no operativos) y definir acciones correctivas para recuperar el nivel de ' + mes2Data.nombreMes2 + '.'}
+      </p>
+    </div>
+    ` : ''}
   </div>
 
   <div class="footer">Bodega A&amp;M — Informe generado automáticamente el ${fechaGen}</div>
