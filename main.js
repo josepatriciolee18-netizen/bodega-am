@@ -333,7 +333,7 @@ ipcMain.on('guardarInformePDF', (event, htmlContent) => {
       pdfWin.webContents.printToPDF({
         pageSize: 'Letter',
         printBackground: true,
-        margins: { top: 15, bottom: 15, left: 15, right: 15 }
+        margins: { top: 0, bottom: 0, left: 0, right: 0 }
       }).then(data => {
         const hoy = new Date().toISOString().slice(0, 10);
         const pdfPath = path.join(os.homedir(), 'Desktop', `Informe_Caja_BodegaAM_${hoy}.pdf`);
