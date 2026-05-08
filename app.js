@@ -3844,9 +3844,10 @@ function generarInformeCaja(mes, mes2) {
     .indice h2 { color: #1a56db; border-bottom: 2px solid #1a56db; padding-bottom: 8px; }
     .indice ul { list-style: none; padding: 0; }
     .indice li { padding: 8px 0; border-bottom: 1px dotted #ccc; font-size: 1.1rem; }
-    .seccion { page-break-before: always; }
+    .seccion { page-break-before: always; page-break-inside: avoid; }
     .seccion h2 { color: #1a56db; border-bottom: 2px solid #e5e7eb; padding-bottom: 8px; margin-bottom: 16px; }
-    table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 0.9rem; }
+    table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 0.9rem; page-break-inside: auto; }
+    tr { page-break-inside: avoid; }
     th { background: #1a56db; color: white; padding: 8px 10px; text-align: left; }
     td { padding: 7px 10px; border-bottom: 1px solid #eee; }
     tr:nth-child(even) { background: #f8fafc; }
@@ -3856,6 +3857,15 @@ function generarInformeCaja(mes, mes2) {
     .kpi .label { font-size: 0.8rem; color: #666; margin-top: 4px; }
     .conclusion { background: #f0fdf4; border-left: 4px solid #10b981; padding: 16px; border-radius: 8px; margin-top: 16px; }
     .footer { text-align: center; margin-top: 40px; font-size: 0.8rem; color: #888; border-top: 1px solid #eee; padding-top: 10px; }
+    @media print {
+      .seccion { page-break-before: always !important; }
+      .portada { page-break-after: always !important; }
+      .indice { page-break-after: always !important; }
+      table { page-break-inside: auto !important; }
+      tr { page-break-inside: avoid !important; page-break-after: auto !important; }
+      thead { display: table-header-group; }
+      .conclusion { page-break-inside: avoid !important; }
+    }
   </style></head><body>
 
   <!-- PORTADA -->
