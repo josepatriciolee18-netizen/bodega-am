@@ -1180,9 +1180,10 @@ document.getElementById('btnExportarPDF').addEventListener('click', () => {
       @page { size: letter; margin: 15mm; }
       * { font-family: Arial, sans-serif; font-size: 11px; color: #000; margin:0; padding:0; box-sizing:border-box; }
       body { padding: 10px; }
-      h1 { font-size: 18px; text-align:center; margin-bottom: 4px; }
+      h1 { font-size: 18px; text-align:center; margin-bottom: 4px; display:block; width:100%; }
       h2 { font-size: 13px; margin: 16px 0 6px; border-bottom: 1px solid #333; padding-bottom: 3px; }
-      .fecha { text-align:center; font-size:10px; color:#555; margin-bottom:12px; }
+      .fecha { text-align:center; font-size:10px; color:#555; margin-bottom:12px; display:block; width:100%; }
+      .descripcion { font-size:10px; color:#444; margin-bottom:10px; line-height:1.5; padding:6px 10px; background:#f9f9f9; border-left:3px solid #333; }
       .stats { display:flex; gap:10px; margin-bottom:12px; }
       .stat { flex:1; border:1px solid #ccc; border-radius:4px; padding:8px; text-align:center; }
       .stat-num { font-size:20px; font-weight:bold; }
@@ -1193,8 +1194,17 @@ document.getElementById('btnExportarPDF').addEventListener('click', () => {
       tbody tr:nth-child(even) { background:#f5f5f5; }
     </style></head>
     <body>
-      <h1>Bodega A&M — Reporte de Órdenes</h1>
+      <h1>Bodega A&amp;M &mdash; Reporte de Órdenes</h1>
       <p class="fecha">Generado el ${hoy}</p>
+      <p class="descripcion">
+        Este informe presenta un resumen completo de la actividad de despacho de Bodega A&amp;M.<br>
+        Se incluyen estadísticas generales del período, el ranking de los productos más solicitados,<br>
+        y el detalle de todas las órdenes de salida registradas en el sistema.<br>
+        Los datos reflejan el estado actual del historial almacenado en la aplicación.<br>
+        Utilice este reporte para análisis de consumo, auditoría de movimientos y control de inventario.<br>
+        Las órdenes anuladas se muestran con su estado correspondiente para trazabilidad.<br>
+        Para consultas específicas por fecha o producto, utilice los filtros disponibles en la aplicación.
+      </p>
       <div class="stats">
         <div class="stat"><div class="stat-num">${historial.length}</div><div class="stat-label">Total Órdenes</div></div>
         <div class="stat"><div class="stat-num">${historial.filter(s=>s.fecha&&s.fecha.slice(0,10)===new Date().toISOString().slice(0,10)).length}</div><div class="stat-label">Órdenes Hoy</div></div>
@@ -1202,11 +1212,29 @@ document.getElementById('btnExportarPDF').addEventListener('click', () => {
         <div class="stat"><div class="stat-num">${historial.filter(s=>s.fecha&&s.fecha.slice(0,7)===new Date().toISOString().slice(0,7)).length}</div><div class="stat-label">Órdenes este Mes</div></div>
       </div>
       <h2>Top 10 Productos Más Despachados</h2>
+      <p class="descripcion">
+        Listado de los 10 productos con mayor cantidad total despachada en el período.<br>
+        Se calcula sumando todas las cantidades de cada producto en todas las órdenes registradas.<br>
+        Permite identificar los insumos de mayor rotación para planificar reposición y compras.<br>
+        El código corresponde al identificador interno del producto en el catálogo.<br>
+        La unidad indica la medida de despacho (unidades, kilos, litros, etc.).<br>
+        Si un producto aparece sin código, se identifica por su descripción.<br>
+        Este ranking es útil para negociar precios por volumen con proveedores.
+      </p>
       <table>
         <thead><tr><th>#</th><th>Código</th><th>Producto</th><th>Unidad</th><th>Total</th></tr></thead>
         <tbody>${filasTop || '<tr><td colspan="5" style="text-align:center">Sin datos</td></tr>'}</tbody>
       </table>
       <h2>Historial de Órdenes</h2>
+      <p class="descripcion">
+        Registro completo de todas las órdenes de salida emitidas por la bodega.<br>
+        Cada fila representa una orden con su número de salida único, tipo de documento asociado,<br>
+        fecha de emisión, cliente o solicitante, operador que la creó y estado actual.<br>
+        Las órdenes marcadas como "Anulada" fueron canceladas y no afectan el inventario.<br>
+        Las órdenes activas representan despachos efectivamente realizados.<br>
+        Use este listado para auditorías, seguimiento de entregas y resolución de reclamos.<br>
+        El orden es cronológico según la fecha de registro en el sistema.
+      </p>
       <table>
         <thead><tr><th>N° Salida</th><th>Tipo Doc.</th><th>Fecha</th><th>Cliente</th><th>Creada por</th><th>Estado</th></tr></thead>
         <tbody>${filasOrdenes || '<tr><td colspan="6" style="text-align:center">Sin órdenes</td></tr>'}</tbody>
@@ -3893,7 +3921,7 @@ function generarInformeCaja(mes, mes2, guardarEnEscritorio) {
 
   <!-- PORTADA -->
   <div class="portada">
-    <h1>📦 Bodega A&M</h1>
+    <h1>📦 Bodega A&amp;M</h1>
     <h2>Informe Mensual de Caja</h2>
     <h2 style="color:#1a56db;font-weight:bold">${nombreMes}</h2>
     <p class="fecha">Generado el ${fechaGen}</p>
@@ -3906,13 +3934,14 @@ function generarInformeCaja(mes, mes2, guardarEnEscritorio) {
       <li>1. Introducción</li>
       <li>2. Resumen Ejecutivo</li>
       <li>3. Desglose por Método de Pago</li>
-      <li>4. Análisis por Semana</li>
-      <li>5. Análisis por Día de la Semana</li>
-      <li>6. Mejor y Peor Día del Mes</li>
-      <li>7. Comparación con Mes Anterior</li>
-      <li>8. Detalle Diario Resumido</li>
-      <li>9. Detalle Completo de Ventas</li>
-      <li>10. Conclusión y Observaciones</li>
+      <li>4. Desglose por Tipo de Documento</li>
+      <li>5. Análisis por Semana</li>
+      <li>6. Análisis por Día de la Semana</li>
+      <li>7. Mejor y Peor Día del Mes</li>
+      <li>8. Comparación con Mes Anterior</li>
+      <li>9. Detalle Diario Resumido</li>
+      <li>10. Detalle Completo de Ventas</li>
+      <li>11. Conclusión y Recomendaciones</li>
     </ul>
   </div>
 
@@ -3932,6 +3961,15 @@ function generarInformeCaja(mes, mes2, guardarEnEscritorio) {
   <!-- 2. RESUMEN EJECUTIVO -->
   <div class="seccion">
     <h2>2. Resumen Ejecutivo</h2>
+    <p style="font-size:0.85rem;color:#555;margin-bottom:14px;line-height:1.6">
+      Esta sección presenta los indicadores clave de rendimiento (KPI) del mes de ${nombreMes}.<br>
+      Se muestra el ingreso total acumulado, la cantidad de transacciones realizadas y el promedio diario de ventas.<br>
+      También se indica cuántos días del mes registraron al menos una venta, lo que permite evaluar la regularidad del negocio.<br>
+      El método de pago más utilizado por los clientes se destaca para orientar decisiones sobre medios de cobro.<br>
+      La variación porcentual respecto al mes anterior permite identificar si el negocio creció o decreció.<br>
+      Estos indicadores ofrecen una fotografía rápida del desempeño financiero mensual.<br>
+      Utilice esta información como punto de partida para profundizar en las secciones siguientes del informe.
+    </p>
     <div class="kpi-grid">
       <div class="kpi"><div class="num">$${total.toLocaleString()}</div><div class="label">Total del Mes</div></div>
       <div class="kpi"><div class="num">${ventas.length}</div><div class="label">Total Ventas</div></div>
@@ -3940,11 +3978,29 @@ function generarInformeCaja(mes, mes2, guardarEnEscritorio) {
       <div class="kpi"><div class="num">${metodoTop.n}</div><div class="label">Método Más Usado</div></div>
       <div class="kpi"><div class="num">${diffPct >= 0 ? '+' : ''}${diffPct}%</div><div class="label">vs Mes Anterior</div></div>
     </div>
+    <div style="margin-top:16px;padding:12px 14px;background:#f0f4ff;border-radius:6px;font-size:0.82rem;color:#444;border-left:3px solid #1a56db;line-height:1.6">
+      <strong>Conclusión de esta sección:</strong><br>
+      Durante ${nombreMes} se procesaron un total de ${ventas.length} transacciones que generaron ingresos por $${total.toLocaleString()}.<br>
+      El promedio diario de ventas fue de $${promDiario.toLocaleString()}, calculado sobre ${diasConVentas} días con actividad comercial registrada.<br>
+      El método de pago preferido por los clientes fue ${metodoTop.n}, concentrando ${metodoTop.c} operaciones del total.<br>
+      ${diffPct >= 0 ? 'Se observa un crecimiento del ' + diffPct + '% en comparación con el mes anterior, lo que indica una tendencia positiva.' : 'Se registró una disminución del ' + Math.abs(diffPct) + '% respecto al mes anterior, lo que requiere atención y análisis de causas.'}<br>
+      Estos números reflejan el pulso general del negocio y sirven como base para las decisiones estratégicas del próximo período.<br>
+      Se recomienda revisar las secciones siguientes para entender en detalle el comportamiento detrás de estos indicadores.
+    </div>
   </div>
 
   <!-- 2. DESGLOSE POR MÉTODO -->
   <div class="seccion">
-    <h2>2. Desglose por Método de Pago</h2>
+    <h2>3. Desglose por Método de Pago</h2>
+    <p style="font-size:0.85rem;color:#555;margin-bottom:14px;line-height:1.6">
+      En esta sección se analiza cómo se distribuyeron los pagos según el medio utilizado por los clientes.<br>
+      Se presentan los cuatro métodos disponibles: Efectivo, Débito, Crédito y Transferencia bancaria.<br>
+      Para cada método se muestra el monto total recaudado, la cantidad de transacciones y su porcentaje sobre el total.<br>
+      El gráfico circular permite visualizar rápidamente qué método predomina en cantidad de operaciones.<br>
+      Las barras de distribución por monto muestran qué método concentra mayor volumen de dinero.<br>
+      Esta información es útil para evaluar si conviene incentivar algún medio de pago específico.<br>
+      También permite anticipar necesidades de cambio en efectivo o verificar comisiones por tarjeta.
+    </p>
     <table>
       <tr><th>Método</th><th>Monto</th><th>Ventas</th><th>%</th></tr>
       <tr><td>Efectivo</td><td>$${efectivo.reduce((a,v)=>a+v.monto,0).toLocaleString()}</td><td>${efectivo.length}</td><td>${ventas.length>0?Math.round((efectivo.length/ventas.length)*100):0}%</td></tr>
@@ -3969,22 +4025,60 @@ function generarInformeCaja(mes, mes2, guardarEnEscritorio) {
       <div style="display:flex;align-items:center;margin:4px 0"><span style="width:100px;font-size:0.8rem">Crédito</span><div style="height:20px;background:#f59e0b;border-radius:3px;width:${total>0?Math.round((credito.reduce((a,v)=>a+v.monto,0)/total)*100):0}%"></div><span style="margin-left:6px;font-size:0.8rem">${total>0?Math.round((credito.reduce((a,v)=>a+v.monto,0)/total)*100):0}%</span></div>
       <div style="display:flex;align-items:center;margin:4px 0"><span style="width:100px;font-size:0.8rem">Transferencia</span><div style="height:20px;background:#8b5cf6;border-radius:3px;width:${total>0?Math.round((transferencia.reduce((a,v)=>a+v.monto,0)/total)*100):0}%"></div><span style="margin-left:6px;font-size:0.8rem">${total>0?Math.round((transferencia.reduce((a,v)=>a+v.monto,0)/total)*100):0}%</span></div>
     </div>
+    <div style="margin-top:16px;padding:12px 14px;background:#f0f4ff;border-radius:6px;font-size:0.82rem;color:#444;border-left:3px solid #1a56db;line-height:1.6">
+      <strong>Conclusión de esta sección:</strong><br>
+      El método de pago dominante en ${nombreMes} fue ${metodoTop.n} con ${metodoTop.c} transacciones (${ventas.length>0?Math.round((metodoTop.c/ventas.length)*100):0}% del total).<br>
+      En términos de monto, Efectivo representó $${efectivo.reduce((a,v)=>a+v.monto,0).toLocaleString()}, Débito $${debito.reduce((a,v)=>a+v.monto,0).toLocaleString()}, Crédito $${credito.reduce((a,v)=>a+v.monto,0).toLocaleString()} y Transferencia $${transferencia.reduce((a,v)=>a+v.monto,0).toLocaleString()}.<br>
+      La distribución muestra las preferencias de los clientes y permite anticipar necesidades operativas como disponibilidad de cambio o terminales de pago.<br>
+      Si el efectivo predomina, es importante mantener fondo de caja suficiente; si predominan tarjetas, verificar que los terminales estén operativos.<br>
+      Las transferencias bancarias, aunque pueden demorar en confirmarse, reducen el riesgo de manejo de efectivo.<br>
+      Se sugiere monitorear mes a mes si algún método crece o decrece para adaptar la infraestructura de cobro.<br>
+      Considere ofrecer incentivos en métodos que desee promover para equilibrar la distribución según conveniencia del negocio.
+    </div>
   </div>
 
   <!-- 3. DESGLOSE POR TIPO DOCUMENTO -->
   <div class="seccion">
-    <h2>3. Desglose por Tipo de Documento</h2>
+    <h2>4. Desglose por Tipo de Documento</h2>
+    <p style="font-size:0.85rem;color:#555;margin-bottom:14px;line-height:1.6">
+      Esta sección muestra la distribución de ventas según el tipo de documento tributario emitido.<br>
+      Se clasifican en Boleta, Factura y Sin Documento, indicando monto, cantidad y porcentaje de cada uno.<br>
+      Las boletas corresponden a ventas a consumidor final, mientras que las facturas se emiten a empresas.<br>
+      Las ventas sin documento son aquellas donde el cliente no solicitó comprobante tributario.<br>
+      Este análisis permite verificar el cumplimiento de obligaciones tributarias del negocio.<br>
+      Un alto porcentaje de ventas sin documento podría requerir revisión de los procedimientos de caja.<br>
+      Utilice estos datos para preparar declaraciones de impuestos y auditorías internas.
+    </p>
     <table>
       <tr><th>Tipo</th><th>Monto</th><th>Cantidad</th><th>%</th></tr>
       <tr><td>Boleta</td><td>$${boletas.reduce((a,v)=>a+v.monto,0).toLocaleString()}</td><td>${boletas.length}</td><td>${ventas.length>0?Math.round((boletas.length/ventas.length)*100):0}%</td></tr>
       <tr><td>Factura</td><td>$${facturas.reduce((a,v)=>a+v.monto,0).toLocaleString()}</td><td>${facturas.length}</td><td>${ventas.length>0?Math.round((facturas.length/ventas.length)*100):0}%</td></tr>
       <tr><td>Sin Documento</td><td>$${sinDoc.reduce((a,v)=>a+v.monto,0).toLocaleString()}</td><td>${sinDoc.length}</td><td>${ventas.length>0?Math.round((sinDoc.length/ventas.length)*100):0}%</td></tr>
     </table>
+    <div style="margin-top:16px;padding:12px 14px;background:#f0f4ff;border-radius:6px;font-size:0.82rem;color:#444;border-left:3px solid #1a56db;line-height:1.6">
+      <strong>Conclusión de esta sección:</strong><br>
+      Del total de ${ventas.length} ventas, se emitieron ${boletas.length} boletas (${ventas.length>0?Math.round((boletas.length/ventas.length)*100):0}%), ${facturas.length} facturas (${ventas.length>0?Math.round((facturas.length/ventas.length)*100):0}%) y ${sinDoc.length} quedaron sin documento (${ventas.length>0?Math.round((sinDoc.length/ventas.length)*100):0}%).<br>
+      Las boletas generaron $${boletas.reduce((a,v)=>a+v.monto,0).toLocaleString()} y las facturas $${facturas.reduce((a,v)=>a+v.monto,0).toLocaleString()} en ingresos documentados.<br>
+      ${sinDoc.length > 0 ? 'Existen ' + sinDoc.length + ' ventas sin respaldo tributario por $' + sinDoc.reduce((a,v)=>a+v.monto,0).toLocaleString() + ', lo cual debe reducirse.' : 'Todas las ventas cuentan con respaldo tributario, lo cual es óptimo.'}<br>
+      El cumplimiento tributario es fundamental para evitar sanciones del SII y mantener la formalidad del negocio.<br>
+      Se recomienda que toda venta, sin importar el monto, cuente con al menos una boleta como respaldo.<br>
+      Las facturas son relevantes para clientes empresa y permiten recuperar IVA en compras corporativas.<br>
+      Establezca como meta reducir las ventas sin documento a menos del 5% del total mensual.
+    </div>
   </div>
 
   <!-- 4. ANÁLISIS POR SEMANA -->
   <div class="seccion">
-    <h2>4. Análisis por Semana</h2>
+    <h2>5. Análisis por Semana</h2>
+    <p style="font-size:0.85rem;color:#555;margin-bottom:14px;line-height:1.6">
+      Aquí se divide el mes en cuatro semanas para identificar en qué período se concentran las ventas.<br>
+      La Semana 1 comprende los días 1 al 7, la Semana 2 del 8 al 14, la Semana 3 del 15 al 21 y la Semana 4 del día 22 en adelante.<br>
+      Para cada semana se muestra el monto total recaudado y su porcentaje respecto al ingreso mensual.<br>
+      Este análisis permite detectar si las ventas se concentran a inicio, mitad o fin de mes.<br>
+      Patrones como mayor venta en la primera semana pueden indicar compras post-sueldo de los clientes.<br>
+      Identificar semanas débiles ayuda a planificar promociones o acciones comerciales específicas.<br>
+      Compare estos datos mes a mes para confirmar si los patrones semanales son consistentes.
+    </p>
     <table>
       <tr><th>Semana</th><th>Período</th><th>Monto</th><th>% del Total</th></tr>
       <tr><td>Semana 1</td><td>Días 1-7</td><td>$${semanas[0].toLocaleString()}</td><td>${total>0?Math.round((semanas[0]/total)*100):0}%</td></tr>
@@ -3992,40 +4086,548 @@ function generarInformeCaja(mes, mes2, guardarEnEscritorio) {
       <tr><td>Semana 3</td><td>Días 15-21</td><td>$${semanas[2].toLocaleString()}</td><td>${total>0?Math.round((semanas[2]/total)*100):0}%</td></tr>
       <tr><td>Semana 4</td><td>Días 22+</td><td>$${semanas[3].toLocaleString()}</td><td>${total>0?Math.round((semanas[3]/total)*100):0}%</td></tr>
     </table>
+    <div style="margin-top:16px;padding:12px 14px;background:#f0f4ff;border-radius:6px;font-size:0.82rem;color:#444;border-left:3px solid #1a56db;line-height:1.6">
+      <strong>Conclusión de esta sección:</strong><br>
+      La semana con mayor recaudación alcanzó $${Math.max(...semanas).toLocaleString()}, representando ${total>0?Math.round((Math.max(...semanas)/total)*100):0}% del ingreso total del mes.<br>
+      La distribución semanal fue: Semana 1 ($${semanas[0].toLocaleString()}), Semana 2 ($${semanas[1].toLocaleString()}), Semana 3 ($${semanas[2].toLocaleString()}) y Semana 4 ($${semanas[3].toLocaleString()}).<br>
+      ${semanas[0] > semanas[3] ? 'Las ventas se concentran al inicio del mes, posiblemente por el ciclo de pago de sueldos.' : 'Las ventas se concentran hacia fin de mes, lo que puede indicar compras de reposición.'}<br>
+      Una distribución equilibrada entre semanas indica estabilidad en la demanda del negocio.<br>
+      Si alguna semana es significativamente baja, considere implementar promociones en ese período.<br>
+      Monitorear este patrón mes a mes permite confirmar si es comportamiento estacional o puntual.<br>
+      Use esta información para planificar compras a proveedores y gestionar el flujo de caja semanal.
+    </div>
   </div>
 
   <!-- 5. ANÁLISIS POR DÍA DE LA SEMANA -->
   <div class="seccion">
-    <h2>5. Análisis por Día de la Semana</h2>
+    <h2>6. Análisis por Día de la Semana</h2>
+    <p style="font-size:0.85rem;color:#555;margin-bottom:14px;line-height:1.6">
+      Esta sección agrupa todas las ventas del mes según el día de la semana en que se realizaron.<br>
+      Se muestra el monto acumulado para cada día (Lunes a Domingo) y su porcentaje del total mensual.<br>
+      El día con mayor recaudación se resalta en verde para identificarlo rápidamente.<br>
+      Este análisis revela los días de mayor y menor actividad comercial de la bodega.<br>
+      Conocer los días fuertes permite optimizar la dotación de personal y el stock disponible.<br>
+      Los días débiles pueden aprovecharse para tareas administrativas, reposición o promociones.<br>
+      Si un día específico es consistentemente bajo, considere ajustar horarios o realizar ofertas especiales.
+    </p>
     <table>
       <tr><th>Día</th><th>Monto Total</th><th>% del Total</th></tr>
       ${diasSemNombres.map((n,i) => `<tr${porDiaSem[i]===diaSemMax?' style="background:#d1fae5;font-weight:bold"':''}><td>${n}</td><td>$${porDiaSem[i].toLocaleString()}</td><td>${total>0?Math.round((porDiaSem[i]/total)*100):0}%</td></tr>`).join('')}
     </table>
     <p style="margin-top:8px"><strong>Día más activo:</strong> ${diaSemNombre}</p>
+    <div style="margin-top:16px;padding:12px 14px;background:#f0f4ff;border-radius:6px;font-size:0.82rem;color:#444;border-left:3px solid #1a56db;line-height:1.6">
+      <strong>Conclusión de esta sección:</strong><br>
+      El día de la semana con mayor actividad fue ${diaSemNombre}, acumulando $${diaSemMax.toLocaleString()} (${total>0?Math.round((diaSemMax/total)*100):0}% del total mensual).<br>
+      Este patrón indica que los clientes tienden a realizar sus compras principalmente los días ${diaSemNombre}.<br>
+      Los días con menor recaudación representan oportunidades para implementar estrategias de atracción de clientes.<br>
+      Se recomienda reforzar el personal y el stock disponible en los días de mayor demanda identificados.<br>
+      En los días más tranquilos, aproveche para realizar inventarios, limpieza y tareas administrativas.<br>
+      Si este patrón se repite mes a mes, puede considerarse ajustar horarios de apertura según la demanda real.<br>
+      Compare con meses anteriores para confirmar si ${diaSemNombre} es consistentemente el día más fuerte del negocio.
+    </div>
   </div>
 
   <!-- 6. MEJOR Y PEOR DÍA -->
   <div class="seccion">
-    <h2>6. Mejor y Peor Día del Mes</h2>
+    <h2>7. Mejor y Peor Día del Mes</h2>
+    <p style="font-size:0.85rem;color:#555;margin-bottom:14px;line-height:1.6">
+      Se identifican los dos días extremos del mes: el de mayor y menor recaudación.<br>
+      El mejor día representa la jornada con más ingresos, lo que puede deberse a eventos, promociones o demanda estacional.<br>
+      El peor día muestra la jornada con menor actividad, útil para investigar causas (feriados, clima, etc.).<br>
+      La diferencia entre ambos indica la variabilidad de las ventas durante el mes.<br>
+      Si la brecha es muy grande, el negocio depende de días puntuales y debería buscar mayor estabilidad.<br>
+      Analizar qué ocurrió en el mejor día puede ayudar a replicar esas condiciones en el futuro.<br>
+      Del mismo modo, entender el peor día permite tomar medidas preventivas para evitar jornadas improductivas.
+    </p>
     <div class="kpi-grid" style="grid-template-columns:1fr 1fr">
       <div class="kpi" style="background:#d1fae5"><div class="num">$${mejorMonto.toLocaleString()}</div><div class="label">🏆 Mejor Día: ${mejorDia.split('-').reverse().join('/')}</div></div>
       <div class="kpi" style="background:#fee2e2"><div class="num">$${peorMonto.toLocaleString()}</div><div class="label">📉 Peor Día: ${peorDia.split('-').reverse().join('/')}</div></div>
+    </div>
+    <div style="margin-top:16px;padding:12px 14px;background:#f0f4ff;border-radius:6px;font-size:0.82rem;color:#444;border-left:3px solid #1a56db;line-height:1.6">
+      <strong>Conclusión de esta sección:</strong><br>
+      El mejor día del mes fue el ${mejorDia.split('-').reverse().join('/')} con ${mejorMonto.toLocaleString()}, y el peor fue el ${peorDia.split('-').reverse().join('/')} con ${peorMonto.toLocaleString()}.<br>
+      La diferencia entre ambos extremos es de ${(mejorMonto - peorMonto).toLocaleString()}, reflejando la variabilidad de ventas en el mes.<br>
+      ${(mejorMonto - peorMonto) > promDiario * 2 ? 'La brecha es significativa, indicando dependencia de días puntuales de alta demanda.' : 'La brecha es moderada, sugiriendo una demanda relativamente estable.'}<br>
+      Investigue qué factores contribuyeron al éxito del mejor día para intentar replicarlos en el futuro.<br>
+      Analice si el peor día coincidió con feriados, mal clima u otros factores externos que lo expliquen.<br>
+      El objetivo es reducir esta brecha logrando ventas más consistentes a lo largo del mes.<br>
+      Establezca un piso mínimo de ventas diarias como meta y actúe cuando un día caiga por debajo.
     </div>
   </div>
 
   <!-- 7. COMPARACIÓN CON MES ANTERIOR -->
   <div class="seccion">
-    <h2>7. Comparación con Mes Anterior</h2>
+    <h2>8. Comparación con Mes Anterior</h2>
+    <p style="font-size:0.85rem;color:#555;margin-bottom:14px;line-height:1.6">
+      Esta sección compara el rendimiento del mes actual con el mes inmediatamente anterior.<br>
+      Se contrastan el monto total recaudado y la cantidad de ventas realizadas en ambos períodos.<br>
+      La columna de diferencia muestra el crecimiento o decrecimiento en porcentaje y unidades.<br>
+      Un valor positivo (verde) indica mejora respecto al mes anterior; negativo (rojo) indica retroceso.<br>
+      Esta comparación es fundamental para evaluar la tendencia del negocio mes a mes.<br>
+      Caídas significativas deben investigarse: pueden deberse a estacionalidad, competencia o factores externos.<br>
+      Crecimientos sostenidos confirman que las estrategias comerciales están funcionando correctamente.
+    </p>
     <table>
       <tr><th>Indicador</th><th>${nombreMes}</th><th>Mes Anterior</th><th>Diferencia</th></tr>
       <tr><td>Total</td><td>$${total.toLocaleString()}</td><td>$${totalAnt.toLocaleString()}</td><td style="color:${diffPct>=0?'#065f46':'#c81e1e'};font-weight:bold">${diffPct>=0?'+':''}${diffPct}%</td></tr>
       <tr><td>Cantidad Ventas</td><td>${ventas.length}</td><td>${ventasAnt.length}</td><td>${ventas.length - ventasAnt.length >= 0 ? '+' : ''}${ventas.length - ventasAnt.length}</td></tr>
     </table>
+    <div style="margin-top:16px;padding:12px 14px;background:#f0f4ff;border-radius:6px;font-size:0.82rem;color:#444;border-left:3px solid #1a56db;line-height:1.6">
+      <strong>Conclusión de esta sección:</strong><br>
+      ${diffPct >= 0 ? 'El mes de ' + nombreMes + ' registró un crecimiento del ' + diffPct + '% respecto al mes anterior, pasando de  RESUMIDO -->
+  <div class="seccion">
+    <h2>9. Detalle Diario Resumido</h2>
+    <p style="font-size:0.85rem;color:#555;margin-bottom:14px;line-height:1.6">
+      Tabla con el resumen de ventas día por día durante todo el mes analizado.<br>
+      Para cada fecha se muestra el monto total recaudado y la cantidad de transacciones realizadas.<br>
+      Los días sin registro no aparecen en la tabla, lo que indica jornadas sin actividad comercial.<br>
+      Este detalle permite identificar patrones diarios, días atípicos o irregularidades en el registro.<br>
+      Es útil para cruzar información con otros registros como inventario o asistencia del personal.<br>
+      Los días con montos inusualmente altos o bajos merecen revisión para entender sus causas.<br>
+      Utilice esta tabla como respaldo para conciliaciones bancarias y cuadraturas de caja diarias.
+    </p>
+    <table>
+      <tr><th>Fecha</th><th>Monto</th><th>Ventas</th></tr>
+      ${diasOrdenados.map(([dia, monto]) => {
+        const cantDia = ventas.filter(v => v.fecha === dia).length;
+        return `<tr><td>${dia.split('-').reverse().join('/')}</td><td>$${monto.toLocaleString()}</td><td>${cantDia}</td></tr>`;
+      }).join('')}
+    </table>
+    <div style="margin-top:16px;padding:12px 14px;background:#f0f4ff;border-radius:6px;font-size:0.82rem;color:#444;border-left:3px solid #1a56db;line-height:1.6">
+      <strong>Conclusión de esta sección:</strong><br>
+      Se registraron ventas en ${diasConVentas} días del mes, con un ingreso total de ${total.toLocaleString()} y promedio de ${promDiario.toLocaleString()} por día operativo.<br>
+      El día más productivo generó ${mejorMonto.toLocaleString()} y el menos productivo ${peorMonto.toLocaleString()}.<br>
+      ${diasConVentas < 25 ? 'Hubo ' + (30 - diasConVentas) + ' días sin ventas registradas, lo que podría indicar días de cierre o falta de registro.' : 'La cobertura de días con ventas es alta, indicando operación regular del negocio.'}<br>
+      Los días con montos superiores al promedio representan oportunidades para entender qué genera mayor demanda.<br>
+      Los días por debajo del promedio deben analizarse para identificar si son patrones o situaciones puntuales.<br>
+      Esta tabla es útil para la cuadratura diaria de caja y para detectar posibles omisiones en el registro.<br>
+      Mantenga un registro consistente todos los días para que este análisis sea cada vez más preciso y confiable.
+    </div>
   </div>
 
-  <!-- 8. DETALLE DIARIO RESUMIDO -->
+  <!-- 9. DETALLE COMPLETO -->
   <div class="seccion">
-    <h2>8. Detalle Diario Resumido</h2>
+    <h2>10. Detalle Completo de Ventas</h2>
+    <p style="font-size:0.85rem;color:#555;margin-bottom:14px;line-height:1.6">
+      Listado exhaustivo de cada transacción individual registrada durante el mes.<br>
+      Cada fila incluye: número correlativo, fecha, hora, monto, método de pago y tipo de documento.<br>
+      Este es el registro más detallado disponible y sirve como respaldo documental completo.<br>
+      Permite verificar transacciones específicas en caso de reclamos, devoluciones o auditorías.<br>
+      La hora de registro ayuda a identificar los horarios de mayor actividad durante el día.<br>
+      Si detecta registros duplicados o montos incorrectos, puede corregirlos desde el módulo de caja.<br>
+      Este detalle es equivalente al libro de ventas diario y puede usarse para fines contables y tributarios.
+    </p>
+    <table>
+      <tr><th>#</th><th>Fecha</th><th>Hora</th><th>Monto</th><th>Método</th><th>Documento</th></tr>
+      ${ventas.map((v,i) => `<tr><td>${i+1}</td><td>${v.fecha.split('-').reverse().join('/')}</td><td>${v.hora||'-'}</td><td>$${v.monto.toLocaleString()}</td><td>${v.metodo}</td><td>${v.tipoDoc||'-'}</td></tr>`).join('')}
+    </table>
+    <div style="margin-top:16px;padding:12px 14px;background:#f0f4ff;border-radius:6px;font-size:0.82rem;color:#444;border-left:3px solid #1a56db;line-height:1.6">
+      <strong>Conclusión de esta sección:</strong><br>
+      Se registraron ${ventas.length} transacciones individuales durante ${nombreMes} por un monto total de ${total.toLocaleString()}.<br>
+      El monto promedio por transacción fue de ${ventas.length > 0 ? Math.round(total/ventas.length).toLocaleString() : 0}, lo que refleja el ticket promedio del negocio.<br>
+      El método de pago más frecuente fue ${metodoTop.n} con ${metodoTop.c} operaciones registradas en el período.<br>
+      Este listado constituye el respaldo completo de todas las operaciones y tiene valor legal y contable.<br>
+      En caso de discrepancias con el banco o con clientes, este detalle permite rastrear cada transacción.<br>
+      Se recomienda verificar que todas las ventas tengan hora registrada para un control más preciso.<br>
+      Conserve este informe como archivo histórico para futuras auditorías o consultas administrativas.
+    </div>
+  </div>
+
+  <!-- 10. CONCLUSIÓN -->
+  <div class="seccion">
+    <h2>11. Conclusión y Recomendaciones</h2>
+    <div class="conclusion">
+      ${generarConclusionAleatoria(nombreMes, total, ventas, metodoTop, mejorDia, mejorMonto, peorDia, peorMonto, promDiario, diasConVentas, diffPct, diaSemNombre, semanas, boletas, facturas, sinDoc, efectivo, debito, credito, transferencia)}
+    </div>
+  </div>
+
+  <div class="footer">Bodega A&amp;M — Informe generado automáticamente el ${fechaGen}</div>
+  </body></html>`;
+
+  if (window.require) {
+    const { ipcRenderer } = window.require('electron');
+    if (guardarEnEscritorio) {
+      ipcRenderer.send('guardarInformePDF', html);
+      ipcRenderer.once('informe-guardado', (event, ruta) => {
+        showToast('✔ Informe guardado en: ' + ruta);
+      });
+      ipcRenderer.once('informe-error', (event, err) => {
+        showToast('Error al guardar: ' + err, true);
+      });
+    } else {
+      ipcRenderer.send('vistaPreviewPDF', html);
+    }
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// ── PANEL DE DIAGNÓSTICOS ─────────────────────────────────────
+// ══════════════════════════════════════════════════════════════
+
+// ── Vista Previa antes de registrar ───────────────────────────
+function mostrarVistaPrevia(tipoDoc, nroDoc, cliente, prods, esEdicion) {
+  return new Promise((resolve) => {
+    const listaProds = prods.map((p, i) => `<tr><td>${i+1}</td><td>${p.codigo||'-'}</td><td>${p.descripcion}</td><td>${p.unidad}</td><td>${p.cantidad}</td></tr>`).join('');
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+    overlay.style.display = 'flex';
+    overlay.innerHTML = `
+      <div class="modal" style="max-width:500px">
+        <div class="modal-header">
+          <h3>${esEdicion ? '¿Guardar cambios?' : '¿Confirmar esta orden?'}</h3>
+          <button class="modal-close" id="prevCerrar">✕</button>
+        </div>
+        <div class="modal-body" style="padding:16px">
+          <div class="detail-row"><strong>Cliente:</strong> ${cliente}</div>
+          <div class="detail-row"><strong>Tipo Doc.:</strong> ${tipoDoc || '-'}</div>
+          ${nroDoc ? `<div class="detail-row"><strong>N° Doc.:</strong> ${nroDoc}</div>` : ''}
+          <div class="detail-row" style="margin-top:12px"><strong>Productos (${prods.length}):</strong></div>
+          <table style="margin-top:8px;font-size:0.85rem">
+            <thead><tr><th>#</th><th>Código</th><th>Descripción</th><th>Unid.</th><th>Cant.</th></tr></thead>
+            <tbody>${listaProds}</tbody>
+          </table>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" id="prevCancelar">Cancelar</button>
+          <button class="btn-primary" id="prevConfirmar">✔ ${esEdicion ? 'Guardar' : 'Confirmar'}</button>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+    overlay.querySelector('#prevConfirmar').addEventListener('click', () => { overlay.remove(); resolve(true); });
+    overlay.querySelector('#prevCancelar').addEventListener('click', () => { overlay.remove(); resolve(false); });
+    overlay.querySelector('#prevCerrar').addEventListener('click', () => { overlay.remove(); resolve(false); });
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) { overlay.remove(); resolve(false); } });
+  });
+}
+
+// ── Error Logger ──────────────────────────────────────────────
+let diagErrores = [];
+const DIAG_MAX_ERRORES = 50;
+
+function diagRegistrarError(mensaje, tipo = 'general') {
+  const error = {
+    timestamp: Date.now(),
+    mensaje: mensaje,
+    tipo: tipo,
+    resuelto: false
+  };
+  diagErrores.unshift(error);
+  if (diagErrores.length > DIAG_MAX_ERRORES) {
+    diagErrores.pop();
+  }
+}
+
+function diagLimpiarErrores() {
+  diagErrores = [];
+}
+
+function diagMarcarResueltos(tipo) {
+  diagErrores.forEach(e => {
+    if (e.tipo === tipo && !e.resuelto) e.resuelto = true;
+  });
+}
+
+// ── Firebase Connection Monitor ───────────────────────────────
+let diagUltimaSync = null;
+let diagConectado = navigator.onLine;
+
+function diagMedirLatencia() {
+  const inicio = performance.now();
+  return fbCargar('config').then(() => {
+    const fin = performance.now();
+    diagUltimaSync = Date.now();
+    diagConectado = true;
+    diagMarcarResueltos('network');
+    return Math.round(fin - inicio);
+  }).catch(err => {
+    diagConectado = false;
+    diagRegistrarError('Error de conexión: ' + err.message, 'network');
+    return null;
+  });
+}
+
+async function diagActualizarConexion() {
+  const estadoEl = document.getElementById('diagConexionEstado');
+  const latenciaEl = document.getElementById('diagLatencia');
+  const syncEl = document.getElementById('diagUltimaSync');
+  if (!estadoEl) return;
+
+  const latencia = await diagMedirLatencia();
+  if (latencia !== null) {
+    estadoEl.textContent = 'Conectado';
+    estadoEl.style.background = '#d1fae5';
+    estadoEl.style.color = '#065f46';
+    latenciaEl.textContent = latencia + ' ms';
+  } else {
+    estadoEl.textContent = 'Desconectado';
+    estadoEl.style.background = '#fee2e2';
+    estadoEl.style.color = '#991b1b';
+    latenciaEl.textContent = '—';
+  }
+  if (diagUltimaSync) {
+    syncEl.textContent = diagFormatearFecha(diagUltimaSync);
+  }
+}
+
+// ── Storage Calculator ────────────────────────────────────────
+const DIAG_TAMANO_PROMEDIO = {
+  historial: 2048,
+  catalogo: 512,
+  clientes: 256,
+  recepciones: 1024,
+  usuarios: 384
+};
+
+async function diagCalcularAlmacenamiento() {
+  const colecciones = ['historial', 'catalogo', 'clientes', 'recepciones', 'usuarios'];
+  const resultados = {};
+  let totalBytes = 0;
+
+  for (const col of colecciones) {
+    try {
+      const docs = await fbCargar(col);
+      const count = docs.length;
+      const estimatedBytes = count * (DIAG_TAMANO_PROMEDIO[col] || 512);
+      resultados[col] = { count, estimatedBytes };
+      totalBytes += estimatedBytes;
+    } catch (e) {
+      resultados[col] = { count: 0, estimatedBytes: 0, error: true };
+    }
+  }
+
+  const totalMB = totalBytes / (1024 * 1024);
+  const porcentaje = Math.min((totalMB / 1024) * 100, 100);
+
+  return { colecciones: resultados, totalMB, porcentaje };
+}
+
+async function diagActualizarStorage() {
+  const gridEl = document.getElementById('diagStorageGrid');
+  const fillEl = document.getElementById('diagProgressFill');
+  const textEl = document.getElementById('diagStorageText');
+  const warnEl = document.getElementById('diagStorageWarning');
+  if (!gridEl) return;
+
+  try {
+    const datos = await diagCalcularAlmacenamiento();
+
+    // Render grid
+    let html = '';
+    for (const [col, info] of Object.entries(datos.colecciones)) {
+      const kb = (info.estimatedBytes / 1024).toFixed(1);
+      const estado = info.error ? '<span style="color:#e53e3e">Error</span>' : `${info.count} docs (~${kb} KB)`;
+      html += `<div class="field"><label>${col}</label><span>${estado}</span></div>`;
+    }
+    gridEl.innerHTML = html;
+
+    // Progress bar
+    fillEl.style.width = datos.porcentaje.toFixed(1) + '%';
+    if (datos.porcentaje > 80) {
+      fillEl.style.background = '#e53e3e';
+    } else if (datos.porcentaje > 60) {
+      fillEl.style.background = '#f59e0b';
+    } else {
+      fillEl.style.background = '#1a56db';
+    }
+    textEl.textContent = datos.totalMB.toFixed(2) + ' MB / 1024 MB (' + datos.porcentaje.toFixed(1) + '%)';
+
+    // Warning
+    warnEl.style.display = datos.porcentaje > 80 ? '' : 'none';
+  } catch (e) {
+    gridEl.innerHTML = '<p class="empty-msg">Error al calcular almacenamiento</p>';
+  }
+}
+
+// ── System Info ───────────────────────────────────────────────
+async function diagObtenerInfoSistema() {
+  if (window.require) {
+    try {
+      const { ipcRenderer } = window.require('electron');
+      return await ipcRenderer.invoke('get-system-info');
+    } catch (e) {
+      return null;
+    }
+  }
+  return null;
+}
+
+async function diagActualizarSistema() {
+  const versionEl = document.getElementById('diagVersion');
+  const osEl = document.getElementById('diagOS');
+  const usuarioEl = document.getElementById('diagUsuario');
+  const memoriaEl = document.getElementById('diagMemoria');
+  if (!versionEl) return;
+
+  // Versión
+  const verEl = document.getElementById('appVersion');
+  versionEl.textContent = verEl ? verEl.textContent || 'N/A' : 'N/A';
+
+  // Usuario activo
+  usuarioEl.textContent = usuarioActivo ? `${usuarioActivo.nombre} (${usuarioActivo.rol})` : 'N/A';
+
+  // Info del sistema via IPC
+  const info = await diagObtenerInfoSistema();
+  if (info) {
+    osEl.textContent = `${info.platform} ${info.release}`;
+    memoriaEl.textContent = info.memoryUsage + ' MB';
+  } else {
+    osEl.textContent = 'No disponible';
+    memoriaEl.textContent = 'No disponible';
+  }
+}
+
+// ── Session Duration ──────────────────────────────────────────
+let diagInicioSesion = null;
+
+function diagCalcularDuracionSesion(inicioTimestamp, ahoraTimestamp) {
+  const diffMs = ahoraTimestamp - inicioTimestamp;
+  const totalMinutos = Math.floor(diffMs / 60000);
+  const horas = Math.floor(totalMinutos / 60);
+  const minutos = totalMinutos % 60;
+  return { horas, minutos, texto: `${horas}h ${minutos}m` };
+}
+
+function diagActualizarSesion() {
+  const sesionEl = document.getElementById('diagSesion');
+  if (!sesionEl) return;
+  if (diagInicioSesion) {
+    const duracion = diagCalcularDuracionSesion(diagInicioSesion, Date.now());
+    sesionEl.textContent = duracion.texto;
+  } else {
+    sesionEl.textContent = '—';
+  }
+}
+
+// ── Timestamp Formatter ───────────────────────────────────────
+function diagFormatearFecha(timestamp) {
+  const d = new Date(timestamp);
+  const dd = String(d.getDate()).padStart(2, '0');
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const yyyy = d.getFullYear();
+  const hh = String(d.getHours()).padStart(2, '0');
+  const min = String(d.getMinutes()).padStart(2, '0');
+  const ss = String(d.getSeconds()).padStart(2, '0');
+  return `${dd}/${mm}/${yyyy} ${hh}:${min}:${ss}`;
+}
+
+// ── Periodic Refresh Controller ───────────────────────────────
+let diagIntervalConexion = null;
+let diagIntervalStorage = null;
+let diagIntervalSesion = null;
+
+function diagIniciarIntervalos() {
+  diagDetenerIntervalos();
+  diagIntervalConexion = setInterval(diagActualizarConexion, 30000);
+  diagIntervalStorage = setInterval(diagActualizarStorage, 300000);
+  diagIntervalSesion = setInterval(diagActualizarSesion, 60000);
+}
+
+function diagDetenerIntervalos() {
+  if (diagIntervalConexion) { clearInterval(diagIntervalConexion); diagIntervalConexion = null; }
+  if (diagIntervalStorage) { clearInterval(diagIntervalStorage); diagIntervalStorage = null; }
+  if (diagIntervalSesion) { clearInterval(diagIntervalSesion); diagIntervalSesion = null; }
+}
+
+// ── Main Refresh Orchestrator ─────────────────────────────────
+async function diagnosticosRefresh() {
+  try {
+    await diagActualizarConexion();
+  } catch (e) {}
+  try {
+    await diagActualizarStorage();
+  } catch (e) {}
+  try {
+    await diagActualizarSistema();
+  } catch (e) {}
+  diagActualizarSesion();
+  diagRenderErrores();
+}
+
+function diagRenderErrores() {
+  const listEl = document.getElementById('diagErrorList');
+  if (!listEl) return;
+
+  if (diagErrores.length === 0) {
+    listEl.innerHTML = '<p class="empty-msg">Sin errores registrados</p>';
+    return;
+  }
+
+  listEl.innerHTML = diagErrores.map(e => {
+    const fecha = diagFormatearFecha(e.timestamp);
+    const resueltoCls = e.resuelto ? ' style="opacity:0.5"' : '';
+    return `<div class="diag-error-item"${resueltoCls}>
+      <div class="diag-error-time">${fecha}</div>
+      <div class="diag-error-tipo">${e.tipo}</div>
+      <div>${e.mensaje}</div>
+    </div>`;
+  }).join('');
+}
+
+// ── Button Event Listeners ────────────────────────────────────
+document.getElementById('btnLimpiarErrores').addEventListener('click', () => {
+  diagLimpiarErrores();
+  diagRenderErrores();
+});
+
+document.getElementById('btnActualizarDiag').addEventListener('click', () => {
+  diagnosticosRefresh();
+});
+
+// ── Global Error Interception ─────────────────────────────────
+window.addEventListener('unhandledrejection', (event) => {
+  diagRegistrarError('Promise: ' + event.reason, 'general');
+});
+
+// Wrap Firebase functions for error capture
+(function() {
+  if (typeof window.fbCargar === 'function') {
+    const originalFbCargar = window.fbCargar;
+    window.fbCargar = async function(col) {
+      try {
+        return await originalFbCargar(col);
+      } catch(e) {
+        diagRegistrarError('Firebase fbCargar(' + col + '): ' + e.message, 'firebase');
+        throw e;
+      }
+    };
+  }
+
+  if (typeof window.fbGuardar === 'function') {
+    const originalFbGuardar = window.fbGuardar;
+    window.fbGuardar = async function(col, id, data) {
+      try {
+        return await originalFbGuardar(col, id, data);
+      } catch(e) {
+        diagRegistrarError('Firebase fbGuardar(' + col + '): ' + e.message, 'firebase');
+        throw e;
+      }
+    };
+  }
+
+  if (typeof window.fbEliminar === 'function') {
+    const originalFbEliminar = window.fbEliminar;
+    window.fbEliminar = async function(col, id) {
+      try {
+        return await originalFbEliminar(col, id);
+      } catch(e) {
+        diagRegistrarError('Firebase fbEliminar(' + col + '): ' + e.message, 'firebase');
+        throw e;
+      }
+    };
+  }
+})();
+ + totalAnt.toLocaleString() + ' a  RESUMIDO -->
+  <div class="seccion">
+    <h2>9. Detalle Diario Resumido</h2>
+    <p style="font-size:0.85rem;color:#555;margin-bottom:14px;line-height:1.6">
+      Tabla con el resumen de ventas día por día durante todo el mes analizado.<br>
+      Para cada fecha se muestra el monto total recaudado y la cantidad de transacciones realizadas.<br>
+      Los días sin registro no aparecen en la tabla, lo que indica jornadas sin actividad comercial.<br>
+      Este detalle permite identificar patrones diarios, días atípicos o irregularidades en el registro.<br>
+      Es útil para cruzar información con otros registros como inventario o asistencia del personal.<br>
+      Los días con montos inusualmente altos o bajos merecen revisión para entender sus causas.<br>
+      Utilice esta tabla como respaldo para conciliaciones bancarias y cuadraturas de caja diarias.
+    </p>
     <table>
       <tr><th>Fecha</th><th>Monto</th><th>Ventas</th></tr>
       ${diasOrdenados.map(([dia, monto]) => {
@@ -4037,7 +4639,16 @@ function generarInformeCaja(mes, mes2, guardarEnEscritorio) {
 
   <!-- 9. DETALLE COMPLETO -->
   <div class="seccion">
-    <h2>9. Detalle Completo de Ventas</h2>
+    <h2>10. Detalle Completo de Ventas</h2>
+    <p style="font-size:0.85rem;color:#555;margin-bottom:14px;line-height:1.6">
+      Listado exhaustivo de cada transacción individual registrada durante el mes.<br>
+      Cada fila incluye: número correlativo, fecha, hora, monto, método de pago y tipo de documento.<br>
+      Este es el registro más detallado disponible y sirve como respaldo documental completo.<br>
+      Permite verificar transacciones específicas en caso de reclamos, devoluciones o auditorías.<br>
+      La hora de registro ayuda a identificar los horarios de mayor actividad durante el día.<br>
+      Si detecta registros duplicados o montos incorrectos, puede corregirlos desde el módulo de caja.<br>
+      Este detalle es equivalente al libro de ventas diario y puede usarse para fines contables y tributarios.
+    </p>
     <table>
       <tr><th>#</th><th>Fecha</th><th>Hora</th><th>Monto</th><th>Método</th><th>Documento</th></tr>
       ${ventas.map((v,i) => `<tr><td>${i+1}</td><td>${v.fecha.split('-').reverse().join('/')}</td><td>${v.hora||'-'}</td><td>$${v.monto.toLocaleString()}</td><td>${v.metodo}</td><td>${v.tipoDoc||'-'}</td></tr>`).join('')}
@@ -4046,13 +4657,1289 @@ function generarInformeCaja(mes, mes2, guardarEnEscritorio) {
 
   <!-- 10. CONCLUSIÓN -->
   <div class="seccion">
-    <h2>10. Conclusión y Recomendaciones</h2>
+    <h2>11. Conclusión y Recomendaciones</h2>
     <div class="conclusion">
       ${generarConclusionAleatoria(nombreMes, total, ventas, metodoTop, mejorDia, mejorMonto, peorDia, peorMonto, promDiario, diasConVentas, diffPct, diaSemNombre, semanas, boletas, facturas, sinDoc, efectivo, debito, credito, transferencia)}
     </div>
   </div>
 
-  <div class="footer">Bodega A&M — Informe generado automáticamente el ${fechaGen}</div>
+  <div class="footer">Bodega A&amp;M — Informe generado automáticamente el ${fechaGen}</div>
+  </body></html>`;
+
+  if (window.require) {
+    const { ipcRenderer } = window.require('electron');
+    if (guardarEnEscritorio) {
+      ipcRenderer.send('guardarInformePDF', html);
+      ipcRenderer.once('informe-guardado', (event, ruta) => {
+        showToast('✔ Informe guardado en: ' + ruta);
+      });
+      ipcRenderer.once('informe-error', (event, err) => {
+        showToast('Error al guardar: ' + err, true);
+      });
+    } else {
+      ipcRenderer.send('vistaPreviewPDF', html);
+    }
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// ── PANEL DE DIAGNÓSTICOS ─────────────────────────────────────
+// ══════════════════════════════════════════════════════════════
+
+// ── Vista Previa antes de registrar ───────────────────────────
+function mostrarVistaPrevia(tipoDoc, nroDoc, cliente, prods, esEdicion) {
+  return new Promise((resolve) => {
+    const listaProds = prods.map((p, i) => `<tr><td>${i+1}</td><td>${p.codigo||'-'}</td><td>${p.descripcion}</td><td>${p.unidad}</td><td>${p.cantidad}</td></tr>`).join('');
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+    overlay.style.display = 'flex';
+    overlay.innerHTML = `
+      <div class="modal" style="max-width:500px">
+        <div class="modal-header">
+          <h3>${esEdicion ? '¿Guardar cambios?' : '¿Confirmar esta orden?'}</h3>
+          <button class="modal-close" id="prevCerrar">✕</button>
+        </div>
+        <div class="modal-body" style="padding:16px">
+          <div class="detail-row"><strong>Cliente:</strong> ${cliente}</div>
+          <div class="detail-row"><strong>Tipo Doc.:</strong> ${tipoDoc || '-'}</div>
+          ${nroDoc ? `<div class="detail-row"><strong>N° Doc.:</strong> ${nroDoc}</div>` : ''}
+          <div class="detail-row" style="margin-top:12px"><strong>Productos (${prods.length}):</strong></div>
+          <table style="margin-top:8px;font-size:0.85rem">
+            <thead><tr><th>#</th><th>Código</th><th>Descripción</th><th>Unid.</th><th>Cant.</th></tr></thead>
+            <tbody>${listaProds}</tbody>
+          </table>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" id="prevCancelar">Cancelar</button>
+          <button class="btn-primary" id="prevConfirmar">✔ ${esEdicion ? 'Guardar' : 'Confirmar'}</button>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+    overlay.querySelector('#prevConfirmar').addEventListener('click', () => { overlay.remove(); resolve(true); });
+    overlay.querySelector('#prevCancelar').addEventListener('click', () => { overlay.remove(); resolve(false); });
+    overlay.querySelector('#prevCerrar').addEventListener('click', () => { overlay.remove(); resolve(false); });
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) { overlay.remove(); resolve(false); } });
+  });
+}
+
+// ── Error Logger ──────────────────────────────────────────────
+let diagErrores = [];
+const DIAG_MAX_ERRORES = 50;
+
+function diagRegistrarError(mensaje, tipo = 'general') {
+  const error = {
+    timestamp: Date.now(),
+    mensaje: mensaje,
+    tipo: tipo,
+    resuelto: false
+  };
+  diagErrores.unshift(error);
+  if (diagErrores.length > DIAG_MAX_ERRORES) {
+    diagErrores.pop();
+  }
+}
+
+function diagLimpiarErrores() {
+  diagErrores = [];
+}
+
+function diagMarcarResueltos(tipo) {
+  diagErrores.forEach(e => {
+    if (e.tipo === tipo && !e.resuelto) e.resuelto = true;
+  });
+}
+
+// ── Firebase Connection Monitor ───────────────────────────────
+let diagUltimaSync = null;
+let diagConectado = navigator.onLine;
+
+function diagMedirLatencia() {
+  const inicio = performance.now();
+  return fbCargar('config').then(() => {
+    const fin = performance.now();
+    diagUltimaSync = Date.now();
+    diagConectado = true;
+    diagMarcarResueltos('network');
+    return Math.round(fin - inicio);
+  }).catch(err => {
+    diagConectado = false;
+    diagRegistrarError('Error de conexión: ' + err.message, 'network');
+    return null;
+  });
+}
+
+async function diagActualizarConexion() {
+  const estadoEl = document.getElementById('diagConexionEstado');
+  const latenciaEl = document.getElementById('diagLatencia');
+  const syncEl = document.getElementById('diagUltimaSync');
+  if (!estadoEl) return;
+
+  const latencia = await diagMedirLatencia();
+  if (latencia !== null) {
+    estadoEl.textContent = 'Conectado';
+    estadoEl.style.background = '#d1fae5';
+    estadoEl.style.color = '#065f46';
+    latenciaEl.textContent = latencia + ' ms';
+  } else {
+    estadoEl.textContent = 'Desconectado';
+    estadoEl.style.background = '#fee2e2';
+    estadoEl.style.color = '#991b1b';
+    latenciaEl.textContent = '—';
+  }
+  if (diagUltimaSync) {
+    syncEl.textContent = diagFormatearFecha(diagUltimaSync);
+  }
+}
+
+// ── Storage Calculator ────────────────────────────────────────
+const DIAG_TAMANO_PROMEDIO = {
+  historial: 2048,
+  catalogo: 512,
+  clientes: 256,
+  recepciones: 1024,
+  usuarios: 384
+};
+
+async function diagCalcularAlmacenamiento() {
+  const colecciones = ['historial', 'catalogo', 'clientes', 'recepciones', 'usuarios'];
+  const resultados = {};
+  let totalBytes = 0;
+
+  for (const col of colecciones) {
+    try {
+      const docs = await fbCargar(col);
+      const count = docs.length;
+      const estimatedBytes = count * (DIAG_TAMANO_PROMEDIO[col] || 512);
+      resultados[col] = { count, estimatedBytes };
+      totalBytes += estimatedBytes;
+    } catch (e) {
+      resultados[col] = { count: 0, estimatedBytes: 0, error: true };
+    }
+  }
+
+  const totalMB = totalBytes / (1024 * 1024);
+  const porcentaje = Math.min((totalMB / 1024) * 100, 100);
+
+  return { colecciones: resultados, totalMB, porcentaje };
+}
+
+async function diagActualizarStorage() {
+  const gridEl = document.getElementById('diagStorageGrid');
+  const fillEl = document.getElementById('diagProgressFill');
+  const textEl = document.getElementById('diagStorageText');
+  const warnEl = document.getElementById('diagStorageWarning');
+  if (!gridEl) return;
+
+  try {
+    const datos = await diagCalcularAlmacenamiento();
+
+    // Render grid
+    let html = '';
+    for (const [col, info] of Object.entries(datos.colecciones)) {
+      const kb = (info.estimatedBytes / 1024).toFixed(1);
+      const estado = info.error ? '<span style="color:#e53e3e">Error</span>' : `${info.count} docs (~${kb} KB)`;
+      html += `<div class="field"><label>${col}</label><span>${estado}</span></div>`;
+    }
+    gridEl.innerHTML = html;
+
+    // Progress bar
+    fillEl.style.width = datos.porcentaje.toFixed(1) + '%';
+    if (datos.porcentaje > 80) {
+      fillEl.style.background = '#e53e3e';
+    } else if (datos.porcentaje > 60) {
+      fillEl.style.background = '#f59e0b';
+    } else {
+      fillEl.style.background = '#1a56db';
+    }
+    textEl.textContent = datos.totalMB.toFixed(2) + ' MB / 1024 MB (' + datos.porcentaje.toFixed(1) + '%)';
+
+    // Warning
+    warnEl.style.display = datos.porcentaje > 80 ? '' : 'none';
+  } catch (e) {
+    gridEl.innerHTML = '<p class="empty-msg">Error al calcular almacenamiento</p>';
+  }
+}
+
+// ── System Info ───────────────────────────────────────────────
+async function diagObtenerInfoSistema() {
+  if (window.require) {
+    try {
+      const { ipcRenderer } = window.require('electron');
+      return await ipcRenderer.invoke('get-system-info');
+    } catch (e) {
+      return null;
+    }
+  }
+  return null;
+}
+
+async function diagActualizarSistema() {
+  const versionEl = document.getElementById('diagVersion');
+  const osEl = document.getElementById('diagOS');
+  const usuarioEl = document.getElementById('diagUsuario');
+  const memoriaEl = document.getElementById('diagMemoria');
+  if (!versionEl) return;
+
+  // Versión
+  const verEl = document.getElementById('appVersion');
+  versionEl.textContent = verEl ? verEl.textContent || 'N/A' : 'N/A';
+
+  // Usuario activo
+  usuarioEl.textContent = usuarioActivo ? `${usuarioActivo.nombre} (${usuarioActivo.rol})` : 'N/A';
+
+  // Info del sistema via IPC
+  const info = await diagObtenerInfoSistema();
+  if (info) {
+    osEl.textContent = `${info.platform} ${info.release}`;
+    memoriaEl.textContent = info.memoryUsage + ' MB';
+  } else {
+    osEl.textContent = 'No disponible';
+    memoriaEl.textContent = 'No disponible';
+  }
+}
+
+// ── Session Duration ──────────────────────────────────────────
+let diagInicioSesion = null;
+
+function diagCalcularDuracionSesion(inicioTimestamp, ahoraTimestamp) {
+  const diffMs = ahoraTimestamp - inicioTimestamp;
+  const totalMinutos = Math.floor(diffMs / 60000);
+  const horas = Math.floor(totalMinutos / 60);
+  const minutos = totalMinutos % 60;
+  return { horas, minutos, texto: `${horas}h ${minutos}m` };
+}
+
+function diagActualizarSesion() {
+  const sesionEl = document.getElementById('diagSesion');
+  if (!sesionEl) return;
+  if (diagInicioSesion) {
+    const duracion = diagCalcularDuracionSesion(diagInicioSesion, Date.now());
+    sesionEl.textContent = duracion.texto;
+  } else {
+    sesionEl.textContent = '—';
+  }
+}
+
+// ── Timestamp Formatter ───────────────────────────────────────
+function diagFormatearFecha(timestamp) {
+  const d = new Date(timestamp);
+  const dd = String(d.getDate()).padStart(2, '0');
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const yyyy = d.getFullYear();
+  const hh = String(d.getHours()).padStart(2, '0');
+  const min = String(d.getMinutes()).padStart(2, '0');
+  const ss = String(d.getSeconds()).padStart(2, '0');
+  return `${dd}/${mm}/${yyyy} ${hh}:${min}:${ss}`;
+}
+
+// ── Periodic Refresh Controller ───────────────────────────────
+let diagIntervalConexion = null;
+let diagIntervalStorage = null;
+let diagIntervalSesion = null;
+
+function diagIniciarIntervalos() {
+  diagDetenerIntervalos();
+  diagIntervalConexion = setInterval(diagActualizarConexion, 30000);
+  diagIntervalStorage = setInterval(diagActualizarStorage, 300000);
+  diagIntervalSesion = setInterval(diagActualizarSesion, 60000);
+}
+
+function diagDetenerIntervalos() {
+  if (diagIntervalConexion) { clearInterval(diagIntervalConexion); diagIntervalConexion = null; }
+  if (diagIntervalStorage) { clearInterval(diagIntervalStorage); diagIntervalStorage = null; }
+  if (diagIntervalSesion) { clearInterval(diagIntervalSesion); diagIntervalSesion = null; }
+}
+
+// ── Main Refresh Orchestrator ─────────────────────────────────
+async function diagnosticosRefresh() {
+  try {
+    await diagActualizarConexion();
+  } catch (e) {}
+  try {
+    await diagActualizarStorage();
+  } catch (e) {}
+  try {
+    await diagActualizarSistema();
+  } catch (e) {}
+  diagActualizarSesion();
+  diagRenderErrores();
+}
+
+function diagRenderErrores() {
+  const listEl = document.getElementById('diagErrorList');
+  if (!listEl) return;
+
+  if (diagErrores.length === 0) {
+    listEl.innerHTML = '<p class="empty-msg">Sin errores registrados</p>';
+    return;
+  }
+
+  listEl.innerHTML = diagErrores.map(e => {
+    const fecha = diagFormatearFecha(e.timestamp);
+    const resueltoCls = e.resuelto ? ' style="opacity:0.5"' : '';
+    return `<div class="diag-error-item"${resueltoCls}>
+      <div class="diag-error-time">${fecha}</div>
+      <div class="diag-error-tipo">${e.tipo}</div>
+      <div>${e.mensaje}</div>
+    </div>`;
+  }).join('');
+}
+
+// ── Button Event Listeners ────────────────────────────────────
+document.getElementById('btnLimpiarErrores').addEventListener('click', () => {
+  diagLimpiarErrores();
+  diagRenderErrores();
+});
+
+document.getElementById('btnActualizarDiag').addEventListener('click', () => {
+  diagnosticosRefresh();
+});
+
+// ── Global Error Interception ─────────────────────────────────
+window.addEventListener('unhandledrejection', (event) => {
+  diagRegistrarError('Promise: ' + event.reason, 'general');
+});
+
+// Wrap Firebase functions for error capture
+(function() {
+  if (typeof window.fbCargar === 'function') {
+    const originalFbCargar = window.fbCargar;
+    window.fbCargar = async function(col) {
+      try {
+        return await originalFbCargar(col);
+      } catch(e) {
+        diagRegistrarError('Firebase fbCargar(' + col + '): ' + e.message, 'firebase');
+        throw e;
+      }
+    };
+  }
+
+  if (typeof window.fbGuardar === 'function') {
+    const originalFbGuardar = window.fbGuardar;
+    window.fbGuardar = async function(col, id, data) {
+      try {
+        return await originalFbGuardar(col, id, data);
+      } catch(e) {
+        diagRegistrarError('Firebase fbGuardar(' + col + '): ' + e.message, 'firebase');
+        throw e;
+      }
+    };
+  }
+
+  if (typeof window.fbEliminar === 'function') {
+    const originalFbEliminar = window.fbEliminar;
+    window.fbEliminar = async function(col, id) {
+      try {
+        return await originalFbEliminar(col, id);
+      } catch(e) {
+        diagRegistrarError('Firebase fbEliminar(' + col + '): ' + e.message, 'firebase');
+        throw e;
+      }
+    };
+  }
+})();
+ + total.toLocaleString() + '.' : 'El mes de ' + nombreMes + ' registró una caída del ' + Math.abs(diffPct) + '% respecto al mes anterior, pasando de  RESUMIDO -->
+  <div class="seccion">
+    <h2>9. Detalle Diario Resumido</h2>
+    <p style="font-size:0.85rem;color:#555;margin-bottom:14px;line-height:1.6">
+      Tabla con el resumen de ventas día por día durante todo el mes analizado.<br>
+      Para cada fecha se muestra el monto total recaudado y la cantidad de transacciones realizadas.<br>
+      Los días sin registro no aparecen en la tabla, lo que indica jornadas sin actividad comercial.<br>
+      Este detalle permite identificar patrones diarios, días atípicos o irregularidades en el registro.<br>
+      Es útil para cruzar información con otros registros como inventario o asistencia del personal.<br>
+      Los días con montos inusualmente altos o bajos merecen revisión para entender sus causas.<br>
+      Utilice esta tabla como respaldo para conciliaciones bancarias y cuadraturas de caja diarias.
+    </p>
+    <table>
+      <tr><th>Fecha</th><th>Monto</th><th>Ventas</th></tr>
+      ${diasOrdenados.map(([dia, monto]) => {
+        const cantDia = ventas.filter(v => v.fecha === dia).length;
+        return `<tr><td>${dia.split('-').reverse().join('/')}</td><td>$${monto.toLocaleString()}</td><td>${cantDia}</td></tr>`;
+      }).join('')}
+    </table>
+  </div>
+
+  <!-- 9. DETALLE COMPLETO -->
+  <div class="seccion">
+    <h2>10. Detalle Completo de Ventas</h2>
+    <p style="font-size:0.85rem;color:#555;margin-bottom:14px;line-height:1.6">
+      Listado exhaustivo de cada transacción individual registrada durante el mes.<br>
+      Cada fila incluye: número correlativo, fecha, hora, monto, método de pago y tipo de documento.<br>
+      Este es el registro más detallado disponible y sirve como respaldo documental completo.<br>
+      Permite verificar transacciones específicas en caso de reclamos, devoluciones o auditorías.<br>
+      La hora de registro ayuda a identificar los horarios de mayor actividad durante el día.<br>
+      Si detecta registros duplicados o montos incorrectos, puede corregirlos desde el módulo de caja.<br>
+      Este detalle es equivalente al libro de ventas diario y puede usarse para fines contables y tributarios.
+    </p>
+    <table>
+      <tr><th>#</th><th>Fecha</th><th>Hora</th><th>Monto</th><th>Método</th><th>Documento</th></tr>
+      ${ventas.map((v,i) => `<tr><td>${i+1}</td><td>${v.fecha.split('-').reverse().join('/')}</td><td>${v.hora||'-'}</td><td>$${v.monto.toLocaleString()}</td><td>${v.metodo}</td><td>${v.tipoDoc||'-'}</td></tr>`).join('')}
+    </table>
+  </div>
+
+  <!-- 10. CONCLUSIÓN -->
+  <div class="seccion">
+    <h2>11. Conclusión y Recomendaciones</h2>
+    <div class="conclusion">
+      ${generarConclusionAleatoria(nombreMes, total, ventas, metodoTop, mejorDia, mejorMonto, peorDia, peorMonto, promDiario, diasConVentas, diffPct, diaSemNombre, semanas, boletas, facturas, sinDoc, efectivo, debito, credito, transferencia)}
+    </div>
+  </div>
+
+  <div class="footer">Bodega A&amp;M — Informe generado automáticamente el ${fechaGen}</div>
+  </body></html>`;
+
+  if (window.require) {
+    const { ipcRenderer } = window.require('electron');
+    if (guardarEnEscritorio) {
+      ipcRenderer.send('guardarInformePDF', html);
+      ipcRenderer.once('informe-guardado', (event, ruta) => {
+        showToast('✔ Informe guardado en: ' + ruta);
+      });
+      ipcRenderer.once('informe-error', (event, err) => {
+        showToast('Error al guardar: ' + err, true);
+      });
+    } else {
+      ipcRenderer.send('vistaPreviewPDF', html);
+    }
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// ── PANEL DE DIAGNÓSTICOS ─────────────────────────────────────
+// ══════════════════════════════════════════════════════════════
+
+// ── Vista Previa antes de registrar ───────────────────────────
+function mostrarVistaPrevia(tipoDoc, nroDoc, cliente, prods, esEdicion) {
+  return new Promise((resolve) => {
+    const listaProds = prods.map((p, i) => `<tr><td>${i+1}</td><td>${p.codigo||'-'}</td><td>${p.descripcion}</td><td>${p.unidad}</td><td>${p.cantidad}</td></tr>`).join('');
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+    overlay.style.display = 'flex';
+    overlay.innerHTML = `
+      <div class="modal" style="max-width:500px">
+        <div class="modal-header">
+          <h3>${esEdicion ? '¿Guardar cambios?' : '¿Confirmar esta orden?'}</h3>
+          <button class="modal-close" id="prevCerrar">✕</button>
+        </div>
+        <div class="modal-body" style="padding:16px">
+          <div class="detail-row"><strong>Cliente:</strong> ${cliente}</div>
+          <div class="detail-row"><strong>Tipo Doc.:</strong> ${tipoDoc || '-'}</div>
+          ${nroDoc ? `<div class="detail-row"><strong>N° Doc.:</strong> ${nroDoc}</div>` : ''}
+          <div class="detail-row" style="margin-top:12px"><strong>Productos (${prods.length}):</strong></div>
+          <table style="margin-top:8px;font-size:0.85rem">
+            <thead><tr><th>#</th><th>Código</th><th>Descripción</th><th>Unid.</th><th>Cant.</th></tr></thead>
+            <tbody>${listaProds}</tbody>
+          </table>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" id="prevCancelar">Cancelar</button>
+          <button class="btn-primary" id="prevConfirmar">✔ ${esEdicion ? 'Guardar' : 'Confirmar'}</button>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+    overlay.querySelector('#prevConfirmar').addEventListener('click', () => { overlay.remove(); resolve(true); });
+    overlay.querySelector('#prevCancelar').addEventListener('click', () => { overlay.remove(); resolve(false); });
+    overlay.querySelector('#prevCerrar').addEventListener('click', () => { overlay.remove(); resolve(false); });
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) { overlay.remove(); resolve(false); } });
+  });
+}
+
+// ── Error Logger ──────────────────────────────────────────────
+let diagErrores = [];
+const DIAG_MAX_ERRORES = 50;
+
+function diagRegistrarError(mensaje, tipo = 'general') {
+  const error = {
+    timestamp: Date.now(),
+    mensaje: mensaje,
+    tipo: tipo,
+    resuelto: false
+  };
+  diagErrores.unshift(error);
+  if (diagErrores.length > DIAG_MAX_ERRORES) {
+    diagErrores.pop();
+  }
+}
+
+function diagLimpiarErrores() {
+  diagErrores = [];
+}
+
+function diagMarcarResueltos(tipo) {
+  diagErrores.forEach(e => {
+    if (e.tipo === tipo && !e.resuelto) e.resuelto = true;
+  });
+}
+
+// ── Firebase Connection Monitor ───────────────────────────────
+let diagUltimaSync = null;
+let diagConectado = navigator.onLine;
+
+function diagMedirLatencia() {
+  const inicio = performance.now();
+  return fbCargar('config').then(() => {
+    const fin = performance.now();
+    diagUltimaSync = Date.now();
+    diagConectado = true;
+    diagMarcarResueltos('network');
+    return Math.round(fin - inicio);
+  }).catch(err => {
+    diagConectado = false;
+    diagRegistrarError('Error de conexión: ' + err.message, 'network');
+    return null;
+  });
+}
+
+async function diagActualizarConexion() {
+  const estadoEl = document.getElementById('diagConexionEstado');
+  const latenciaEl = document.getElementById('diagLatencia');
+  const syncEl = document.getElementById('diagUltimaSync');
+  if (!estadoEl) return;
+
+  const latencia = await diagMedirLatencia();
+  if (latencia !== null) {
+    estadoEl.textContent = 'Conectado';
+    estadoEl.style.background = '#d1fae5';
+    estadoEl.style.color = '#065f46';
+    latenciaEl.textContent = latencia + ' ms';
+  } else {
+    estadoEl.textContent = 'Desconectado';
+    estadoEl.style.background = '#fee2e2';
+    estadoEl.style.color = '#991b1b';
+    latenciaEl.textContent = '—';
+  }
+  if (diagUltimaSync) {
+    syncEl.textContent = diagFormatearFecha(diagUltimaSync);
+  }
+}
+
+// ── Storage Calculator ────────────────────────────────────────
+const DIAG_TAMANO_PROMEDIO = {
+  historial: 2048,
+  catalogo: 512,
+  clientes: 256,
+  recepciones: 1024,
+  usuarios: 384
+};
+
+async function diagCalcularAlmacenamiento() {
+  const colecciones = ['historial', 'catalogo', 'clientes', 'recepciones', 'usuarios'];
+  const resultados = {};
+  let totalBytes = 0;
+
+  for (const col of colecciones) {
+    try {
+      const docs = await fbCargar(col);
+      const count = docs.length;
+      const estimatedBytes = count * (DIAG_TAMANO_PROMEDIO[col] || 512);
+      resultados[col] = { count, estimatedBytes };
+      totalBytes += estimatedBytes;
+    } catch (e) {
+      resultados[col] = { count: 0, estimatedBytes: 0, error: true };
+    }
+  }
+
+  const totalMB = totalBytes / (1024 * 1024);
+  const porcentaje = Math.min((totalMB / 1024) * 100, 100);
+
+  return { colecciones: resultados, totalMB, porcentaje };
+}
+
+async function diagActualizarStorage() {
+  const gridEl = document.getElementById('diagStorageGrid');
+  const fillEl = document.getElementById('diagProgressFill');
+  const textEl = document.getElementById('diagStorageText');
+  const warnEl = document.getElementById('diagStorageWarning');
+  if (!gridEl) return;
+
+  try {
+    const datos = await diagCalcularAlmacenamiento();
+
+    // Render grid
+    let html = '';
+    for (const [col, info] of Object.entries(datos.colecciones)) {
+      const kb = (info.estimatedBytes / 1024).toFixed(1);
+      const estado = info.error ? '<span style="color:#e53e3e">Error</span>' : `${info.count} docs (~${kb} KB)`;
+      html += `<div class="field"><label>${col}</label><span>${estado}</span></div>`;
+    }
+    gridEl.innerHTML = html;
+
+    // Progress bar
+    fillEl.style.width = datos.porcentaje.toFixed(1) + '%';
+    if (datos.porcentaje > 80) {
+      fillEl.style.background = '#e53e3e';
+    } else if (datos.porcentaje > 60) {
+      fillEl.style.background = '#f59e0b';
+    } else {
+      fillEl.style.background = '#1a56db';
+    }
+    textEl.textContent = datos.totalMB.toFixed(2) + ' MB / 1024 MB (' + datos.porcentaje.toFixed(1) + '%)';
+
+    // Warning
+    warnEl.style.display = datos.porcentaje > 80 ? '' : 'none';
+  } catch (e) {
+    gridEl.innerHTML = '<p class="empty-msg">Error al calcular almacenamiento</p>';
+  }
+}
+
+// ── System Info ───────────────────────────────────────────────
+async function diagObtenerInfoSistema() {
+  if (window.require) {
+    try {
+      const { ipcRenderer } = window.require('electron');
+      return await ipcRenderer.invoke('get-system-info');
+    } catch (e) {
+      return null;
+    }
+  }
+  return null;
+}
+
+async function diagActualizarSistema() {
+  const versionEl = document.getElementById('diagVersion');
+  const osEl = document.getElementById('diagOS');
+  const usuarioEl = document.getElementById('diagUsuario');
+  const memoriaEl = document.getElementById('diagMemoria');
+  if (!versionEl) return;
+
+  // Versión
+  const verEl = document.getElementById('appVersion');
+  versionEl.textContent = verEl ? verEl.textContent || 'N/A' : 'N/A';
+
+  // Usuario activo
+  usuarioEl.textContent = usuarioActivo ? `${usuarioActivo.nombre} (${usuarioActivo.rol})` : 'N/A';
+
+  // Info del sistema via IPC
+  const info = await diagObtenerInfoSistema();
+  if (info) {
+    osEl.textContent = `${info.platform} ${info.release}`;
+    memoriaEl.textContent = info.memoryUsage + ' MB';
+  } else {
+    osEl.textContent = 'No disponible';
+    memoriaEl.textContent = 'No disponible';
+  }
+}
+
+// ── Session Duration ──────────────────────────────────────────
+let diagInicioSesion = null;
+
+function diagCalcularDuracionSesion(inicioTimestamp, ahoraTimestamp) {
+  const diffMs = ahoraTimestamp - inicioTimestamp;
+  const totalMinutos = Math.floor(diffMs / 60000);
+  const horas = Math.floor(totalMinutos / 60);
+  const minutos = totalMinutos % 60;
+  return { horas, minutos, texto: `${horas}h ${minutos}m` };
+}
+
+function diagActualizarSesion() {
+  const sesionEl = document.getElementById('diagSesion');
+  if (!sesionEl) return;
+  if (diagInicioSesion) {
+    const duracion = diagCalcularDuracionSesion(diagInicioSesion, Date.now());
+    sesionEl.textContent = duracion.texto;
+  } else {
+    sesionEl.textContent = '—';
+  }
+}
+
+// ── Timestamp Formatter ───────────────────────────────────────
+function diagFormatearFecha(timestamp) {
+  const d = new Date(timestamp);
+  const dd = String(d.getDate()).padStart(2, '0');
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const yyyy = d.getFullYear();
+  const hh = String(d.getHours()).padStart(2, '0');
+  const min = String(d.getMinutes()).padStart(2, '0');
+  const ss = String(d.getSeconds()).padStart(2, '0');
+  return `${dd}/${mm}/${yyyy} ${hh}:${min}:${ss}`;
+}
+
+// ── Periodic Refresh Controller ───────────────────────────────
+let diagIntervalConexion = null;
+let diagIntervalStorage = null;
+let diagIntervalSesion = null;
+
+function diagIniciarIntervalos() {
+  diagDetenerIntervalos();
+  diagIntervalConexion = setInterval(diagActualizarConexion, 30000);
+  diagIntervalStorage = setInterval(diagActualizarStorage, 300000);
+  diagIntervalSesion = setInterval(diagActualizarSesion, 60000);
+}
+
+function diagDetenerIntervalos() {
+  if (diagIntervalConexion) { clearInterval(diagIntervalConexion); diagIntervalConexion = null; }
+  if (diagIntervalStorage) { clearInterval(diagIntervalStorage); diagIntervalStorage = null; }
+  if (diagIntervalSesion) { clearInterval(diagIntervalSesion); diagIntervalSesion = null; }
+}
+
+// ── Main Refresh Orchestrator ─────────────────────────────────
+async function diagnosticosRefresh() {
+  try {
+    await diagActualizarConexion();
+  } catch (e) {}
+  try {
+    await diagActualizarStorage();
+  } catch (e) {}
+  try {
+    await diagActualizarSistema();
+  } catch (e) {}
+  diagActualizarSesion();
+  diagRenderErrores();
+}
+
+function diagRenderErrores() {
+  const listEl = document.getElementById('diagErrorList');
+  if (!listEl) return;
+
+  if (diagErrores.length === 0) {
+    listEl.innerHTML = '<p class="empty-msg">Sin errores registrados</p>';
+    return;
+  }
+
+  listEl.innerHTML = diagErrores.map(e => {
+    const fecha = diagFormatearFecha(e.timestamp);
+    const resueltoCls = e.resuelto ? ' style="opacity:0.5"' : '';
+    return `<div class="diag-error-item"${resueltoCls}>
+      <div class="diag-error-time">${fecha}</div>
+      <div class="diag-error-tipo">${e.tipo}</div>
+      <div>${e.mensaje}</div>
+    </div>`;
+  }).join('');
+}
+
+// ── Button Event Listeners ────────────────────────────────────
+document.getElementById('btnLimpiarErrores').addEventListener('click', () => {
+  diagLimpiarErrores();
+  diagRenderErrores();
+});
+
+document.getElementById('btnActualizarDiag').addEventListener('click', () => {
+  diagnosticosRefresh();
+});
+
+// ── Global Error Interception ─────────────────────────────────
+window.addEventListener('unhandledrejection', (event) => {
+  diagRegistrarError('Promise: ' + event.reason, 'general');
+});
+
+// Wrap Firebase functions for error capture
+(function() {
+  if (typeof window.fbCargar === 'function') {
+    const originalFbCargar = window.fbCargar;
+    window.fbCargar = async function(col) {
+      try {
+        return await originalFbCargar(col);
+      } catch(e) {
+        diagRegistrarError('Firebase fbCargar(' + col + '): ' + e.message, 'firebase');
+        throw e;
+      }
+    };
+  }
+
+  if (typeof window.fbGuardar === 'function') {
+    const originalFbGuardar = window.fbGuardar;
+    window.fbGuardar = async function(col, id, data) {
+      try {
+        return await originalFbGuardar(col, id, data);
+      } catch(e) {
+        diagRegistrarError('Firebase fbGuardar(' + col + '): ' + e.message, 'firebase');
+        throw e;
+      }
+    };
+  }
+
+  if (typeof window.fbEliminar === 'function') {
+    const originalFbEliminar = window.fbEliminar;
+    window.fbEliminar = async function(col, id) {
+      try {
+        return await originalFbEliminar(col, id);
+      } catch(e) {
+        diagRegistrarError('Firebase fbEliminar(' + col + '): ' + e.message, 'firebase');
+        throw e;
+      }
+    };
+  }
+})();
+ + totalAnt.toLocaleString() + ' a  RESUMIDO -->
+  <div class="seccion">
+    <h2>9. Detalle Diario Resumido</h2>
+    <p style="font-size:0.85rem;color:#555;margin-bottom:14px;line-height:1.6">
+      Tabla con el resumen de ventas día por día durante todo el mes analizado.<br>
+      Para cada fecha se muestra el monto total recaudado y la cantidad de transacciones realizadas.<br>
+      Los días sin registro no aparecen en la tabla, lo que indica jornadas sin actividad comercial.<br>
+      Este detalle permite identificar patrones diarios, días atípicos o irregularidades en el registro.<br>
+      Es útil para cruzar información con otros registros como inventario o asistencia del personal.<br>
+      Los días con montos inusualmente altos o bajos merecen revisión para entender sus causas.<br>
+      Utilice esta tabla como respaldo para conciliaciones bancarias y cuadraturas de caja diarias.
+    </p>
+    <table>
+      <tr><th>Fecha</th><th>Monto</th><th>Ventas</th></tr>
+      ${diasOrdenados.map(([dia, monto]) => {
+        const cantDia = ventas.filter(v => v.fecha === dia).length;
+        return `<tr><td>${dia.split('-').reverse().join('/')}</td><td>$${monto.toLocaleString()}</td><td>${cantDia}</td></tr>`;
+      }).join('')}
+    </table>
+  </div>
+
+  <!-- 9. DETALLE COMPLETO -->
+  <div class="seccion">
+    <h2>10. Detalle Completo de Ventas</h2>
+    <p style="font-size:0.85rem;color:#555;margin-bottom:14px;line-height:1.6">
+      Listado exhaustivo de cada transacción individual registrada durante el mes.<br>
+      Cada fila incluye: número correlativo, fecha, hora, monto, método de pago y tipo de documento.<br>
+      Este es el registro más detallado disponible y sirve como respaldo documental completo.<br>
+      Permite verificar transacciones específicas en caso de reclamos, devoluciones o auditorías.<br>
+      La hora de registro ayuda a identificar los horarios de mayor actividad durante el día.<br>
+      Si detecta registros duplicados o montos incorrectos, puede corregirlos desde el módulo de caja.<br>
+      Este detalle es equivalente al libro de ventas diario y puede usarse para fines contables y tributarios.
+    </p>
+    <table>
+      <tr><th>#</th><th>Fecha</th><th>Hora</th><th>Monto</th><th>Método</th><th>Documento</th></tr>
+      ${ventas.map((v,i) => `<tr><td>${i+1}</td><td>${v.fecha.split('-').reverse().join('/')}</td><td>${v.hora||'-'}</td><td>$${v.monto.toLocaleString()}</td><td>${v.metodo}</td><td>${v.tipoDoc||'-'}</td></tr>`).join('')}
+    </table>
+  </div>
+
+  <!-- 10. CONCLUSIÓN -->
+  <div class="seccion">
+    <h2>11. Conclusión y Recomendaciones</h2>
+    <div class="conclusion">
+      ${generarConclusionAleatoria(nombreMes, total, ventas, metodoTop, mejorDia, mejorMonto, peorDia, peorMonto, promDiario, diasConVentas, diffPct, diaSemNombre, semanas, boletas, facturas, sinDoc, efectivo, debito, credito, transferencia)}
+    </div>
+  </div>
+
+  <div class="footer">Bodega A&amp;M — Informe generado automáticamente el ${fechaGen}</div>
+  </body></html>`;
+
+  if (window.require) {
+    const { ipcRenderer } = window.require('electron');
+    if (guardarEnEscritorio) {
+      ipcRenderer.send('guardarInformePDF', html);
+      ipcRenderer.once('informe-guardado', (event, ruta) => {
+        showToast('✔ Informe guardado en: ' + ruta);
+      });
+      ipcRenderer.once('informe-error', (event, err) => {
+        showToast('Error al guardar: ' + err, true);
+      });
+    } else {
+      ipcRenderer.send('vistaPreviewPDF', html);
+    }
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// ── PANEL DE DIAGNÓSTICOS ─────────────────────────────────────
+// ══════════════════════════════════════════════════════════════
+
+// ── Vista Previa antes de registrar ───────────────────────────
+function mostrarVistaPrevia(tipoDoc, nroDoc, cliente, prods, esEdicion) {
+  return new Promise((resolve) => {
+    const listaProds = prods.map((p, i) => `<tr><td>${i+1}</td><td>${p.codigo||'-'}</td><td>${p.descripcion}</td><td>${p.unidad}</td><td>${p.cantidad}</td></tr>`).join('');
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+    overlay.style.display = 'flex';
+    overlay.innerHTML = `
+      <div class="modal" style="max-width:500px">
+        <div class="modal-header">
+          <h3>${esEdicion ? '¿Guardar cambios?' : '¿Confirmar esta orden?'}</h3>
+          <button class="modal-close" id="prevCerrar">✕</button>
+        </div>
+        <div class="modal-body" style="padding:16px">
+          <div class="detail-row"><strong>Cliente:</strong> ${cliente}</div>
+          <div class="detail-row"><strong>Tipo Doc.:</strong> ${tipoDoc || '-'}</div>
+          ${nroDoc ? `<div class="detail-row"><strong>N° Doc.:</strong> ${nroDoc}</div>` : ''}
+          <div class="detail-row" style="margin-top:12px"><strong>Productos (${prods.length}):</strong></div>
+          <table style="margin-top:8px;font-size:0.85rem">
+            <thead><tr><th>#</th><th>Código</th><th>Descripción</th><th>Unid.</th><th>Cant.</th></tr></thead>
+            <tbody>${listaProds}</tbody>
+          </table>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" id="prevCancelar">Cancelar</button>
+          <button class="btn-primary" id="prevConfirmar">✔ ${esEdicion ? 'Guardar' : 'Confirmar'}</button>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+    overlay.querySelector('#prevConfirmar').addEventListener('click', () => { overlay.remove(); resolve(true); });
+    overlay.querySelector('#prevCancelar').addEventListener('click', () => { overlay.remove(); resolve(false); });
+    overlay.querySelector('#prevCerrar').addEventListener('click', () => { overlay.remove(); resolve(false); });
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) { overlay.remove(); resolve(false); } });
+  });
+}
+
+// ── Error Logger ──────────────────────────────────────────────
+let diagErrores = [];
+const DIAG_MAX_ERRORES = 50;
+
+function diagRegistrarError(mensaje, tipo = 'general') {
+  const error = {
+    timestamp: Date.now(),
+    mensaje: mensaje,
+    tipo: tipo,
+    resuelto: false
+  };
+  diagErrores.unshift(error);
+  if (diagErrores.length > DIAG_MAX_ERRORES) {
+    diagErrores.pop();
+  }
+}
+
+function diagLimpiarErrores() {
+  diagErrores = [];
+}
+
+function diagMarcarResueltos(tipo) {
+  diagErrores.forEach(e => {
+    if (e.tipo === tipo && !e.resuelto) e.resuelto = true;
+  });
+}
+
+// ── Firebase Connection Monitor ───────────────────────────────
+let diagUltimaSync = null;
+let diagConectado = navigator.onLine;
+
+function diagMedirLatencia() {
+  const inicio = performance.now();
+  return fbCargar('config').then(() => {
+    const fin = performance.now();
+    diagUltimaSync = Date.now();
+    diagConectado = true;
+    diagMarcarResueltos('network');
+    return Math.round(fin - inicio);
+  }).catch(err => {
+    diagConectado = false;
+    diagRegistrarError('Error de conexión: ' + err.message, 'network');
+    return null;
+  });
+}
+
+async function diagActualizarConexion() {
+  const estadoEl = document.getElementById('diagConexionEstado');
+  const latenciaEl = document.getElementById('diagLatencia');
+  const syncEl = document.getElementById('diagUltimaSync');
+  if (!estadoEl) return;
+
+  const latencia = await diagMedirLatencia();
+  if (latencia !== null) {
+    estadoEl.textContent = 'Conectado';
+    estadoEl.style.background = '#d1fae5';
+    estadoEl.style.color = '#065f46';
+    latenciaEl.textContent = latencia + ' ms';
+  } else {
+    estadoEl.textContent = 'Desconectado';
+    estadoEl.style.background = '#fee2e2';
+    estadoEl.style.color = '#991b1b';
+    latenciaEl.textContent = '—';
+  }
+  if (diagUltimaSync) {
+    syncEl.textContent = diagFormatearFecha(diagUltimaSync);
+  }
+}
+
+// ── Storage Calculator ────────────────────────────────────────
+const DIAG_TAMANO_PROMEDIO = {
+  historial: 2048,
+  catalogo: 512,
+  clientes: 256,
+  recepciones: 1024,
+  usuarios: 384
+};
+
+async function diagCalcularAlmacenamiento() {
+  const colecciones = ['historial', 'catalogo', 'clientes', 'recepciones', 'usuarios'];
+  const resultados = {};
+  let totalBytes = 0;
+
+  for (const col of colecciones) {
+    try {
+      const docs = await fbCargar(col);
+      const count = docs.length;
+      const estimatedBytes = count * (DIAG_TAMANO_PROMEDIO[col] || 512);
+      resultados[col] = { count, estimatedBytes };
+      totalBytes += estimatedBytes;
+    } catch (e) {
+      resultados[col] = { count: 0, estimatedBytes: 0, error: true };
+    }
+  }
+
+  const totalMB = totalBytes / (1024 * 1024);
+  const porcentaje = Math.min((totalMB / 1024) * 100, 100);
+
+  return { colecciones: resultados, totalMB, porcentaje };
+}
+
+async function diagActualizarStorage() {
+  const gridEl = document.getElementById('diagStorageGrid');
+  const fillEl = document.getElementById('diagProgressFill');
+  const textEl = document.getElementById('diagStorageText');
+  const warnEl = document.getElementById('diagStorageWarning');
+  if (!gridEl) return;
+
+  try {
+    const datos = await diagCalcularAlmacenamiento();
+
+    // Render grid
+    let html = '';
+    for (const [col, info] of Object.entries(datos.colecciones)) {
+      const kb = (info.estimatedBytes / 1024).toFixed(1);
+      const estado = info.error ? '<span style="color:#e53e3e">Error</span>' : `${info.count} docs (~${kb} KB)`;
+      html += `<div class="field"><label>${col}</label><span>${estado}</span></div>`;
+    }
+    gridEl.innerHTML = html;
+
+    // Progress bar
+    fillEl.style.width = datos.porcentaje.toFixed(1) + '%';
+    if (datos.porcentaje > 80) {
+      fillEl.style.background = '#e53e3e';
+    } else if (datos.porcentaje > 60) {
+      fillEl.style.background = '#f59e0b';
+    } else {
+      fillEl.style.background = '#1a56db';
+    }
+    textEl.textContent = datos.totalMB.toFixed(2) + ' MB / 1024 MB (' + datos.porcentaje.toFixed(1) + '%)';
+
+    // Warning
+    warnEl.style.display = datos.porcentaje > 80 ? '' : 'none';
+  } catch (e) {
+    gridEl.innerHTML = '<p class="empty-msg">Error al calcular almacenamiento</p>';
+  }
+}
+
+// ── System Info ───────────────────────────────────────────────
+async function diagObtenerInfoSistema() {
+  if (window.require) {
+    try {
+      const { ipcRenderer } = window.require('electron');
+      return await ipcRenderer.invoke('get-system-info');
+    } catch (e) {
+      return null;
+    }
+  }
+  return null;
+}
+
+async function diagActualizarSistema() {
+  const versionEl = document.getElementById('diagVersion');
+  const osEl = document.getElementById('diagOS');
+  const usuarioEl = document.getElementById('diagUsuario');
+  const memoriaEl = document.getElementById('diagMemoria');
+  if (!versionEl) return;
+
+  // Versión
+  const verEl = document.getElementById('appVersion');
+  versionEl.textContent = verEl ? verEl.textContent || 'N/A' : 'N/A';
+
+  // Usuario activo
+  usuarioEl.textContent = usuarioActivo ? `${usuarioActivo.nombre} (${usuarioActivo.rol})` : 'N/A';
+
+  // Info del sistema via IPC
+  const info = await diagObtenerInfoSistema();
+  if (info) {
+    osEl.textContent = `${info.platform} ${info.release}`;
+    memoriaEl.textContent = info.memoryUsage + ' MB';
+  } else {
+    osEl.textContent = 'No disponible';
+    memoriaEl.textContent = 'No disponible';
+  }
+}
+
+// ── Session Duration ──────────────────────────────────────────
+let diagInicioSesion = null;
+
+function diagCalcularDuracionSesion(inicioTimestamp, ahoraTimestamp) {
+  const diffMs = ahoraTimestamp - inicioTimestamp;
+  const totalMinutos = Math.floor(diffMs / 60000);
+  const horas = Math.floor(totalMinutos / 60);
+  const minutos = totalMinutos % 60;
+  return { horas, minutos, texto: `${horas}h ${minutos}m` };
+}
+
+function diagActualizarSesion() {
+  const sesionEl = document.getElementById('diagSesion');
+  if (!sesionEl) return;
+  if (diagInicioSesion) {
+    const duracion = diagCalcularDuracionSesion(diagInicioSesion, Date.now());
+    sesionEl.textContent = duracion.texto;
+  } else {
+    sesionEl.textContent = '—';
+  }
+}
+
+// ── Timestamp Formatter ───────────────────────────────────────
+function diagFormatearFecha(timestamp) {
+  const d = new Date(timestamp);
+  const dd = String(d.getDate()).padStart(2, '0');
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const yyyy = d.getFullYear();
+  const hh = String(d.getHours()).padStart(2, '0');
+  const min = String(d.getMinutes()).padStart(2, '0');
+  const ss = String(d.getSeconds()).padStart(2, '0');
+  return `${dd}/${mm}/${yyyy} ${hh}:${min}:${ss}`;
+}
+
+// ── Periodic Refresh Controller ───────────────────────────────
+let diagIntervalConexion = null;
+let diagIntervalStorage = null;
+let diagIntervalSesion = null;
+
+function diagIniciarIntervalos() {
+  diagDetenerIntervalos();
+  diagIntervalConexion = setInterval(diagActualizarConexion, 30000);
+  diagIntervalStorage = setInterval(diagActualizarStorage, 300000);
+  diagIntervalSesion = setInterval(diagActualizarSesion, 60000);
+}
+
+function diagDetenerIntervalos() {
+  if (diagIntervalConexion) { clearInterval(diagIntervalConexion); diagIntervalConexion = null; }
+  if (diagIntervalStorage) { clearInterval(diagIntervalStorage); diagIntervalStorage = null; }
+  if (diagIntervalSesion) { clearInterval(diagIntervalSesion); diagIntervalSesion = null; }
+}
+
+// ── Main Refresh Orchestrator ─────────────────────────────────
+async function diagnosticosRefresh() {
+  try {
+    await diagActualizarConexion();
+  } catch (e) {}
+  try {
+    await diagActualizarStorage();
+  } catch (e) {}
+  try {
+    await diagActualizarSistema();
+  } catch (e) {}
+  diagActualizarSesion();
+  diagRenderErrores();
+}
+
+function diagRenderErrores() {
+  const listEl = document.getElementById('diagErrorList');
+  if (!listEl) return;
+
+  if (diagErrores.length === 0) {
+    listEl.innerHTML = '<p class="empty-msg">Sin errores registrados</p>';
+    return;
+  }
+
+  listEl.innerHTML = diagErrores.map(e => {
+    const fecha = diagFormatearFecha(e.timestamp);
+    const resueltoCls = e.resuelto ? ' style="opacity:0.5"' : '';
+    return `<div class="diag-error-item"${resueltoCls}>
+      <div class="diag-error-time">${fecha}</div>
+      <div class="diag-error-tipo">${e.tipo}</div>
+      <div>${e.mensaje}</div>
+    </div>`;
+  }).join('');
+}
+
+// ── Button Event Listeners ────────────────────────────────────
+document.getElementById('btnLimpiarErrores').addEventListener('click', () => {
+  diagLimpiarErrores();
+  diagRenderErrores();
+});
+
+document.getElementById('btnActualizarDiag').addEventListener('click', () => {
+  diagnosticosRefresh();
+});
+
+// ── Global Error Interception ─────────────────────────────────
+window.addEventListener('unhandledrejection', (event) => {
+  diagRegistrarError('Promise: ' + event.reason, 'general');
+});
+
+// Wrap Firebase functions for error capture
+(function() {
+  if (typeof window.fbCargar === 'function') {
+    const originalFbCargar = window.fbCargar;
+    window.fbCargar = async function(col) {
+      try {
+        return await originalFbCargar(col);
+      } catch(e) {
+        diagRegistrarError('Firebase fbCargar(' + col + '): ' + e.message, 'firebase');
+        throw e;
+      }
+    };
+  }
+
+  if (typeof window.fbGuardar === 'function') {
+    const originalFbGuardar = window.fbGuardar;
+    window.fbGuardar = async function(col, id, data) {
+      try {
+        return await originalFbGuardar(col, id, data);
+      } catch(e) {
+        diagRegistrarError('Firebase fbGuardar(' + col + '): ' + e.message, 'firebase');
+        throw e;
+      }
+    };
+  }
+
+  if (typeof window.fbEliminar === 'function') {
+    const originalFbEliminar = window.fbEliminar;
+    window.fbEliminar = async function(col, id) {
+      try {
+        return await originalFbEliminar(col, id);
+      } catch(e) {
+        diagRegistrarError('Firebase fbEliminar(' + col + '): ' + e.message, 'firebase');
+        throw e;
+      }
+    };
+  }
+})();
+ + total.toLocaleString() + '.'}<br>
+      En cantidad de transacciones, se pasó de ${ventasAnt.length} a ${ventas.length} ventas (${ventas.length - ventasAnt.length >= 0 ? '+' : ''}${ventas.length - ventasAnt.length} operaciones).<br>
+      ${diffPct >= 0 ? 'Esta tendencia positiva debe mantenerse y potenciarse con las estrategias actuales.' : 'Se recomienda investigar las causas de la disminución y tomar medidas correctivas.'}<br>
+      Factores como estacionalidad, días hábiles del mes y eventos especiales pueden influir en estas variaciones.<br>
+      Compare al menos 3 meses consecutivos para identificar si se trata de una tendencia o un evento aislado.<br>
+      Establezca metas mensuales basadas en el promedio de los últimos 3 meses más un porcentaje de crecimiento.<br>
+      El seguimiento mensual constante es la base para una gestión financiera efectiva del negocio.
+    </div>
+  </div>
+
+  <!-- 8. DETALLE DIARIO RESUMIDO -->
+  <div class="seccion">
+    <h2>9. Detalle Diario Resumido</h2>
+    <p style="font-size:0.85rem;color:#555;margin-bottom:14px;line-height:1.6">
+      Tabla con el resumen de ventas día por día durante todo el mes analizado.<br>
+      Para cada fecha se muestra el monto total recaudado y la cantidad de transacciones realizadas.<br>
+      Los días sin registro no aparecen en la tabla, lo que indica jornadas sin actividad comercial.<br>
+      Este detalle permite identificar patrones diarios, días atípicos o irregularidades en el registro.<br>
+      Es útil para cruzar información con otros registros como inventario o asistencia del personal.<br>
+      Los días con montos inusualmente altos o bajos merecen revisión para entender sus causas.<br>
+      Utilice esta tabla como respaldo para conciliaciones bancarias y cuadraturas de caja diarias.
+    </p>
+    <table>
+      <tr><th>Fecha</th><th>Monto</th><th>Ventas</th></tr>
+      ${diasOrdenados.map(([dia, monto]) => {
+        const cantDia = ventas.filter(v => v.fecha === dia).length;
+        return `<tr><td>${dia.split('-').reverse().join('/')}</td><td>$${monto.toLocaleString()}</td><td>${cantDia}</td></tr>`;
+      }).join('')}
+    </table>
+  </div>
+
+  <!-- 9. DETALLE COMPLETO -->
+  <div class="seccion">
+    <h2>10. Detalle Completo de Ventas</h2>
+    <p style="font-size:0.85rem;color:#555;margin-bottom:14px;line-height:1.6">
+      Listado exhaustivo de cada transacción individual registrada durante el mes.<br>
+      Cada fila incluye: número correlativo, fecha, hora, monto, método de pago y tipo de documento.<br>
+      Este es el registro más detallado disponible y sirve como respaldo documental completo.<br>
+      Permite verificar transacciones específicas en caso de reclamos, devoluciones o auditorías.<br>
+      La hora de registro ayuda a identificar los horarios de mayor actividad durante el día.<br>
+      Si detecta registros duplicados o montos incorrectos, puede corregirlos desde el módulo de caja.<br>
+      Este detalle es equivalente al libro de ventas diario y puede usarse para fines contables y tributarios.
+    </p>
+    <table>
+      <tr><th>#</th><th>Fecha</th><th>Hora</th><th>Monto</th><th>Método</th><th>Documento</th></tr>
+      ${ventas.map((v,i) => `<tr><td>${i+1}</td><td>${v.fecha.split('-').reverse().join('/')}</td><td>${v.hora||'-'}</td><td>$${v.monto.toLocaleString()}</td><td>${v.metodo}</td><td>${v.tipoDoc||'-'}</td></tr>`).join('')}
+    </table>
+  </div>
+
+  <!-- 10. CONCLUSIÓN -->
+  <div class="seccion">
+    <h2>11. Conclusión y Recomendaciones</h2>
+    <div class="conclusion">
+      ${generarConclusionAleatoria(nombreMes, total, ventas, metodoTop, mejorDia, mejorMonto, peorDia, peorMonto, promDiario, diasConVentas, diffPct, diaSemNombre, semanas, boletas, facturas, sinDoc, efectivo, debito, credito, transferencia)}
+    </div>
+  </div>
+
+  <div class="footer">Bodega A&amp;M — Informe generado automáticamente el ${fechaGen}</div>
   </body></html>`;
 
   if (window.require) {
