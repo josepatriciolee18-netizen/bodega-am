@@ -412,6 +412,9 @@ async function cargarDesdeFirebase() {
 
     showToast('✔ Conectado a la nube');
 
+    // Cargar caja desde Firebase
+    cargarCajaDesdeFirebase();
+
     // Cargar desde Firebase SOLO si localStorage está vacío (ahorra miles de lecturas)
     // Si ya hay datos locales, los listeners en tiempo real se encargan de mantenerlos actualizados
     if (historial.length === 0) {
@@ -2123,6 +2126,7 @@ function aplicarPermisos() {
   document.querySelector('[data-tab="clientes"]').style.display    = (esAdmin || p.clientes)     ? '' : 'none';
   document.querySelector('[data-tab="recepciones"]').style.display = (esAdmin || p.recepciones)  ? '' : 'none';
   document.querySelector('[data-tab="usuarios"]').style.display    = (esAdmin || p.usuarios)     ? '' : 'none';
+  document.querySelector('[data-tab="caja"]').style.display        = (esAdmin || p.crearOrden)   ? '' : 'none';
   document.querySelector('[data-tab="papelera"]').style.display    = esAdmin ? '' : 'none';
   document.querySelector('[data-tab="diagnosticos"]').style.display = esAdmin ? '' : 'none';
 
@@ -3240,6 +3244,196 @@ if (window.require) {
     }
   });
 }
+
+// ══════════════════════════════════════════════════════════════
+// ── CAJA / VENTAS DEL DÍA ─────────────────────────────────────
+// ══════════════════════════════════════════════════════════════
+
+let ventasCaja = JSON.parse(localStorage.getItem('ventasCaja') || '[]');
+let cajaFechaActual = new Date().toISOString().slice(0, 10);
+
+document.getElementById('btnRegistrarVenta').addEventListener('click', () => {
+  const monto = parseInt(document.getElementById('cajaMonto').value);
+  const metodo = document.getElementById('cajaMetodo').value;
+  if (!monto || monto <= 0) { showToast('Ingresa un monto válido', true); return; }
+  if (!metodo) { showToast('Selecciona un método de pago', true); return; }
+
+  const venta = {
+    id: Date.now().toString(36) + Math.random().toString(36).substr(2, 5),
+    fecha: new Date().toISOString().slice(0, 10),
+    hora: new Date().toTimeString().slice(0, 5),
+    monto: monto,
+    metodo: metodo,
+    usuario: usuarioActivo ? usuarioActivo.nombre : ''
+  };
+
+  ventasCaja.unshift(venta);
+  localStorage.setItem('ventasCaja', JSON.stringify(ventasCaja));
+  if (window.fbListo) fbGuardar('caja', venta.id, venta);
+
+  document.getElementById('cajaMonto').value = '';
+  document.getElementById('cajaMetodo').value = '';
+  renderCaja();
+  showToast('✔ Venta registrada');
+});
+
+document.getElementById('btnCajaFiltrar').addEventListener('click', () => {
+  const fecha = document.getElementById('cajaFiltroFecha').value;
+  if (!fecha) { showToast('Selecciona una fecha', true); return; }
+  cajaFechaActual = fecha;
+  renderCaja();
+});
+
+document.getElementById('btnCajaHoy').addEventListener('click', () => {
+  cajaFechaActual = new Date().toISOString().slice(0, 10);
+  document.getElementById('cajaFiltroFecha').value = '';
+  renderCaja();
+});
+
+function renderCaja() {
+  const tbody = document.getElementById('tbodyCaja');
+  const ventasDia = ventasCaja.filter(v => v.fecha === cajaFechaActual);
+
+  if (ventasDia.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" class="empty-msg">No hay ventas registradas</td></tr>';
+  } else {
+    tbody.innerHTML = ventasDia.map((v, i) => `
+      <tr>
+        <td>${i + 1}</td>
+        <td>${v.hora}</td>
+        <td>$${v.monto.toLocaleString()}</td>
+        <td><span class="badge" style="background:${v.metodo==='Efectivo'?'#d1fae5':v.metodo==='Débito'?'#dbeafe':v.metodo==='Crédito'?'#fef3c7':'#e0e7ff'};color:#333;padding:3px 8px;border-radius:4px;font-size:0.8rem">${v.metodo}</span></td>
+        <td><button class="btn-delete" onclick="eliminarVentaCaja('${v.id}')">✕</button></td>
+      </tr>`).join('');
+  }
+
+  // Estadísticas
+  const efectivo = ventasDia.filter(v => v.metodo === 'Efectivo').reduce((a, v) => a + v.monto, 0);
+  const debito = ventasDia.filter(v => v.metodo === 'Débito').reduce((a, v) => a + v.monto, 0);
+  const credito = ventasDia.filter(v => v.metodo === 'Crédito').reduce((a, v) => a + v.monto, 0);
+  const transferencia = ventasDia.filter(v => v.metodo === 'Transferencia').reduce((a, v) => a + v.monto, 0);
+  const total = efectivo + debito + credito + transferencia;
+  const cEfectivo = ventasDia.filter(v => v.metodo === 'Efectivo').length;
+  const cDebito = ventasDia.filter(v => v.metodo === 'Débito').length;
+  const cCredito = ventasDia.filter(v => v.metodo === 'Crédito').length;
+  const cTransferencia = ventasDia.filter(v => v.metodo === 'Transferencia').length;
+
+  document.getElementById('cajaEfectivo').innerHTML = '$' + efectivo.toLocaleString() + `<br><span style="font-size:0.7rem;opacity:0.7">${cEfectivo} venta${cEfectivo!==1?'s':''}</span>`;
+  document.getElementById('cajaDebito').innerHTML = '$' + debito.toLocaleString() + `<br><span style="font-size:0.7rem;opacity:0.7">${cDebito} venta${cDebito!==1?'s':''}</span>`;
+  document.getElementById('cajaCredito').innerHTML = '$' + credito.toLocaleString() + `<br><span style="font-size:0.7rem;opacity:0.7">${cCredito} venta${cCredito!==1?'s':''}</span>`;
+  document.getElementById('cajaTransferencia').innerHTML = '$' + transferencia.toLocaleString() + `<br><span style="font-size:0.7rem;opacity:0.7">${cTransferencia} venta${cTransferencia!==1?'s':''}</span>`;
+  document.getElementById('cajaTotal').innerHTML = '$' + total.toLocaleString() + `<br><span style="font-size:0.7rem;opacity:0.7">${ventasDia.length} venta${ventasDia.length!==1?'s':''}</span>`;
+}
+
+function eliminarVentaCaja(id) {
+  if (!confirm('¿Eliminar esta venta?')) return;
+  const idx = ventasCaja.findIndex(v => v.id === id);
+  if (idx !== -1) {
+    ventasCaja.splice(idx, 1);
+    localStorage.setItem('ventasCaja', JSON.stringify(ventasCaja));
+    if (window.fbListo) fbEliminar('caja', id);
+    renderCaja();
+    showToast('✔ Venta eliminada');
+  }
+}
+
+// Exportar Caja a Excel
+document.getElementById('btnCajaExcel').addEventListener('click', () => {
+  const ventasDia = ventasCaja.filter(v => v.fecha === cajaFechaActual);
+  if (ventasDia.length === 0) { showToast('No hay ventas para exportar', true); return; }
+  let csv = '\uFEFF#;Hora;Monto;Método\n';
+  ventasDia.forEach((v, i) => { csv += `${i+1};${v.hora};${v.monto};${v.metodo}\n`; });
+  const efectivo = ventasDia.filter(v => v.metodo === 'Efectivo').reduce((a, v) => a + v.monto, 0);
+  const debito = ventasDia.filter(v => v.metodo === 'Débito').reduce((a, v) => a + v.monto, 0);
+  const credito = ventasDia.filter(v => v.metodo === 'Crédito').reduce((a, v) => a + v.monto, 0);
+  const transferencia = ventasDia.filter(v => v.metodo === 'Transferencia').reduce((a, v) => a + v.monto, 0);
+  csv += `\n;TOTALES;;\n;Efectivo;${efectivo};\n;Débito;${debito};\n;Crédito;${credito};\n;Transferencia;${transferencia};\n;TOTAL;${efectivo+debito+credito+transferencia};\n`;
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `Caja_${cajaFechaActual}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('✔ Excel descargado');
+});
+
+// Exportar Caja a PDF
+document.getElementById('btnCajaPDF').addEventListener('click', () => {
+  const ventasDia = ventasCaja.filter(v => v.fecha === cajaFechaActual);
+  if (ventasDia.length === 0) { showToast('No hay ventas para exportar', true); return; }
+  const efectivo = ventasDia.filter(v => v.metodo === 'Efectivo').reduce((a, v) => a + v.monto, 0);
+  const debito = ventasDia.filter(v => v.metodo === 'Débito').reduce((a, v) => a + v.monto, 0);
+  const credito = ventasDia.filter(v => v.metodo === 'Crédito').reduce((a, v) => a + v.monto, 0);
+  const transferencia = ventasDia.filter(v => v.metodo === 'Transferencia').reduce((a, v) => a + v.monto, 0);
+  const total = efectivo + debito + credito + transferencia;
+  const filas = ventasDia.map((v, i) => `<tr><td>${i+1}</td><td>${v.hora}</td><td>$${v.monto.toLocaleString()}</td><td>${v.metodo}</td></tr>`).join('');
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>
+    body{font-family:Arial,sans-serif;padding:30px;color:#333}
+    h1{text-align:center;color:#1a56db}
+    table{width:100%;border-collapse:collapse;margin-top:16px}
+    th{background:#1a56db;color:white;padding:8px;text-align:left}
+    td{padding:8px;border-bottom:1px solid #eee}
+    .totales{margin-top:20px;font-size:1.1rem}
+    .totales div{margin:4px 0}
+    .total-final{font-size:1.3rem;font-weight:bold;color:#1a56db;margin-top:12px}
+  </style></head><body>
+    <h1>💰 Caja — ${cajaFechaActual.split('-').reverse().join('/')}</h1>
+    <table><thead><tr><th>#</th><th>Hora</th><th>Monto</th><th>Método</th></tr></thead><tbody>${filas}</tbody></table>
+    <div class="totales">
+      <div>Efectivo: $${efectivo.toLocaleString()}</div>
+      <div>Débito: $${debito.toLocaleString()}</div>
+      <div>Crédito: $${credito.toLocaleString()}</div>
+      <div>Transferencia: $${transferencia.toLocaleString()}</div>
+      <div class="total-final">TOTAL: $${total.toLocaleString()}</div>
+    </div>
+    <p style="text-align:center;margin-top:30px;font-size:0.8rem;color:#888">Bodega A&M — ${new Date().toLocaleDateString('es-CL')}</p>
+  </body></html>`;
+  if (window.require) {
+    const { ipcRenderer } = window.require('electron');
+    ipcRenderer.send('vistaPreviewPDF', html);
+  }
+});
+
+// Resumen mensual de caja
+document.getElementById('btnCajaMes').addEventListener('click', () => {
+  const mes = document.getElementById('cajaMesFiltro').value;
+  if (!mes) { showToast('Selecciona un mes', true); return; }
+  renderCajaMes(mes);
+});
+
+function renderCajaMes(mes) {
+  const ventasMes = ventasCaja.filter(v => v.fecha && v.fecha.slice(0, 7) === mes);
+  const efectivo = ventasMes.filter(v => v.metodo === 'Efectivo').reduce((a, v) => a + v.monto, 0);
+  const debito = ventasMes.filter(v => v.metodo === 'Débito').reduce((a, v) => a + v.monto, 0);
+  const credito = ventasMes.filter(v => v.metodo === 'Crédito').reduce((a, v) => a + v.monto, 0);
+  const transferencia = ventasMes.filter(v => v.metodo === 'Transferencia').reduce((a, v) => a + v.monto, 0);
+  const total = efectivo + debito + credito + transferencia;
+  const cEfectivo = ventasMes.filter(v => v.metodo === 'Efectivo').length;
+  const cDebito = ventasMes.filter(v => v.metodo === 'Débito').length;
+  const cCredito = ventasMes.filter(v => v.metodo === 'Crédito').length;
+  const cTransferencia = ventasMes.filter(v => v.metodo === 'Transferencia').length;
+
+  document.getElementById('cajaMesEfectivo').innerHTML = '$' + efectivo.toLocaleString() + `<br><span style="font-size:0.7rem;opacity:0.7">${cEfectivo} venta${cEfectivo!==1?'s':''}</span>`;
+  document.getElementById('cajaMesDebito').innerHTML = '$' + debito.toLocaleString() + `<br><span style="font-size:0.7rem;opacity:0.7">${cDebito} venta${cDebito!==1?'s':''}</span>`;
+  document.getElementById('cajaMesCredito').innerHTML = '$' + credito.toLocaleString() + `<br><span style="font-size:0.7rem;opacity:0.7">${cCredito} venta${cCredito!==1?'s':''}</span>`;
+  document.getElementById('cajaMesTransferencia').innerHTML = '$' + transferencia.toLocaleString() + `<br><span style="font-size:0.7rem;opacity:0.7">${cTransferencia} venta${cTransferencia!==1?'s':''}</span>`;
+  document.getElementById('cajaMesTotal').innerHTML = '$' + total.toLocaleString() + `<br><span style="font-size:0.7rem;opacity:0.7">${ventasMes.length} venta${ventasMes.length!==1?'s':''}</span>`;
+}
+
+// Sincronizar caja desde Firebase
+function cargarCajaDesdeFirebase() {
+  if (!window.fbListo) return;
+  fbCargar('caja').then(datos => {
+    if (datos.length > 0) {
+      ventasCaja = datos.sort((a, b) => (b.fecha + b.hora).localeCompare(a.fecha + a.hora));
+      localStorage.setItem('ventasCaja', JSON.stringify(ventasCaja));
+      renderCaja();
+    }
+  });
+}
+
+renderCaja();
 
 // ══════════════════════════════════════════════════════════════
 // ── PANEL DE DIAGNÓSTICOS ─────────────────────────────────────

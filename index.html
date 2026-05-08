@@ -89,6 +89,7 @@
       <button class="tab" data-tab="clientes">👥 Clientes</button>
       <button class="tab" data-tab="recepciones">📥 Recepción de Órdenes</button>
       <button class="tab" data-tab="usuarios">👤 Usuarios</button>
+      <button class="tab" data-tab="caja">💰 Caja</button>
       <button class="tab" data-tab="papelera">🗑 Papelera</button>
       <button class="tab" data-tab="diagnosticos">🩺 Diagnósticos</button>
     </nav>
@@ -745,6 +746,81 @@
         </div>
 
 
+      </section>
+    </div>
+
+    <!-- ── PESTAÑA: CAJA ── -->
+    <div id="tab-caja" class="tab-content">
+      <section class="section">
+        <h2>💰 Registro de Ventas del Día</h2>
+        <div class="add-product-row">
+          <div class="field" style="flex:1">
+            <label>Monto ($)</label>
+            <input type="number" id="cajaMonto" placeholder="0" min="1" step="1" />
+          </div>
+          <div class="field" style="flex:1">
+            <label>Método de Pago</label>
+            <select id="cajaMetodo">
+              <option value="">-- Seleccionar --</option>
+              <option value="Efectivo">Efectivo</option>
+              <option value="Débito">Débito</option>
+              <option value="Crédito">Crédito</option>
+              <option value="Transferencia">Transferencia</option>
+            </select>
+          </div>
+          <button type="button" id="btnRegistrarVenta" class="btn-add">+ Registrar</button>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>📋 Ventas de Hoy</h2>
+        <div class="filtros" style="margin-bottom:10px">
+          <div class="field">
+            <label>Ver otro día</label>
+            <input type="date" id="cajaFiltroFecha" />
+          </div>
+          <button type="button" id="btnCajaFiltrar" class="btn-add">🔍 Ver</button>
+          <button type="button" id="btnCajaHoy" class="btn-secondary">Hoy</button>
+          <button type="button" id="btnCajaExcel" class="btn-secondary" style="margin-left:auto">📊 Excel</button>
+          <button type="button" id="btnCajaPDF" class="btn-secondary">📄 PDF</button>
+        </div>
+        <table id="tablaCaja">
+          <thead>
+            <tr><th>#</th><th>Hora</th><th>Monto</th><th>Método</th><th></th></tr>
+          </thead>
+          <tbody id="tbodyCaja">
+            <tr><td colspan="5" class="empty-msg">No hay ventas registradas hoy</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="section">
+        <h2>📊 Resumen</h2>
+        <div class="stats-grid">
+          <div class="stat-card"><span class="stat-num" id="cajaEfectivo">$0</span><span class="stat-label">Efectivo</span></div>
+          <div class="stat-card"><span class="stat-num" id="cajaDebito">$0</span><span class="stat-label">Débito</span></div>
+          <div class="stat-card"><span class="stat-num" id="cajaCredito">$0</span><span class="stat-label">Crédito</span></div>
+          <div class="stat-card"><span class="stat-num" id="cajaTransferencia">$0</span><span class="stat-label">Transferencia</span></div>
+          <div class="stat-card" style="background:#1a56db;color:white"><span class="stat-num" id="cajaTotal" style="color:white">$0</span><span class="stat-label" style="color:rgba(255,255,255,0.8)">Total del Día</span></div>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>📅 Resumen del Mes</h2>
+        <div class="filtros" style="margin-bottom:10px">
+          <div class="field">
+            <label>Mes</label>
+            <input type="month" id="cajaMesFiltro" />
+          </div>
+          <button type="button" id="btnCajaMes" class="btn-add">🔍 Ver Mes</button>
+        </div>
+        <div class="stats-grid">
+          <div class="stat-card"><span class="stat-num" id="cajaMesEfectivo">$0</span><span class="stat-label">Efectivo</span></div>
+          <div class="stat-card"><span class="stat-num" id="cajaMesDebito">$0</span><span class="stat-label">Débito</span></div>
+          <div class="stat-card"><span class="stat-num" id="cajaMesCredito">$0</span><span class="stat-label">Crédito</span></div>
+          <div class="stat-card"><span class="stat-num" id="cajaMesTransferencia">$0</span><span class="stat-label">Transferencia</span></div>
+          <div class="stat-card" style="background:#065f46;color:white"><span class="stat-num" id="cajaMesTotal" style="color:white">$0</span><span class="stat-label" style="color:rgba(255,255,255,0.8)">Total del Mes</span></div>
+        </div>
       </section>
     </div>
 
