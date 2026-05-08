@@ -3505,6 +3505,56 @@ function eliminarRetiro(id) {
   showToast('Retiro eliminado');
 }
 
+function editarRetiro(id) {
+  const r = retirosCaja.find(x => x.id === id);
+  if (!r) return;
+
+  const modalHtml = `
+    <div id="modalEditRetiro" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:9999">
+      <div style="background:white;border-radius:12px;padding:24px;width:400px;max-width:90%">
+        <h3 style="margin-bottom:16px">✏️ Editar Retiro</h3>
+        <div class="field"><label>Monto ($)</label><input type="number" id="editRetiroMonto" value="${r.monto}" min="1" /></div>
+        <div class="field" style="margin-top:10px"><label>Entregar a</label>
+          <select id="editRetiroDestinatario">
+            <option value="Gloria Almonacid" ${r.destinatario==='Gloria Almonacid'?'selected':''}>Gloria Almonacid</option>
+            <option value="Pedro Almonacid" ${r.destinatario==='Pedro Almonacid'?'selected':''}>Pedro Almonacid</option>
+          </select>
+        </div>
+        <div class="field" style="margin-top:10px"><label>Nota</label><input type="text" id="editRetiroNota" value="${r.nota || ''}" /></div>
+        <div style="display:flex;gap:10px;margin-top:16px;justify-content:flex-end">
+          <button class="btn-secondary" onclick="document.getElementById('modalEditRetiro').remove()">Cancelar</button>
+          <button class="btn-primary" onclick="guardarEdicionRetiro('${r.id}')">Guardar</button>
+        </div>
+      </div>
+    </div>`;
+
+  document.body.insertAdjacentHTML('beforeend', modalHtml);
+}
+
+function guardarEdicionRetiro(id) {
+  const monto = parseInt(document.getElementById('editRetiroMonto').value);
+  const destinatario = document.getElementById('editRetiroDestinatario').value;
+  const nota = document.getElementById('editRetiroNota').value.trim();
+
+  if (!monto || monto <= 0) { showToast('Monto inválido', true); return; }
+  if (!destinatario) { showToast('Selecciona destinatario', true); return; }
+
+  const idx = retirosCaja.findIndex(r => r.id === id);
+  if (idx === -1) return;
+
+  retirosCaja[idx].monto = monto;
+  retirosCaja[idx].destinatario = destinatario;
+  retirosCaja[idx].nota = nota;
+
+  localStorage.setItem('retirosCaja', JSON.stringify(retirosCaja));
+  if (window.fbGuardar) fbGuardar('retirosCaja', id, retirosCaja[idx]).catch(() => {});
+
+  document.getElementById('modalEditRetiro').remove();
+  renderRetiros();
+  actualizarSaldoCaja();
+  showToast('✔ Retiro actualizado');
+}
+
 function renderRetiros() {
   const hoy = document.getElementById('cajaFiltroFecha') ? document.getElementById('cajaFiltroFecha').value || new Date().toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10);
   const retirosHoy = retirosCaja.filter(r => r.fecha === hoy);
@@ -3524,7 +3574,7 @@ function renderRetiros() {
     <td>${r.destinatario}</td>
     <td>${r.operador}</td>
     <td>${r.nota || '-'}</td>
-    <td><button class="btn-delete" onclick="eliminarRetiro('${r.id}')" title="Eliminar">🗑</button></td>
+    <td><button class="btn-secondary" style="padding:2px 8px;font-size:0.75rem;margin-right:4px" onclick="editarRetiro('${r.id}')">✏</button><button class="btn-delete" onclick="eliminarRetiro('${r.id}')" title="Eliminar">🗑</button></td>
   </tr>`).join('');
 }
 
