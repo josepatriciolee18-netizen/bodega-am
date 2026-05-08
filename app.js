@@ -3339,7 +3339,6 @@ function renderCaja() {
   document.getElementById('cajaEfectivo').innerHTML = '$' + efectivo.toLocaleString() + `<br><span style="font-size:0.7rem;opacity:0.7">${cEfectivo} venta${cEfectivo!==1?'s':''}</span>`;
   document.getElementById('cajaDebito').innerHTML = '$' + debito.toLocaleString() + `<br><span style="font-size:0.7rem;opacity:0.7">${cDebito} venta${cDebito!==1?'s':''}</span>`;
   document.getElementById('cajaCredito').innerHTML = '$' + credito.toLocaleString() + `<br><span style="font-size:0.7rem;opacity:0.7">${cCredito} venta${cCredito!==1?'s':''}</span>`;
-  document.getElementById('cajaTransferencia').innerHTML = '$' + transferencia.toLocaleString() + `<br><span style="font-size:0.7rem;opacity:0.7">${cTransferencia} venta${cTransferencia!==1?'s':''}</span>`;
   document.getElementById('cajaTotal').innerHTML = '$' + total.toLocaleString() + `<br><span style="font-size:0.7rem;opacity:0.7">${ventasDia.length} venta${ventasDia.length!==1?'s':''}</span>`;
 }
 
@@ -3657,7 +3656,6 @@ document.getElementById('btnCajaExcel').addEventListener('click', () => {
   const efectivo = ventasDia.filter(v => v.metodo === 'Efectivo').reduce((a, v) => a + v.monto, 0);
   const debito = ventasDia.filter(v => v.metodo === 'Débito').reduce((a, v) => a + v.monto, 0);
   const credito = ventasDia.filter(v => v.metodo === 'Crédito').reduce((a, v) => a + v.monto, 0);
-  const transferencia = ventasDia.filter(v => v.metodo === 'Transferencia').reduce((a, v) => a + v.monto, 0);
   csv += `\n;TOTALES;;\n;Efectivo;${efectivo};\n;Débito;${debito};\n;Crédito;${credito};\n;Transferencia;${transferencia};\n;TOTAL;${efectivo+debito+credito+transferencia};\n`;
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
@@ -3676,8 +3674,7 @@ document.getElementById('btnCajaPDF').addEventListener('click', () => {
   const efectivo = ventasDia.filter(v => v.metodo === 'Efectivo').reduce((a, v) => a + v.monto, 0);
   const debito = ventasDia.filter(v => v.metodo === 'Débito').reduce((a, v) => a + v.monto, 0);
   const credito = ventasDia.filter(v => v.metodo === 'Crédito').reduce((a, v) => a + v.monto, 0);
-  const transferencia = ventasDia.filter(v => v.metodo === 'Transferencia').reduce((a, v) => a + v.monto, 0);
-  const total = efectivo + debito + credito + transferencia;
+  const total = efectivo + debito + credito ;
   const filas = ventasDia.map((v, i) => `<tr><td>${i+1}</td><td>${v.hora}</td><td>$${v.monto.toLocaleString()}</td><td>${v.metodo}</td></tr>`).join('');
   const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>
     body{font-family:Arial,sans-serif;padding:30px;color:#333}
@@ -3695,7 +3692,6 @@ document.getElementById('btnCajaPDF').addEventListener('click', () => {
       <div>Efectivo: $${efectivo.toLocaleString()}</div>
       <div>Débito: $${debito.toLocaleString()}</div>
       <div>Crédito: $${credito.toLocaleString()}</div>
-      <div>Transferencia: $${transferencia.toLocaleString()}</div>
       <div class="total-final">TOTAL: $${total.toLocaleString()}</div>
     </div>
     <p style="text-align:center;margin-top:30px;font-size:0.8rem;color:#888">Bodega A&M — ${new Date().toLocaleDateString('es-CL')}</p>
@@ -3718,22 +3714,18 @@ function renderCajaMes(mes) {
   const efectivo = ventasMes.filter(v => v.metodo === 'Efectivo').reduce((a, v) => a + v.monto, 0);
   const debito = ventasMes.filter(v => v.metodo === 'Débito').reduce((a, v) => a + v.monto, 0);
   const credito = ventasMes.filter(v => v.metodo === 'Crédito').reduce((a, v) => a + v.monto, 0);
-  const transferencia = ventasMes.filter(v => v.metodo === 'Transferencia').reduce((a, v) => a + v.monto, 0);
-  const total = efectivo + debito + credito + transferencia;
+  const total = efectivo + debito + credito ;
   const cEfectivo = ventasMes.filter(v => v.metodo === 'Efectivo').length;
   const cDebito = ventasMes.filter(v => v.metodo === 'Débito').length;
   const cCredito = ventasMes.filter(v => v.metodo === 'Crédito').length;
-  const cTransferencia = ventasMes.filter(v => v.metodo === 'Transferencia').length;
   const totalVentas = ventasMes.length;
   const pctEfectivo = totalVentas > 0 ? Math.round((cEfectivo / totalVentas) * 100) : 0;
   const pctDebito = totalVentas > 0 ? Math.round((cDebito / totalVentas) * 100) : 0;
   const pctCredito = totalVentas > 0 ? Math.round((cCredito / totalVentas) * 100) : 0;
-  const pctTransferencia = totalVentas > 0 ? Math.round((cTransferencia / totalVentas) * 100) : 0;
 
   document.getElementById('cajaMesEfectivo').innerHTML = '$' + efectivo.toLocaleString() + `<br><span style="font-size:0.7rem;opacity:0.7">${cEfectivo} venta${cEfectivo!==1?'s':''} (${pctEfectivo}%)</span>`;
   document.getElementById('cajaMesDebito').innerHTML = '$' + debito.toLocaleString() + `<br><span style="font-size:0.7rem;opacity:0.7">${cDebito} venta${cDebito!==1?'s':''} (${pctDebito}%)</span>`;
   document.getElementById('cajaMesCredito').innerHTML = '$' + credito.toLocaleString() + `<br><span style="font-size:0.7rem;opacity:0.7">${cCredito} venta${cCredito!==1?'s':''} (${pctCredito}%)</span>`;
-  document.getElementById('cajaMesTransferencia').innerHTML = '$' + transferencia.toLocaleString() + `<br><span style="font-size:0.7rem;opacity:0.7">${cTransferencia} venta${cTransferencia!==1?'s':''} (${pctTransferencia}%)</span>`;
   document.getElementById('cajaMesTotal').innerHTML = '$' + total.toLocaleString() + `<br><span style="font-size:0.7rem;opacity:0.7">${totalVentas} venta${totalVentas!==1?'s':''} total</span>`;
 
   // Estadísticas extra
