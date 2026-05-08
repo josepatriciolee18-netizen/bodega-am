@@ -3757,7 +3757,7 @@ function renderCajaMes(mes) {
   document.getElementById('cajaMesDiasTrabajados').textContent = diasConVentas + ' días';
 
   // Método más usado
-  const metodos = { Efectivo: cEfectivo, 'Débito': cDebito, 'Crédito': cCredito, Transferencia: cTransferencia };
+  const metodos = { Efectivo: cEfectivo, 'Débito': cDebito, 'Crédito': cCredito };
   let metodoTop = '—';
   let maxMetodo = 0;
   Object.entries(metodos).forEach(([m, c]) => {
