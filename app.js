@@ -655,7 +655,7 @@ function generarNro(n) {
 document.getElementById('tipoDocumento').addEventListener('change', function () {
   const campo = document.getElementById('campoNroDoc');
   const input = document.getElementById('nroDocumento');
-  if (this.value === 'Sin Documento' || this.value === '') {
+  if (this.value === '') {
     campo.style.display = 'none';
     input.removeAttribute('required');
     input.value = '';
@@ -825,7 +825,7 @@ document.getElementById('btnAgregar').addEventListener('click', () => {
   if (!tipoDoc) { showToast('Primero selecciona el Tipo de Documento', true); document.getElementById('tipoDocumento').focus(); return; }
   const campoNroVisible = document.getElementById('campoNroDoc').style.display !== 'none';
   const nroDoc = document.getElementById('nroDocumento').value.trim();
-  if (tipoDoc !== 'Sin Documento' && campoNroVisible && !nroDoc) { showToast('Primero ingresa el N° de Documento', true); document.getElementById('nroDocumento').focus(); return; }
+  if (campoNroVisible && !nroDoc) { showToast('Primero ingresa el N° de Documento', true); document.getElementById('nroDocumento').focus(); return; }
   if (!cliente) { showToast('Primero ingresa el nombre del Cliente', true); document.getElementById('solicitante').focus(); return; }
 
   const codigo      = document.getElementById('inputCodigo').value.trim();
@@ -889,7 +889,7 @@ form.addEventListener('submit', async (e) => {
 
   const nroDocumento = document.getElementById('nroDocumento').value.trim();
   const campoNroVisible = document.getElementById('campoNroDoc').style.display !== 'none';
-  if (tipoDocumento !== 'Sin Documento' && campoNroVisible && !nroDocumento) {
+  if (campoNroVisible && !nroDocumento) {
     showToast('Ingresa el N° de Documento', true);
     document.getElementById('nroDocumento').focus();
     registrando = false; document.getElementById('btnRegistrar').disabled = false; document.getElementById('btnRegistrar').textContent = '✔ Registrar Salida'; return;
@@ -1734,7 +1734,7 @@ function imprimirOrden() {
   document.getElementById('nroDocumento').value  = s.nroDocumento || '';
   document.getElementById('solicitante').value   = s.solicitante || '';
   document.getElementById('observaciones').value = s.observaciones || '';
-  document.getElementById('campoNroDoc').style.display = s.tipoDocumento === 'Sin Documento' ? 'none' : '';
+  document.getElementById('campoNroDoc').style.display = s.tipoDocumento ? '' : 'none';
   productos = [...s.productos];
   renderTabla();
   // Guardar referencia antes de cerrar modal (cerrarModal pone ordenImpresion = null)
@@ -2242,7 +2242,7 @@ function editarOrden(nro) {
   document.getElementById('nroDocumento').value   = s.nroDocumento || '';
   document.getElementById('solicitante').value    = s.solicitante || '';
   document.getElementById('observaciones').value  = s.observaciones || '';
-  document.getElementById('campoNroDoc').style.display = (s.tipoDocumento === 'Sin Documento' || !s.tipoDocumento) ? 'none' : '';
+  document.getElementById('campoNroDoc').style.display = (!s.tipoDocumento) ? 'none' : '';
   productos = [...s.productos];
   renderTabla();
 
@@ -2270,7 +2270,7 @@ function reimprimirOrden(btn) {
   document.getElementById('nroDocumento').value   = s.nroDocumento || '';
   document.getElementById('solicitante').value    = s.solicitante;
   document.getElementById('observaciones').value  = s.observaciones || '';
-  document.getElementById('campoNroDoc').style.display = s.tipoDocumento === 'Sin Documento' ? 'none' : '';
+  document.getElementById('campoNroDoc').style.display = s.tipoDocumento ? '' : 'none';
   productos = [...s.productos];
   renderTabla();
   setTimeout(() => { imprimirPagina(); resetForm(); }, 300);
@@ -3378,7 +3378,7 @@ function editarVentaCaja(id) {
           <select id="editVentaTipoDoc">
             <option value="Boleta" ${v.tipoDoc==='Boleta'?'selected':''}>Boleta</option>
             <option value="Factura" ${v.tipoDoc==='Factura'?'selected':''}>Factura</option>
-            <option value="Sin Documento" ${v.tipoDoc==='Sin Documento'?'selected':''}>Sin Documento</option>
+            
           </select>
         </div>
         <div class="field" style="margin-top:10px"><label>Fecha</label><input type="date" id="editVentaFecha" value="${v.fecha}" /></div>
@@ -3784,17 +3784,17 @@ document.getElementById('btnCajaInformeGuardar').addEventListener('click', () =>
   generarInformeCaja(mes, mes2, true);
 });
 
-function generarConclusionAleatoria(nombreMes, total, ventas, metodoTop, mejorDia, mejorMonto, peorDia, peorMonto, promDiario, diasConVentas, diffPct, diaSemNombre, semanas, boletas, facturas, sinDoc, efectivo, debito, credito, transferencia) {
+function generarConclusionAleatoria(nombreMes, total, ventas, metodoTop, mejorDia, mejorMonto, peorDia, peorMonto, promDiario, diasConVentas, diffPct, diaSemNombre, semanas, boletas, facturas, efectivo, debito, credito, transferencia) {
   const pctMetodo = Math.round((metodoTop.c/ventas.length)*100);
   const pctBoletas = Math.round((boletas.length/ventas.length)*100);
   const pctFacturas = Math.round((facturas.length/ventas.length)*100);
-  const pctSinDoc = Math.round((sinDoc.length/ventas.length)*100);
+  const pctSinDoc = Math.round((0/ventas.length)*100);
   const diffMonto = (mejorMonto - peorMonto).toLocaleString();
   const maxSem = Math.max(...semanas).toLocaleString();
   const tendencia = diffPct >= 0 ? 'se registró un crecimiento del ' + diffPct + '% en ingresos, indicando una tendencia positiva.' : 'se observó una disminución del ' + Math.abs(diffPct) + '% en ingresos. Se recomienda evaluar acciones correctivas.';
   const conclusiones = [
-    '<p><strong>Resumen:</strong> El mes de ' + nombreMes + ' cerró con $' + total.toLocaleString() + ' en ' + ventas.length + ' ventas durante ' + diasConVentas + ' días. Promedio diario: $' + promDiario.toLocaleString() + '.</p><p><strong>Pagos:</strong> ' + metodoTop.n + ' fue el método principal con ' + metodoTop.c + ' operaciones (' + pctMetodo + '%).</p><p><strong>Documentos:</strong> ' + boletas.length + ' boletas (' + pctBoletas + '%), ' + facturas.length + ' facturas (' + pctFacturas + '%), ' + sinDoc.length + ' sin documento (' + pctSinDoc + '%).</p><p><strong>Rendimiento:</strong> Mejor día: ' + mejorDia.split("-").reverse().join("/") + ' ($' + mejorMonto.toLocaleString() + '). Peor día: ' + peorDia.split("-").reverse().join("/") + ' ($' + peorMonto.toLocaleString() + '). Diferencia: $' + diffMonto + '.</p><p><strong>Tendencia:</strong> ' + tendencia + '</p><p><strong>Patrones:</strong> ' + diaSemNombre + ' es el día más activo. Semana más fuerte: $' + maxSem + '.</p><p><strong>Recomendaciones:</strong></p><ul style="margin-left:20px;line-height:2"><li>Mantener registro consistente de todas las transacciones.</li><li>Incentivar pagos electrónicos para mayor seguridad.</li><li>Implementar promociones en días de baja actividad.</li><li>Establecer metas mensuales basadas en datos históricos.</li><li>Realizar seguimiento semanal de indicadores clave.</li><li>Capacitar personal para días de alta demanda.</li></ul><p><strong>Nota:</strong> Informe generado automáticamente por Bodega A&M.</p>',
-    '<p><strong>Análisis Final:</strong> Durante ' + nombreMes + ', se procesaron ' + ventas.length + ' ventas por $' + total.toLocaleString() + ' en ' + diasConVentas + ' días operativos. Promedio: $' + promDiario.toLocaleString() + '/día.</p><p><strong>Comportamiento:</strong> Los clientes prefirieron ' + metodoTop.n + ' (' + metodoTop.c + ' ops, ' + pctMetodo + '%). Esto es relevante para la gestión de caja.</p><p><strong>Variabilidad:</strong> La brecha entre mejor día (' + mejorDia.split("-").reverse().join("/") + ': $' + mejorMonto.toLocaleString() + ') y peor (' + peorDia.split("-").reverse().join("/") + ': $' + peorMonto.toLocaleString() + ') fue de $' + diffMonto + '.</p><p><strong>Evolución:</strong> ' + tendencia + '</p><p><strong>Distribución:</strong> ' + diaSemNombre + ' concentra mayor actividad. Semana top: $' + maxSem + '.</p><p><strong>Tributario:</strong> ' + boletas.length + ' boletas, ' + facturas.length + ' facturas, ' + sinDoc.length + ' sin documento. Meta: reducir operaciones sin respaldo.</p><p><strong>Plan de Acción:</strong></p><ul style="margin-left:20px;line-height:2"><li>Definir meta del próximo mes basada en promedio actual +10%.</li><li>Reducir ventas sin documento a menos del 5%.</li><li>Evaluar horarios según patrones de demanda.</li><li>Considerar alianzas con proveedores de medios de pago.</li><li>Implementar incentivos para personal en días peak.</li><li>Programar revisiones semanales de KPIs.</li></ul><p><strong>Cierre:</strong> Este informe es base sólida para decisiones. Se recomienda revisión mensual sistemática.</p>',
+    '<p><strong>Resumen:</strong> El mes de ' + nombreMes + ' cerró con $' + total.toLocaleString() + ' en ' + ventas.length + ' ventas durante ' + diasConVentas + ' días. Promedio diario: $' + promDiario.toLocaleString() + '.</p><p><strong>Pagos:</strong> ' + metodoTop.n + ' fue el método principal con ' + metodoTop.c + ' operaciones (' + pctMetodo + '%).</p><p><strong>Documentos:</strong> ' + boletas.length + ' boletas (' + pctBoletas + '%), ' + facturas.length + ' facturas (' + pctFacturas + '%), ' + 0 + ' sin documento (' + pctSinDoc + '%).</p><p><strong>Rendimiento:</strong> Mejor día: ' + mejorDia.split("-").reverse().join("/") + ' ($' + mejorMonto.toLocaleString() + '). Peor día: ' + peorDia.split("-").reverse().join("/") + ' ($' + peorMonto.toLocaleString() + '). Diferencia: $' + diffMonto + '.</p><p><strong>Tendencia:</strong> ' + tendencia + '</p><p><strong>Patrones:</strong> ' + diaSemNombre + ' es el día más activo. Semana más fuerte: $' + maxSem + '.</p><p><strong>Recomendaciones:</strong></p><ul style="margin-left:20px;line-height:2"><li>Mantener registro consistente de todas las transacciones.</li><li>Incentivar pagos electrónicos para mayor seguridad.</li><li>Implementar promociones en días de baja actividad.</li><li>Establecer metas mensuales basadas en datos históricos.</li><li>Realizar seguimiento semanal de indicadores clave.</li><li>Capacitar personal para días de alta demanda.</li></ul><p><strong>Nota:</strong> Informe generado automáticamente por Bodega A&M.</p>',
+    '<p><strong>Análisis Final:</strong> Durante ' + nombreMes + ', se procesaron ' + ventas.length + ' ventas por $' + total.toLocaleString() + ' en ' + diasConVentas + ' días operativos. Promedio: $' + promDiario.toLocaleString() + '/día.</p><p><strong>Comportamiento:</strong> Los clientes prefirieron ' + metodoTop.n + ' (' + metodoTop.c + ' ops, ' + pctMetodo + '%). Esto es relevante para la gestión de caja.</p><p><strong>Variabilidad:</strong> La brecha entre mejor día (' + mejorDia.split("-").reverse().join("/") + ': $' + mejorMonto.toLocaleString() + ') y peor (' + peorDia.split("-").reverse().join("/") + ': $' + peorMonto.toLocaleString() + ') fue de $' + diffMonto + '.</p><p><strong>Evolución:</strong> ' + tendencia + '</p><p><strong>Distribución:</strong> ' + diaSemNombre + ' concentra mayor actividad. Semana top: $' + maxSem + '.</p><p><strong>Tributario:</strong> ' + boletas.length + ' boletas, ' + facturas.length + ' facturas, ' + 0 + ' sin documento. Meta: reducir operaciones sin respaldo.</p><p><strong>Plan de Acción:</strong></p><ul style="margin-left:20px;line-height:2"><li>Definir meta del próximo mes basada en promedio actual +10%.</li><li>Reducir ventas sin documento a menos del 5%.</li><li>Evaluar horarios según patrones de demanda.</li><li>Considerar alianzas con proveedores de medios de pago.</li><li>Implementar incentivos para personal en días peak.</li><li>Programar revisiones semanales de KPIs.</li></ul><p><strong>Cierre:</strong> Este informe es base sólida para decisiones. Se recomienda revisión mensual sistemática.</p>',
     '<p><strong>Conclusiones:</strong> ' + nombreMes + ' registró ' + ventas.length + ' transacciones por $' + total.toLocaleString() + '. Operación en ' + diasConVentas + ' días con promedio de $' + promDiario.toLocaleString() + ' diarios.</p><p><strong>Perfil de Pagos:</strong> ' + metodoTop.n + ' lidera con ' + metodoTop.c + ' operaciones (' + pctMetodo + '%). Información valiosa para planificar flujo de caja.</p><p><strong>Días Destacados:</strong> Mejor: ' + mejorDia.split("-").reverse().join("/") + ' ($' + mejorMonto.toLocaleString() + '). Peor: ' + peorDia.split("-").reverse().join("/") + ' ($' + peorMonto.toLocaleString() + '). Brecha: $' + diffMonto + '.</p><p><strong>Histórico:</strong> ' + tendencia + '</p><p><strong>Ritmo:</strong> ' + diaSemNombre + ' es el día estrella. Semana más productiva: $' + maxSem + '. Estos patrones deben guiar la planificación operativa.</p><p><strong>Cumplimiento:</strong> ' + pctBoletas + '% boletas, ' + pctFacturas + '% facturas, ' + pctSinDoc + '% sin documento. Mejorar progresivamente la formalización.</p><p><strong>Líneas de Acción:</strong></p><ul style="margin-left:20px;line-height:2"><li>Fortalecer atención en días de mayor demanda.</li><li>Desarrollar estrategias de fidelización de clientes.</li><li>Explorar oportunidades de venta cruzada.</li><li>Automatizar generación de reportes para seguimiento ágil.</li><li>Establecer alertas tempranas para caídas en ventas.</li><li>Documentar mejores prácticas de días exitosos.</li></ul><p><strong>Observación:</strong> La consistencia en registro y análisis es base para crecimiento sostenido.</p>'
   ];
   return conclusiones[Math.floor(Math.random() * conclusiones.length)];
@@ -3816,8 +3816,7 @@ function generarInformeCaja(mes, mes2, guardarEnEscritorio) {
   const transferencia = ventas.filter(v => v.metodo==='Transferencia');
   const boletas = ventas.filter(v => v.tipoDoc==='Boleta');
   const facturas = ventas.filter(v => v.tipoDoc==='Factura');
-  const sinDoc = ventas.filter(v => v.tipoDoc==='Sin Documento' || !v.tipoDoc);
-
+  
   // Por día
   const porDia = {};
   ventas.forEach(v => { porDia[v.fecha] = (porDia[v.fecha] || 0) + v.monto; });
@@ -4026,29 +4025,27 @@ function generarInformeCaja(mes, mes2, guardarEnEscritorio) {
     <h2>4. Desglose por Tipo de Documento</h2>
     <p style="font-size:0.85rem;color:#555;margin-bottom:14px;line-height:1.6">
       Esta sección muestra la distribución de ventas según el tipo de documento tributario emitido.<br>
-      Se clasifican en Boleta, Factura y Sin Documento, indicando monto, cantidad y porcentaje de cada uno.<br>
+      Se clasifican en Boleta y Factura, indicando monto, cantidad y porcentaje de cada tipo.<br>
       Las boletas corresponden a ventas a consumidor final, mientras que las facturas se emiten a empresas.<br>
-      Las ventas sin documento son aquellas donde el cliente no solicitó comprobante tributario.<br>
-      Este análisis permite verificar el cumplimiento de obligaciones tributarias del negocio.<br>
-      Un alto porcentaje de ventas sin documento podría requerir revisión de los procedimientos de caja.<br>
-      Utilice estos datos para preparar declaraciones de impuestos y auditorías internas.
+            Este análisis permite verificar el cumplimiento de obligaciones tributarias del negocio.<br>
+            Utilice estos datos para preparar declaraciones de impuestos y auditorías internas.
     </p>
     <table>
       <tr><th>Tipo</th><th>Monto</th><th>Cantidad</th><th>%</th></tr>
       <tr><td>Boleta</td><td>$${boletas.reduce((a,v)=>a+v.monto,0).toLocaleString()}</td><td>${boletas.length}</td><td>${ventas.length>0?Math.round((boletas.length/ventas.length)*100):0}%</td></tr>
       <tr><td>Factura</td><td>$${facturas.reduce((a,v)=>a+v.monto,0).toLocaleString()}</td><td>${facturas.length}</td><td>${ventas.length>0?Math.round((facturas.length/ventas.length)*100):0}%</td></tr>
-      <tr><td>Sin Documento</td><td>$${sinDoc.reduce((a,v)=>a+v.monto,0).toLocaleString()}</td><td>${sinDoc.length}</td><td>${ventas.length>0?Math.round((sinDoc.length/ventas.length)*100):0}%</td></tr>
+      
     </table>
 
     <div style="margin-top:16px;padding:12px 14px;background:#f0f4ff;border-radius:6px;font-size:0.82rem;color:#444;border-left:3px solid #1a56db;line-height:1.6">
       <strong>Conclusión de esta sección:</strong><br>
-      Del total de ${ventas.length} ventas, se emitieron ${boletas.length} boletas (${ventas.length>0?Math.round((boletas.length/ventas.length)*100):0}%), ${facturas.length} facturas (${ventas.length>0?Math.round((facturas.length/ventas.length)*100):0}%) y ${sinDoc.length} sin documento (${ventas.length>0?Math.round((sinDoc.length/ventas.length)*100):0}%).<br>
+      Del total de ${ventas.length} ventas, se emitieron ${boletas.length} boletas (${ventas.length>0?Math.round((boletas.length/ventas.length)*100):0}%), ${facturas.length} facturas (${ventas.length>0?Math.round((facturas.length/ventas.length)*100):0}%) y ${0} sin documento (${ventas.length>0?Math.round((0/ventas.length)*100):0}%).<br>
       Las boletas generaron ${boletas.reduce((a,v)=>a+v.monto,0).toLocaleString()} y las facturas ${facturas.reduce((a,v)=>a+v.monto,0).toLocaleString()} en ingresos documentados.<br>
-      ${sinDoc.length > 0 ? 'Existen ' + sinDoc.length + ' ventas sin respaldo tributario, lo cual debe reducirse progresivamente.' : 'Todas las ventas cuentan con respaldo tributario, lo cual es óptimo.'}<br>
+      ${0 > 0 ? 'Existen ' + 0 + ' ventas sin respaldo tributario, lo cual debe reducirse progresivamente.' : 'Todas las ventas cuentan con respaldo tributario, lo cual es óptimo.'}<br>
       El cumplimiento tributario es fundamental para evitar sanciones del SII y mantener la formalidad.<br>
       Se recomienda que toda venta, sin importar el monto, cuente con al menos una boleta como respaldo.<br>
       Las facturas son relevantes para clientes empresa y permiten recuperar IVA en compras corporativas.<br>
-      Establezca como meta reducir las ventas sin documento a menos del 5% del total mensual.
+      Mantenga el registro formal de todas las ventas para cumplimiento tributario.
     </div>
   </div>
 
