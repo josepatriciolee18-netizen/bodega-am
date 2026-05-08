@@ -3667,6 +3667,7 @@ function guardarEdicionRetiro(id) {
 
   document.getElementById('modalEditRetiro').remove();
   renderRetiros();
+  renderHistRetiros('todos');
   actualizarSaldoCaja();
   showToast('✔ Retiro actualizado');
 }
@@ -3877,7 +3878,7 @@ function renderHistRetiros(filtro) {
     <td>${r.destinatario}</td>
     <td>${r.quienRetira || '-'}</td>
     <td>${r.nota || '-'}</td>
-    <td><button class="btn-add" style="padding:2px 8px;font-size:0.75rem" onclick="generarPDFRetiro(retirosCaja.find(x=>x.id==='${r.id}'))">🖨</button></td>
+    <td><button class="btn-secondary" style="padding:2px 8px;font-size:0.75rem;margin-right:4px" onclick="editarRetiro('${r.id}')">✏</button><button class="btn-add" style="padding:2px 8px;font-size:0.75rem" onclick="generarPDFRetiro(retirosCaja.find(x=>x.id==='${r.id}'))">🖨</button></td>
   </tr>`).join('');
 }
 
