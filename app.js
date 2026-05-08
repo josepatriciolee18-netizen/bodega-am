@@ -3411,6 +3411,52 @@ function editarVentaCaja(id) {
 }
 
 // ── Retiros de Caja ──────────────────────────────────────────
+
+function generarPDFRetiro(retiro) {
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>
+    @page { size: 80mm 200mm; margin: 5mm; }
+    * { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 0; box-sizing: border-box; }
+    body { padding: 10px; font-size: 12px; }
+    .header { text-align: center; border-bottom: 2px dashed #000; padding-bottom: 8px; margin-bottom: 10px; }
+    .header h1 { font-size: 16px; margin-bottom: 2px; }
+    .header p { font-size: 10px; color: #555; }
+    .titulo { text-align: center; font-size: 14px; font-weight: bold; margin: 10px 0; color: #c81e1e; border: 1px solid #c81e1e; padding: 6px; border-radius: 4px; }
+    .row { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px dotted #ccc; font-size: 11px; }
+    .row .label { color: #555; }
+    .row .value { font-weight: bold; }
+    .monto { text-align: center; font-size: 22px; font-weight: bold; color: #c81e1e; margin: 14px 0; }
+    .footer { margin-top: 16px; border-top: 2px dashed #000; padding-top: 8px; text-align: center; font-size: 9px; color: #888; }
+    .firma { margin-top: 30px; display: flex; justify-content: space-between; }
+    .firma div { text-align: center; width: 45%; }
+    .firma .linea { border-top: 1px solid #000; margin-top: 30px; padding-top: 4px; font-size: 9px; }
+  </style></head><body>
+    <div class="header">
+      <h1>Bodega A&amp;M</h1>
+      <p>Comprobante de Retiro de Caja</p>
+    </div>
+    <div class="titulo">RETIRO DE CAJA</div>
+    <div class="monto">-$${retiro.monto.toLocaleString()}</div>
+    <div class="row"><span class="label">Fecha:</span><span class="value">${retiro.fecha.split('-').reverse().join('/')}</span></div>
+    <div class="row"><span class="label">Hora:</span><span class="value">${retiro.hora}</span></div>
+    <div class="row"><span class="label">Entregar a:</span><span class="value">${retiro.destinatario}</span></div>
+    <div class="row"><span class="label">Operador:</span><span class="value">${retiro.operador}</span></div>
+    <div class="row"><span class="label">Nota:</span><span class="value">${retiro.nota || 'Sin nota'}</span></div>
+    <div class="firma">
+      <div><div class="linea">Entrega (Operador)</div></div>
+      <div><div class="linea">Recibe (${retiro.destinatario})</div></div>
+    </div>
+    <div class="footer">
+      <p>Documento interno - Bodega A&amp;M</p>
+      <p>Generado el ${new Date().toLocaleDateString('es-CL')} a las ${new Date().toTimeString().slice(0,5)}</p>
+    </div>
+  </body></html>`;
+
+  if (window.require) {
+    const { ipcRenderer } = window.require('electron');
+    ipcRenderer.send('vistaPreviewPDF', html);
+  }
+}
+
 function registrarRetiro() {
   const monto = parseInt(document.getElementById('retiroMonto').value);
   const destinatario = document.getElementById('retiroDestinatario').value;
@@ -3445,6 +3491,7 @@ function registrarRetiro() {
   renderRetiros();
   actualizarSaldoCaja();
   showToast('✔ Retiro de $' + monto.toLocaleString() + ' registrado');
+  generarPDFRetiro(retiro);
   registrarActividad('Retiro de Caja', 'Retiro de $' + monto.toLocaleString() + ' a ' + destinatario);
 }
 
