@@ -313,3 +313,44 @@ ipcMain.on('imprimirCarta', (event, htmlContent) => {
     });
   });
 });
+
+// Guardar informe como PDF en escritorio (ventana visible para cargar HTML largo)
+ipcMain.on('guardarInformePDF', (event, htmlContent) => {
+  const tmpFile = path.join(os.tmpdir(), 'bodega_informe.html');
+  fs.writeFileSync(tmpFile, htmlContent, 'utf-8');
+
+  const pdfWin = new BrowserWindow({
+    width: 800,
+    height: 600,
+    show: false,
+    webPreferences: { nodeIntegration: false, contextIsolation: true }
+  });
+
+  pdfWin.loadURL('file:///' + tmpFile.replace(/\\/g, '/'));
+  pdfWin.webContents.on('did-finish-load', () => {
+    // Esperar un poco para que renderice todo el CSS
+    setTimeout(() => {
+      pdfWin.webContents.printToPDF({
+        pageSize: 'Letter',
+        printBackground: true,
+        margins: { top: 15, bottom: 15, left: 15, right: 15 }
+      }).then(data => {
+        const hoy = new Date().toISOString().slice(0, 10);
+        const pdfPath = path.join(os.homedir(), 'Desktop', `Informe_Caja_BodegaAM_${hoy}.pdf`);
+        fs.writeFileSync(pdfPath, data);
+        event.reply('informe-guardado', pdfPath);
+        setTimeout(() => {
+          if (!pdfWin.isDestroyed()) pdfWin.close();
+          try { fs.unlinkSync(tmpFile); } catch(e) {}
+          if (win && !win.isDestroyed()) win.focus();
+        }, 500);
+      }).catch(err => {
+        console.error('Error generando informe PDF:', err);
+        event.reply('informe-error', err.message);
+        if (!pdfWin.isDestroyed()) pdfWin.close();
+        try { fs.unlinkSync(tmpFile); } catch(e) {}
+        if (win && !win.isDestroyed()) win.focus();
+      });
+    }, 2000); // 2 segundos para renderizar
+  });
+});

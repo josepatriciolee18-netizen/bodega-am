@@ -4058,9 +4058,12 @@ function generarInformeCaja(mes, mes2, guardarEnEscritorio) {
   if (window.require) {
     const { ipcRenderer } = window.require('electron');
     if (guardarEnEscritorio) {
-      ipcRenderer.send('imprimirCarta', html);
-      ipcRenderer.once('pdf-guardado', (event, ruta) => {
+      ipcRenderer.send('guardarInformePDF', html);
+      ipcRenderer.once('informe-guardado', (event, ruta) => {
         showToast('✔ Informe guardado en: ' + ruta);
+      });
+      ipcRenderer.once('informe-error', (event, err) => {
+        showToast('Error al guardar: ' + err, true);
       });
     } else {
       ipcRenderer.send('vistaPreviewPDF', html);
