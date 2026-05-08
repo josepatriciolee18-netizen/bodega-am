@@ -2126,7 +2126,7 @@ function aplicarPermisos() {
   document.querySelector('[data-tab="clientes"]').style.display    = (esAdmin || p.clientes)     ? '' : 'none';
   document.querySelector('[data-tab="recepciones"]').style.display = (esAdmin || p.recepciones)  ? '' : 'none';
   document.querySelector('[data-tab="usuarios"]').style.display    = (esAdmin || p.usuarios)     ? '' : 'none';
-  document.querySelector('[data-tab="caja"]').style.display        = (esAdmin || p.crearOrden)   ? '' : 'none';
+  document.querySelector('[data-tab="caja"]').style.display        = (esAdmin || p.caja)         ? '' : 'none';
   document.querySelector('[data-tab="papelera"]').style.display    = esAdmin ? '' : 'none';
   document.querySelector('[data-tab="diagnosticos"]').style.display = esAdmin ? '' : 'none';
 
@@ -2534,6 +2534,7 @@ document.getElementById('btnGuardarUsuario').addEventListener('click', async () 
     productos:        document.getElementById('permProductos').checked,
     clientes:         document.getElementById('permClientes').checked,
     recepciones:      document.getElementById('permRecepciones').checked,
+    caja:             document.getElementById('permCaja').checked,
     usuarios:         document.getElementById('permUsuarios').checked,
   };
 
@@ -2574,6 +2575,7 @@ document.getElementById('btnGuardarUsuario').addEventListener('click', async () 
   document.getElementById('permProductos').checked       = true;
   document.getElementById('permClientes').checked        = true;
   document.getElementById('permRecepciones').checked     = true;
+  document.getElementById('permCaja').checked            = true;
   document.getElementById('permUsuarios').checked        = false;
 });
 
@@ -2592,6 +2594,7 @@ function editarUsuario(i) {
   document.getElementById('permProductos').checked       = p.productos       ?? true;
   document.getElementById('permClientes').checked        = p.clientes        ?? true;
   document.getElementById('permRecepciones').checked     = p.recepciones     ?? true;
+  document.getElementById('permCaja').checked            = p.caja            ?? true;
   document.getElementById('permUsuarios').checked        = p.usuarios        ?? false;
   const btn = document.getElementById('btnGuardarUsuario');
   btn.textContent = '✔ Actualizar';
