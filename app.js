@@ -3582,6 +3582,142 @@ document.getElementById('btnCompararSemanas').addEventListener('click', () => {
   document.getElementById('comparacionSemanas').style.display = '';
 });
 
+// Gráficos de Caja
+document.getElementById('btnCajaGraficos').addEventListener('click', () => {
+  const mes = document.getElementById('cajaGraficosMes').value;
+  if (!mes) { showToast('Selecciona un mes', true); return; }
+  renderCajaGraficos(mes);
+});
+
+function renderCajaGraficos(mes) {
+  const ventas = ventasCaja.filter(v => v.fecha && v.fecha.slice(0, 7) === mes);
+  if (ventas.length === 0) {
+    document.getElementById('cajaGraficosContainer').innerHTML = '<p style="color:#888;text-align:center">No hay ventas en este mes.</p>';
+    return;
+  }
+
+  // 1. Barras horizontales por día
+  const porDia = {};
+  ventas.forEach(v => {
+    const dia = parseInt(v.fecha.slice(8, 10));
+    porDia[dia] = (porDia[dia] || 0) + v.monto;
+  });
+  const maxDia = Math.max(...Object.values(porDia));
+  let barrasH = '<h3 style="margin-bottom:8px">📊 Ventas por Día (Barras Horizontales)</h3>';
+  const diasOrdenados = Object.keys(porDia).map(Number).sort((a, b) => a - b);
+  diasOrdenados.forEach(dia => {
+    const monto = porDia[dia];
+    const pct = maxDia > 0 ? (monto / maxDia) * 100 : 0;
+    barrasH += '<div class="chart-bar-h"><span class="label">' + dia + '</span><div class="bar" style="width:' + pct + '%"></div><span class="amount">$' + monto.toLocaleString() + '</span></div>';
+  });
+
+  // 2. Torta por método de pago
+  const colores = { Efectivo: '#10b981', 'Débito': '#3b82f6', 'Crédito': '#f59e0b', Transferencia: '#8b5cf6' };
+  const porMetodo = {};
+  ventas.forEach(v => {
+    porMetodo[v.metodo] = (porMetodo[v.metodo] || 0) + v.monto;
+  });
+  const totalMetodos = Object.values(porMetodo).reduce((a, b) => a + b, 0);
+  let gradParts = [];
+  let acum = 0;
+  Object.keys(colores).forEach(m => {
+    if (porMetodo[m]) {
+      const pct = (porMetodo[m] / totalMetodos) * 100;
+      gradParts.push((colores[m] || '#999') + ' ' + acum + '% ' + (acum + pct) + '%');
+      acum += pct;
+    }
+  });
+  const gradiente = gradParts.length > 0 ? gradParts.join(', ') : '#e5e7eb 0% 100%';
+  let torta = '<h3 style="margin:20px 0 8px">🥧 Distribución por Método de Pago</h3>';
+  torta += '<div class="chart-torta" style="background:conic-gradient(' + gradiente + ')"></div>';
+  torta += '<div class="chart-legend">';
+  Object.keys(colores).forEach(m => {
+    if (porMetodo[m]) {
+      const pct = ((porMetodo[m] / totalMetodos) * 100).toFixed(1);
+      torta += '<span><span class="dot" style="background:' + colores[m] + '"></span>' + m + ' ' + pct + '%</span>';
+    }
+  });
+  torta += '</div>';
+
+  // 3. Barras verticales por semana
+  const semanas = [0, 0, 0, 0];
+  ventas.forEach(v => {
+    const dia = parseInt(v.fecha.slice(8, 10));
+    const semIdx = Math.min(Math.floor((dia - 1) / 7), 3);
+    semanas[semIdx] += v.monto;
+  });
+  const maxSem = Math.max(...semanas);
+  let barrasV = '<h3 style="margin:20px 0 8px">📈 Total por Semana (Barras Verticales)</h3>';
+  barrasV += '<div class="chart-vertical">';
+  semanas.forEach((total, i) => {
+    const pctH = maxSem > 0 ? (total / maxSem) * 100 : 0;
+    barrasV += '<div class="vbar" style="height:' + Math.max(pctH, 2) + '%"><div style="margin-top:auto;padding:4px 2px;font-size:0.65rem">$' + total.toLocaleString() + '</div><div style="font-size:0.7rem;padding-bottom:2px">S' + (i + 1) + '</div></div>';
+  });
+  barrasV += '</div>';
+
+  // 4. Barra de progreso apilada
+  let apilada = '<h3 style="margin:20px 0 8px">🔋 Barra Apilada por Método</h3>';
+  apilada += '<div class="chart-stacked">';
+  Object.keys(colores).forEach(m => {
+    if (porMetodo[m]) {
+      const pct = (porMetodo[m] / totalMetodos) * 100;
+      apilada += '<div class="seg" style="width:' + pct + '%;background:' + colores[m] + '">' + (pct >= 8 ? pct.toFixed(0) + '%' : '') + '</div>';
+    }
+  });
+  apilada += '</div>';
+  apilada += '<div class="chart-legend" style="margin-top:6px">';
+  Object.keys(colores).forEach(m => {
+    if (porMetodo[m]) {
+      apilada += '<span><span class="dot" style="background:' + colores[m] + '"></span>' + m + ': $' + porMetodo[m].toLocaleString() + '</span>';
+    }
+  });
+  apilada += '</div>';
+
+  // 5. Barras por día de la semana
+  const diasSemana = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+  const porDiaSemana = [0, 0, 0, 0, 0, 0, 0];
+  ventas.forEach(v => {
+    const d = new Date(v.fecha + 'T12:00:00');
+    const dia = d.getDay(); // 0=dom
+    porDiaSemana[dia === 0 ? 6 : dia - 1] += v.monto;
+  });
+  const maxDS = Math.max(...porDiaSemana);
+  let barrasDiaSemana = '<h3 style="margin:20px 0 8px">📅 Ventas por Día de la Semana</h3>';
+  barrasDiaSemana += '<div class="chart-vertical" style="height:130px">';
+  diasSemana.forEach((nombre, i) => {
+    const pctH = maxDS > 0 ? (porDiaSemana[i] / maxDS) * 100 : 0;
+    const color = porDiaSemana[i] === maxDS && maxDS > 0 ? '#065f46' : '#3b82f6';
+    barrasDiaSemana += '<div class="vbar" style="height:' + Math.max(pctH, 3) + '%;background:' + color + ';width:40px"><div style="margin-top:auto;padding:2px;font-size:0.6rem">$' + (porDiaSemana[i]/1000).toFixed(0) + 'k</div><div style="font-size:0.7rem;padding-bottom:2px">' + nombre + '</div></div>';
+  });
+  barrasDiaSemana += '</div>';
+
+  // 6. Mini sparkline últimos 7 días
+  const hoy = obtenerFechaLocalChile();
+  const ultimos7 = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const fecha = d.toISOString().slice(0, 10);
+    const total = ventasCaja.filter(v => v.fecha === fecha).reduce((a, v) => a + v.monto, 0);
+    ultimos7.push({ fecha: fecha.slice(8, 10) + '/' + fecha.slice(5, 7), total });
+  }
+  const maxSpk = Math.max(...ultimos7.map(d => d.total), 1);
+  let sparkline = '<h3 style="margin:20px 0 8px">📈 Tendencia Últimos 7 Días</h3>';
+  sparkline += '<div style="display:flex;align-items:flex-end;height:80px;gap:4px;border-bottom:1px solid #e5e7eb;padding-bottom:4px">';
+  ultimos7.forEach(d => {
+    const pct = (d.total / maxSpk) * 100;
+    sparkline += '<div style="flex:1;display:flex;flex-direction:column;align-items:center"><div style="width:100%;background:#1a56db;border-radius:3px 3px 0 0;height:' + Math.max(pct, 2) + '%" title="$' + d.total.toLocaleString() + '"></div></div>';
+  });
+  sparkline += '</div>';
+  sparkline += '<div style="display:flex;gap:4px;margin-top:4px">';
+  ultimos7.forEach(d => {
+    sparkline += '<div style="flex:1;text-align:center;font-size:0.65rem;color:#888">' + d.fecha + '</div>';
+  });
+  sparkline += '</div>';
+
+  document.getElementById('cajaGraficosContainer').innerHTML = barrasH + torta + barrasV + apilada + barrasDiaSemana + sparkline;
+}
+
 // Comparar meses de caja
 document.getElementById('btnCajaCompararMeses').addEventListener('click', () => {
   const mes1 = document.getElementById('cajaCmpMes1').value;
