@@ -3440,7 +3440,6 @@ function generarPDFRetiro(retiro) {
     <div class="row"><span class="label">Hora:</span><span class="value">${retiro.hora}</span></div>
     <div class="row"><span class="label">Entregar a:</span><span class="value">${retiro.destinatario}</span></div>
     <div class="row"><span class="label">Quien retira:</span><span class="value">${retiro.quienRetira || 'Jose Lee'}</span></div>
-    <div class="row"><span class="label">Operador:</span><span class="value">${retiro.operador}</span></div>
     <div class="row"><span class="label">Nota:</span><span class="value">${retiro.nota || 'Sin nota'}</span></div>
     <div class="firma">
       <div><div class="linea">${retiro.quienRetira || 'Jose Lee'} (Retira)</div></div>
