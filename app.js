@@ -2550,7 +2550,7 @@ document.getElementById('btnGuardarUsuario').addEventListener('click', async () 
     clientes:         document.getElementById('permClientes').checked,
     recepciones:      document.getElementById('permRecepciones').checked,
     caja:             document.getElementById('permCaja').checked,
-    comparador:       document.getElementById('permComparador').checked,
+    comparador:       document.getElementById('permComparador') ? document.getElementById('permComparador').checked : false,
     usuarios:         document.getElementById('permUsuarios').checked,
   };
 
@@ -2592,7 +2592,6 @@ document.getElementById('btnGuardarUsuario').addEventListener('click', async () 
   document.getElementById('permClientes').checked        = true;
   document.getElementById('permRecepciones').checked     = true;
   document.getElementById('permCaja').checked            = true;
-  document.getElementById('permComparador').checked      = false;
   document.getElementById('permUsuarios').checked        = false;
 });
 
@@ -2612,7 +2611,6 @@ function editarUsuario(i) {
   document.getElementById('permClientes').checked        = p.clientes        ?? true;
   document.getElementById('permRecepciones').checked     = p.recepciones     ?? true;
   document.getElementById('permCaja').checked            = p.caja            ?? true;
-  document.getElementById('permComparador').checked      = p.comparador      ?? false;
   document.getElementById('permUsuarios').checked        = p.usuarios        ?? false;
   const btn = document.getElementById('btnGuardarUsuario');
   btn.textContent = '✔ Actualizar';
@@ -3267,326 +3265,1765 @@ if (window.require) {
 }
 
 // ══════════════════════════════════════════════════════════════
-// ── PRECIOS DIMARSA ───────────────────────────────────────────
-// ══════════════════════════════════════════════════════════════
-// ── PRECIOS DIMARSA (estilo Knasta) ───────────────────────────────
+// ── CAJA / VENTAS DEL DÍA ─────────────────────────────────────
 // ══════════════════════════════════════════════════════════════
 
-// Historial: { productoId: [{ precio, fecha }] }
+let ventasCaja = JSON.parse(localStorage.getItem('ventasCaja') || '[]');
+let retirosCaja = JSON.parse(localStorage.getItem('retirosCaja') || '[]');
+let movimientosCaja = JSON.parse(localStorage.getItem('movimientosCaja') || '[]');
+function obtenerFechaLocalChile() {
+  const ahora = new Date();
+  const offset = ahora.getTimezoneOffset();
+  const local = new Date(ahora.getTime() - offset * 60000);
+  return local.toISOString().slice(0, 10);
+}
+let cajaFechaActual = obtenerFechaLocalChile();
+
+document.getElementById('btnRegistrarVenta').addEventListener('click', () => {
+  const monto = parseInt(document.getElementById('cajaMonto').value);
+  const metodo = document.getElementById('cajaMetodo').value;
+  const tipoDoc = document.getElementById('cajaTipoDoc').value;
+  const fechaInput = document.getElementById('cajaFechaRegistro').value;
+  if (!monto || monto <= 0) { showToast('Ingresa un monto válido', true); return; }
+  if (!metodo) { showToast('Selecciona un método de pago', true); return; }
+  if (!tipoDoc) { showToast('Selecciona el tipo de documento', true); return; }
+
+  const fechaVenta = fechaInput || obtenerFechaLocalChile();
+
+  const venta = {
+    id: Date.now().toString(36) + Math.random().toString(36).substr(2, 5),
+    fecha: fechaVenta,
+    hora: new Date().toTimeString().slice(0, 5),
+    monto: monto,
+    metodo: metodo,
+    tipoDoc: tipoDoc,
+    usuario: usuarioActivo ? usuarioActivo.nombre : ''
+  };
+
+  ventasCaja.unshift(venta);
+  localStorage.setItem('ventasCaja', JSON.stringify(ventasCaja));
+  if (window.fbListo) fbGuardar('caja', venta.id, venta);
+
+  document.getElementById('cajaMonto').value = '';
+  document.getElementById('cajaMetodo').value = '';
+  document.getElementById('cajaTipoDoc').value = '';
+  renderCaja();
+renderRetiros();
+renderMovimientos();
+actualizarSaldoCaja();
+  showToast('✔ Venta registrada');
+});
+
+document.getElementById('btnCajaFiltrar').addEventListener('click', () => {
+  const fecha = document.getElementById('cajaFiltroFecha').value;
+  if (!fecha) { showToast('Selecciona una fecha', true); return; }
+  cajaFechaActual = fecha;
+  renderCaja();
+});
+
+document.getElementById('btnCajaHoy').addEventListener('click', () => { renderRetiros(); actualizarSaldoCaja();
+  cajaFechaActual = obtenerFechaLocalChile();
+  document.getElementById('cajaFiltroFecha').value = '';
+  renderCaja();
+});
+
+function renderCaja() {
+  const tbody = document.getElementById('tbodyCaja');
+  const ventasDia = ventasCaja.filter(v => v.fecha === cajaFechaActual);
+
+  if (ventasDia.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" class="empty-msg">No hay ventas registradas</td></tr>';
+  } else {
+    tbody.innerHTML = ventasDia.map((v, i) => `
+      <tr>
+        <td>${i + 1}</td>
+        <td>${v.hora}</td>
+        <td>$${v.monto.toLocaleString()}</td>
+        <td><span class="badge" style="background:${v.metodo==='Efectivo'?'#d1fae5':v.metodo==='Débito'?'#dbeafe':v.metodo==='Crédito'?'#fef3c7':'#e0e7ff'};color:#333;padding:3px 8px;border-radius:4px;font-size:0.8rem">${v.metodo}</span></td>
+        <td style="font-size:0.8rem">${v.tipoDoc || '-'}</td>
+        <td><button class="btn-add" style="padding:2px 6px;font-size:0.75rem;margin-right:4px" onclick="editarVentaCaja('${v.id}')">✏</button><button class="btn-delete" onclick="eliminarVentaCaja('${v.id}')">✕</button></td>
+      </tr>`).join('');
+  }
+
+  // Estadísticas
+  const efectivo = ventasDia.filter(v => v.metodo === 'Efectivo').reduce((a, v) => a + v.monto, 0);
+  const debito = ventasDia.filter(v => v.metodo === 'Débito').reduce((a, v) => a + v.monto, 0);
+  const credito = ventasDia.filter(v => v.metodo === 'Crédito').reduce((a, v) => a + v.monto, 0);  const total = efectivo + debito + credito;
+  const cEfectivo = ventasDia.filter(v => v.metodo === 'Efectivo').length;
+  const cDebito = ventasDia.filter(v => v.metodo === 'Débito').length;
+  const cCredito = ventasDia.filter(v => v.metodo === 'Crédito').length;
+  document.getElementById('cajaEfectivo').innerHTML = '$' + efectivo.toLocaleString() + `<br><span style="font-size:0.7rem;opacity:0.7">${cEfectivo} venta${cEfectivo!==1?'s':''}</span>`;
+  document.getElementById('cajaDebito').innerHTML = '$' + debito.toLocaleString() + `<br><span style="font-size:0.7rem;opacity:0.7">${cDebito} venta${cDebito!==1?'s':''}</span>`;
+  document.getElementById('cajaCredito').innerHTML = '$' + credito.toLocaleString() + `<br><span style="font-size:0.7rem;opacity:0.7">${cCredito} venta${cCredito!==1?'s':''}</span>`;
+  document.getElementById('cajaTotal').innerHTML = '$' + total.toLocaleString() + `<br><span style="font-size:0.7rem;opacity:0.7">${ventasDia.length} venta${ventasDia.length!==1?'s':''}</span>`;
+}
+
+function eliminarVentaCaja(id) {
+  if (!confirm('¿Eliminar esta venta?')) return;
+  const idx = ventasCaja.findIndex(v => v.id === id);
+  if (idx !== -1) {
+    ventasCaja.splice(idx, 1);
+    localStorage.setItem('ventasCaja', JSON.stringify(ventasCaja));
+    if (window.fbListo) fbEliminar('caja', id);
+    renderCaja();
+    showToast('✔ Venta eliminada');
+  }
+}
+
+function editarVentaCaja(id) {
+  const idx = ventasCaja.findIndex(v => v.id === id);
+  if (idx === -1) return;
+  const v = ventasCaja[idx];
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.style.display = 'flex';
+  overlay.innerHTML = `
+    <div class="modal" style="max-width:380px">
+      <div class="modal-header"><h3>✏ Editar Venta</h3><button class="modal-close" onclick="this.closest('.modal-overlay').remove()">✕</button></div>
+      <div class="modal-body" style="padding:16px">
+        <div class="field"><label>Monto ($)</label><input type="number" id="editVentaMonto" value="${v.monto}" min="1" /></div>
+        <div class="field" style="margin-top:10px"><label>Método de Pago</label>
+          <select id="editVentaMetodo">
+            <option value="Efectivo" ${v.metodo==='Efectivo'?'selected':''}>Efectivo</option>
+            <option value="Débito" ${v.metodo==='Débito'?'selected':''}>Débito</option>
+            <option value="Crédito" ${v.metodo==='Crédito'?'selected':''}>Crédito</option>
+            <option value="Transferencia" ${v.metodo==='Transferencia'?'selected':''}>Transferencia</option>
+          </select>
+        </div>
+        <div class="field" style="margin-top:10px"><label>Tipo Documento</label>
+          <select id="editVentaTipoDoc">
+            <option value="Boleta" ${v.tipoDoc==='Boleta'?'selected':''}>Boleta</option>
+            <option value="Factura" ${v.tipoDoc==='Factura'?'selected':''}>Factura</option>
+            
+          </select>
+        </div>
+        <div class="field" style="margin-top:10px"><label>Fecha</label><input type="date" id="editVentaFecha" value="${v.fecha}" /></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="this.closest('.modal-overlay').remove()">Cancelar</button>
+        <button class="btn-primary" id="btnGuardarEditVenta">✔ Guardar</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  overlay.querySelector('#btnGuardarEditVenta').addEventListener('click', () => {
+    const nuevoMonto = parseInt(document.getElementById('editVentaMonto').value);
+    const nuevoMetodo = document.getElementById('editVentaMetodo').value;
+    const nuevoTipoDoc = document.getElementById('editVentaTipoDoc').value;
+    const nuevaFecha = document.getElementById('editVentaFecha').value;
+    if (!nuevoMonto || nuevoMonto <= 0) { showToast('Monto inválido', true); return; }
+    ventasCaja[idx].monto = nuevoMonto;
+    ventasCaja[idx].metodo = nuevoMetodo;
+    ventasCaja[idx].tipoDoc = nuevoTipoDoc;
+    ventasCaja[idx].fecha = nuevaFecha || v.fecha;
+    localStorage.setItem('ventasCaja', JSON.stringify(ventasCaja));
+    if (window.fbListo) fbGuardar('caja', v.id, ventasCaja[idx]);
+    overlay.remove();
+    renderCaja();
+    showToast('✔ Venta actualizada');
+  });
+}
+
+// ── Retiros de Caja ──────────────────────────────────────────
+
+function generarPDFRetiro(retiro) {
+  // Generar número correlativo basado en cantidad de retiros
+  const nroComprobante = String(retirosCaja.indexOf(retiro) + 1).padStart(4, '0');
+
+  const montoEnPalabras = convertirMontoAPalabras(retiro.monto);
+
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>
+    @page { size: letter; margin: 15mm; }
+    * { font-family: 'Times New Roman', serif; margin: 0; padding: 0; box-sizing: border-box; }
+    body { padding: 20px 40px; color: #000; line-height: 1.5; }
+    .encabezado { text-align: center; border-bottom: 3px double #000; padding-bottom: 10px; margin-bottom: 14px; }
+    .encabezado h1 { font-size: 24px; font-weight: bold; letter-spacing: 2px; text-transform: uppercase; }
+    .encabezado p { font-size: 13px; color: #444; margin-top: 2px; }
+    .titulo-doc { text-align: center; margin: 14px 0; }
+    .titulo-doc h2 { font-size: 18px; text-transform: uppercase; letter-spacing: 1px; border: 2px solid #000; display: inline-block; padding: 6px 24px; }
+    .nro-comprobante { text-align: right; font-size: 14px; margin-bottom: 10px; }
+    .nro-comprobante span { font-weight: bold; font-size: 16px; }
+    .datos-tabla { width: 100%; border-collapse: collapse; margin: 20px 0; }
+    .datos-tabla td { padding: 8px 12px; border: 1px solid #000; font-size: 14px; }
+    .datos-tabla td.label { background: #f5f5f5; font-weight: bold; width: 35%; }
+    .monto-grande { text-align: center; margin: 16px 0; padding: 14px; border: 2px solid #000; }
+    .monto-grande .cifra { font-size: 30px; font-weight: bold; }
+    .monto-grande .palabras { font-size: 13px; font-style: italic; margin-top: 4px; color: #333; }
+    .declaracion { margin: 16px 0; font-size: 13px; text-align: justify; padding: 12px; border: 1px solid #ccc; background: #fafafa; }
+    .firmas { display: flex; justify-content: space-between; margin-top: 40px; padding: 0 20px; }
+    .firma-box { text-align: center; width: 40%; }
+    .firma-linea { border-top: 1px solid #000; padding-top: 6px; margin-top: 40px; }
+    .firma-nombre { font-size: 14px; font-weight: bold; }
+    .firma-cargo { font-size: 12px; color: #555; }
+    .pie { margin-top: 30px; text-align: center; font-size: 10px; color: #888; border-top: 1px solid #ccc; padding-top: 8px; }
+    .fecha-lugar { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 10px; }
+  </style></head><body>
+
+    <div class="encabezado">
+      <h1>Bodega A&amp;M</h1>
+      <p>Comercializadora de Productos</p>
+    </div>
+
+    <div class="titulo-doc">
+      <h2>Comprobante de Egreso de Caja</h2>
+    </div>
+
+    <div class="nro-comprobante">
+      N° Comprobante: <span>${nroComprobante}</span>
+    </div>
+
+    <div class="fecha-lugar">
+      <span>Fecha: ${retiro.fecha.split('-').reverse().join('/')}</span>
+      <span>Hora: ${retiro.hora}</span>
+    </div>
+
+    <table class="datos-tabla">
+      <tr><td class="label">Monto</td><td>$ ${retiro.monto.toLocaleString()}.-</td></tr>
+      <tr><td class="label">Monto en palabras</td><td>${montoEnPalabras}</td></tr>
+      <tr><td class="label">Beneficiario</td><td>${retiro.destinatario}</td></tr>
+      <tr><td class="label">Entregado por</td><td>${retiro.quienRetira || 'Jose Lee'}</td></tr>
+      <tr><td class="label">Concepto</td><td>${retiro.nota || 'Retiro de caja'}</td></tr>
+    </table>
+
+    <div class="monto-grande">
+      <div class="cifra">$ ${retiro.monto.toLocaleString()}.-</div>
+      <div class="palabras">(${montoEnPalabras})</div>
+    </div>
+
+    <div class="declaracion">
+      Declaro haber recibido de parte de <strong>${retiro.quienRetira || 'Jose Lee'}</strong>, en representación de Bodega A&amp;M, la suma de <strong>$ ${retiro.monto.toLocaleString()}.-</strong> (${montoEnPalabras}), correspondiente a: <strong>${retiro.nota || 'retiro de caja'}</strong>. El presente comprobante se extiende como constancia de la entrega y recepción conforme del monto indicado.
+    </div>
+
+    <div class="firmas">
+      <div class="firma-box">
+        <div class="firma-linea">
+          <div class="firma-nombre">${retiro.quienRetira || 'Jose Lee'}</div>
+          <div class="firma-cargo">Entrega</div>
+        </div>
+      </div>
+      <div class="firma-box">
+        <div class="firma-linea">
+          <div class="firma-nombre">${retiro.destinatario}</div>
+          <div class="firma-cargo">Recibe Conforme</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="pie">
+      Documento interno — Bodega A&amp;M — Comprobante generado el ${new Date().toLocaleDateString('es-CL')} a las ${new Date().toTimeString().slice(0,5)}<br>
+      Este documento no tiene valor tributario. Solo para control interno.
+    </div>
+
+  </body></html>`;
+
+  if (window.require) {
+    const { ipcRenderer } = window.require('electron');
+    ipcRenderer.send('vistaPreviewPDF', html);
+  }
+}
+
+// Convertir monto a palabras
+function convertirMontoAPalabras(monto) {
+  const unidades = ['', 'un', 'dos', 'tres', 'cuatro', 'cinco', 'seis', 'siete', 'ocho', 'nueve'];
+  const decenas = ['', 'diez', 'veinte', 'treinta', 'cuarenta', 'cincuenta', 'sesenta', 'setenta', 'ochenta', 'noventa'];
+  const especiales = ['diez', 'once', 'doce', 'trece', 'catorce', 'quince', 'dieciséis', 'diecisiete', 'dieciocho', 'diecinueve'];
+  const centenas = ['', 'ciento', 'doscientos', 'trescientos', 'cuatrocientos', 'quinientos', 'seiscientos', 'setecientos', 'ochocientos', 'novecientos'];
+
+  if (monto === 0) return 'cero pesos';
+  if (monto === 100) return 'cien pesos';
+
+  let resultado = '';
+
+  if (monto >= 1000000) {
+    const millones = Math.floor(monto / 1000000);
+    resultado += (millones === 1 ? 'un millón ' : convertirGrupo(millones, unidades, decenas, especiales, centenas) + ' millones ');
+    monto %= 1000000;
+  }
+
+  if (monto >= 1000) {
+    const miles = Math.floor(monto / 1000);
+    resultado += (miles === 1 ? 'mil ' : convertirGrupo(miles, unidades, decenas, especiales, centenas) + ' mil ');
+    monto %= 1000;
+  }
+
+  if (monto > 0) {
+    resultado += convertirGrupo(monto, unidades, decenas, especiales, centenas);
+  }
+
+  return resultado.trim() + ' pesos';
+}
+
+function convertirGrupo(n, unidades, decenas, especiales, centenas) {
+  if (n === 0) return '';
+  if (n === 100) return 'cien';
+  let r = '';
+  if (n >= 100) { r += centenas[Math.floor(n / 100)] + ' '; n %= 100; }
+  if (n >= 10 && n < 20) { r += especiales[n - 10]; return r.trim(); }
+  if (n >= 20) {
+    r += decenas[Math.floor(n / 10)];
+    if (n % 10 !== 0) r += ' y ' + unidades[n % 10];
+    return r.trim();
+  }
+  if (n > 0) r += unidades[n];
+  return r.trim();
+}
+
+function registrarRetiro() {
+  const monto = parseInt(document.getElementById('retiroMonto').value);
+  const destinatario = document.getElementById('retiroDestinatario').value;
+  const nota = document.getElementById('retiroNota').value.trim();
+
+  if (!monto || monto <= 0) { showToast('Ingresa un monto válido', true); return; }
+  if (!destinatario) { showToast('Selecciona a quién se entrega', true); return; }
+
+  const ahora = new Date();
+  const retiro = {
+    id: Date.now().toString(36),
+    monto: monto,
+    destinatario: destinatario,
+    nota: nota,
+    fecha: ahora.toISOString().slice(0, 10),
+    hora: ahora.toTimeString().slice(0, 5),
+    operador: usuarioActivo ? usuarioActivo.nombre : 'Sistema'
+  };
+
+  retirosCaja.unshift(retiro);
+  localStorage.setItem('retirosCaja', JSON.stringify(retirosCaja));
+
+  // Sync to Firebase
+  if (window.fbGuardar) {
+    fbGuardar('retirosCaja', retiro.id, retiro).catch(() => {});
+  }
+
+  document.getElementById('retiroMonto').value = '';
+  document.getElementById('retiroDestinatario').value = '';
+  document.getElementById('retiroNota').value = '';
+  document.getElementById('retiroQuienRetira').value = '';
+
+  renderRetiros();
+  actualizarSaldoCaja();
+  showToast('✔ Retiro de $' + monto.toLocaleString() + ' registrado');
+  generarPDFRetiro(retiro);
+  registrarActividad('Retiro de Caja', 'Retiro de $' + monto.toLocaleString() + ' a ' + destinatario);
+}
+
+function eliminarRetiro(id) {
+  if (!confirm('¿Eliminar este retiro?')) return;
+  retirosCaja = retirosCaja.filter(r => r.id !== id);
+  localStorage.setItem('retirosCaja', JSON.stringify(retirosCaja));
+  if (window.fbEliminar) fbEliminar('retirosCaja', id).catch(() => {});
+  renderRetiros();
+  actualizarSaldoCaja();
+  showToast('Retiro eliminado');
+}
+
+function editarRetiro(id) {
+  const r = retirosCaja.find(x => x.id === id);
+  if (!r) return;
+
+  const modalHtml = `
+    <div id="modalEditRetiro" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:9999">
+      <div style="background:white;border-radius:12px;padding:24px;width:400px;max-width:90%">
+        <h3 style="margin-bottom:16px">✏️ Editar Retiro</h3>
+        <div class="field"><label>Monto ($)</label><input type="number" id="editRetiroMonto" value="${r.monto}" min="1" /></div>
+        <div class="field" style="margin-top:10px"><label>Fecha</label><input type="date" id="editRetiroFecha" value="${r.fecha}" /></div>
+        <div class="field" style="margin-top:10px"><label>Hora</label><input type="time" id="editRetiroHora" value="${r.hora}" /></div>
+        <div class="field" style="margin-top:10px"><label>Entregar a</label>
+          <select id="editRetiroDestinatario">
+            <option value="Gloria Almonacid" ${r.destinatario==='Gloria Almonacid'?'selected':''}>Gloria Almonacid</option>
+            <option value="Pedro Almonacid" ${r.destinatario==='Pedro Almonacid'?'selected':''}>Pedro Almonacid</option>
+          </select>
+        </div>
+        <div class="field" style="margin-top:10px"><label>Quien retira</label>
+          <select id="editRetiroQuienRetira">
+            <option value="Jose Lee" ${r.quienRetira==='Jose Lee'?'selected':''}>Jose Lee</option>
+          </select>
+        </div>
+        <div class="field" style="margin-top:10px"><label>Nota</label><input type="text" id="editRetiroNota" value="${r.nota || ''}" /></div>
+        <div style="display:flex;gap:10px;margin-top:16px;justify-content:flex-end">
+          <button class="btn-secondary" onclick="document.getElementById('modalEditRetiro').remove()">Cancelar</button>
+          <button class="btn-primary" onclick="guardarEdicionRetiro('${r.id}')">Guardar</button>
+        </div>
+      </div>
+    </div>`;
+
+  document.body.insertAdjacentHTML('beforeend', modalHtml);
+}
+
+function guardarEdicionRetiro(id) {
+  const monto = parseInt(document.getElementById('editRetiroMonto').value);
+  const destinatario = document.getElementById('editRetiroDestinatario').value;
+  const nota = document.getElementById('editRetiroNota').value.trim();
+  const quienRetira = document.getElementById('editRetiroQuienRetira').value;
+  const fecha = document.getElementById('editRetiroFecha').value;
+  const hora = document.getElementById('editRetiroHora').value;
+
+  if (!monto || monto <= 0) { showToast('Monto inválido', true); return; }
+  if (!destinatario) { showToast('Selecciona destinatario', true); return; }
+
+  const idx = retirosCaja.findIndex(r => r.id === id);
+  if (idx === -1) return;
+
+  retirosCaja[idx].monto = monto;
+  retirosCaja[idx].destinatario = destinatario;
+  retirosCaja[idx].nota = nota;
+  retirosCaja[idx].quienRetira = quienRetira;
+  if (fecha) retirosCaja[idx].fecha = fecha;
+  if (hora) retirosCaja[idx].hora = hora;
+
+  localStorage.setItem('retirosCaja', JSON.stringify(retirosCaja));
+  if (window.fbGuardar) fbGuardar('retirosCaja', id, retirosCaja[idx]).catch(() => {});
+
+  document.getElementById('modalEditRetiro').remove();
+  renderRetiros();
+  renderHistRetiros('todos');
+  actualizarSaldoCaja();
+  showToast('✔ Retiro actualizado');
+}
+
+function renderRetiros() {
+  const hoy = document.getElementById('cajaFiltroFecha') ? document.getElementById('cajaFiltroFecha').value || new Date().toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10);
+  const retirosHoy = retirosCaja.filter(r => r.fecha === hoy);
+  const tbody = document.getElementById('tbodyRetiros');
+  if (!tbody) return;
+
+  if (retirosHoy.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="8" class="empty-msg">No hay retiros registrados hoy</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = retirosHoy.map((r, i) => `<tr>
+    <td>${i + 1}</td>
+    <td>${r.fecha.split('-').reverse().join('/')}</td>
+    <td>${r.hora}</td>
+    <td style="color:#c81e1e;font-weight:bold">-$${r.monto.toLocaleString()}</td>
+    <td>${r.destinatario}</td>
+    <td>${r.operador}</td>
+    <td>${r.nota || '-'}</td>
+    <td><button class="btn-add" style="padding:2px 8px;font-size:0.75rem;margin-right:4px" onclick="generarPDFRetiro(retirosCaja.find(x=>x.id==='${r.id}'))">🖨</button><button class="btn-secondary" style="padding:2px 8px;font-size:0.75rem;margin-right:4px" onclick="editarRetiro('${r.id}')">✏</button><button class="btn-delete" onclick="eliminarRetiro('${r.id}')" title="Eliminar">🗑</button></td>
+  </tr>`).join('');
+}
+
+function actualizarSaldoCaja() {
+  const hoy = document.getElementById('cajaFiltroFecha') ? document.getElementById('cajaFiltroFecha').value || new Date().toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10);
+  const ventasHoy = ventasCaja.filter(v => v.fecha === hoy);
+  const retirosHoy = retirosCaja.filter(r => r.fecha === hoy);
+
+  const totalVentas = ventasHoy.reduce((a, v) => a + v.monto, 0);
+  const totalRetiros = retirosHoy.reduce((a, r) => a + r.monto, 0);
+  const saldo = totalVentas - totalRetiros;
+
+  const elSaldo = document.getElementById('cajaSaldo');
+  const elVentas = document.getElementById('cajaSaldoVentas');
+  const elRetiros = document.getElementById('cajaSaldoRetiros');
+
+  if (elSaldo) {
+    elSaldo.textContent = '$' + saldo.toLocaleString();
+    elSaldo.style.color = saldo >= 0 ? '#065f46' : '#c81e1e';
+  }
+  if (elVentas) elVentas.textContent = '$' + totalVentas.toLocaleString();
+  if (elRetiros) elRetiros.textContent = '$' + totalRetiros.toLocaleString();
+}
+
+document.getElementById('btnRegistrarRetiro').addEventListener('click', registrarRetiro);
+
+
+// Exportar Caja a Excel
+document.getElementById('btnCajaExcel').addEventListener('click', () => {
+  const ventasDia = ventasCaja.filter(v => v.fecha === cajaFechaActual);
+  if (ventasDia.length === 0) { showToast('No hay ventas para exportar', true); return; }
+  let csv = '\uFEFF#;Hora;Monto;Método\n';
+  ventasDia.forEach((v, i) => { csv += `${i+1};${v.hora};${v.monto};${v.metodo}\n`; });
+  const efectivo = ventasDia.filter(v => v.metodo === 'Efectivo').reduce((a, v) => a + v.monto, 0);
+  const debito = ventasDia.filter(v => v.metodo === 'Débito').reduce((a, v) => a + v.monto, 0);
+  const credito = ventasDia.filter(v => v.metodo === 'Crédito').reduce((a, v) => a + v.monto, 0);
+  csv += `\n;TOTALES;;\n;Efectivo;${efectivo};\n;Débito;${debito};\n;Crédito;${credito};\n;Transferencia;${transferencia};\n;TOTAL;${efectivo+debito+credito+transferencia};\n`;
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `Caja_${cajaFechaActual}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('✔ Excel descargado');
+});
+
+// Exportar Caja a PDF
+document.getElementById('btnCajaPDF').addEventListener('click', () => {
+  const ventasDia = ventasCaja.filter(v => v.fecha === cajaFechaActual);
+  if (ventasDia.length === 0) { showToast('No hay ventas para exportar', true); return; }
+  const efectivo = ventasDia.filter(v => v.metodo === 'Efectivo').reduce((a, v) => a + v.monto, 0);
+  const debito = ventasDia.filter(v => v.metodo === 'Débito').reduce((a, v) => a + v.monto, 0);
+  const credito = ventasDia.filter(v => v.metodo === 'Crédito').reduce((a, v) => a + v.monto, 0);
+  const total = efectivo + debito + credito ;
+  const filas = ventasDia.map((v, i) => `<tr><td>${i+1}</td><td>${v.hora}</td><td>$${v.monto.toLocaleString()}</td><td>${v.metodo}</td></tr>`).join('');
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>
+    body{font-family:Arial,sans-serif;padding:30px;color:#333}
+    h1{text-align:center;color:#1a56db}
+    table{width:100%;border-collapse:collapse;margin-top:16px}
+    th{background:#1a56db;color:white;padding:8px;text-align:left}
+    td{padding:8px;border-bottom:1px solid #eee}
+    .totales{margin-top:20px;font-size:1.1rem}
+    .totales div{margin:4px 0}
+    .total-final{font-size:1.3rem;font-weight:bold;color:#1a56db;margin-top:12px}
+  </style></head><body>
+    <h1>💰 Caja — ${cajaFechaActual.split('-').reverse().join('/')}</h1>
+    <table><thead><tr><th>#</th><th>Hora</th><th>Monto</th><th>Método</th></tr></thead><tbody>${filas}</tbody></table>
+    <div class="totales">
+      <div>Efectivo: $${efectivo.toLocaleString()}</div>
+      <div>Débito: $${debito.toLocaleString()}</div>
+      <div>Crédito: $${credito.toLocaleString()}</div>
+      <div class="total-final">TOTAL: $${total.toLocaleString()}</div>
+    </div>
+    <p style="text-align:center;margin-top:30px;font-size:0.8rem;color:#888">Bodega A&M — ${new Date().toLocaleDateString('es-CL')}</p>
+  </body></html>`;
+  if (window.require) {
+    const { ipcRenderer } = window.require('electron');
+    ipcRenderer.send('vistaPreviewPDF', html);
+  }
+});
+
+// Resumen mensual de caja
+document.getElementById('btnCajaMes').addEventListener('click', () => {
+  const mes = document.getElementById('cajaMesFiltro').value;
+  if (!mes) { showToast('Selecciona un mes', true); return; }
+  renderCajaMes(mes);
+});
+
+function renderCajaMes(mes) {
+  const ventasMes = ventasCaja.filter(v => v.fecha && v.fecha.slice(0, 7) === mes);
+  const efectivo = ventasMes.filter(v => v.metodo === 'Efectivo').reduce((a, v) => a + v.monto, 0);
+  const debito = ventasMes.filter(v => v.metodo === 'Débito').reduce((a, v) => a + v.monto, 0);
+  const credito = ventasMes.filter(v => v.metodo === 'Crédito').reduce((a, v) => a + v.monto, 0);
+  const total = efectivo + debito + credito ;
+  const cEfectivo = ventasMes.filter(v => v.metodo === 'Efectivo').length;
+  const cDebito = ventasMes.filter(v => v.metodo === 'Débito').length;
+  const cCredito = ventasMes.filter(v => v.metodo === 'Crédito').length;
+  const totalVentas = ventasMes.length;
+  const pctEfectivo = totalVentas > 0 ? Math.round((cEfectivo / totalVentas) * 100) : 0;
+  const pctDebito = totalVentas > 0 ? Math.round((cDebito / totalVentas) * 100) : 0;
+  const pctCredito = totalVentas > 0 ? Math.round((cCredito / totalVentas) * 100) : 0;
+
+  document.getElementById('cajaMesEfectivo').innerHTML = '$' + efectivo.toLocaleString() + `<br><span style="font-size:0.7rem;opacity:0.7">${cEfectivo} venta${cEfectivo!==1?'s':''} (${pctEfectivo}%)</span>`;
+  document.getElementById('cajaMesDebito').innerHTML = '$' + debito.toLocaleString() + `<br><span style="font-size:0.7rem;opacity:0.7">${cDebito} venta${cDebito!==1?'s':''} (${pctDebito}%)</span>`;
+  document.getElementById('cajaMesCredito').innerHTML = '$' + credito.toLocaleString() + `<br><span style="font-size:0.7rem;opacity:0.7">${cCredito} venta${cCredito!==1?'s':''} (${pctCredito}%)</span>`;
+  document.getElementById('cajaMesTotal').innerHTML = '$' + total.toLocaleString() + `<br><span style="font-size:0.7rem;opacity:0.7">${totalVentas} venta${totalVentas!==1?'s':''} total</span>`;
+
+  // Estadísticas extra
+  // Venta más alta
+  const ventaAlta = ventasMes.length > 0 ? Math.max(...ventasMes.map(v => v.monto)) : 0;
+  document.getElementById('cajaMesVentaAlta').textContent = '$' + ventaAlta.toLocaleString();
+
+  // Mejor día (más ingresos)
+  const porDia = {};
+  ventasMes.forEach(v => { porDia[v.fecha] = (porDia[v.fecha] || 0) + v.monto; });
+  let mejorDia = '—';
+  let maxDia = 0;
+  Object.entries(porDia).forEach(([dia, monto]) => {
+    if (monto > maxDia) { maxDia = monto; mejorDia = dia.slice(8,10) + '/' + dia.slice(5,7) + ' ($' + monto.toLocaleString() + ')'; }
+  });
+  document.getElementById('cajaMesMejorDia').textContent = mejorDia;
+
+  // Promedio diario
+  const diasConVentas = Object.keys(porDia).length;
+  const promDiario = diasConVentas > 0 ? Math.round(total / diasConVentas) : 0;
+  document.getElementById('cajaMesPromDiario').textContent = '$' + promDiario.toLocaleString();
+
+  // Días trabajados
+  document.getElementById('cajaMesDiasTrabajados').textContent = diasConVentas + ' días';
+
+  // Método más usado
+  const metodos = { Efectivo: cEfectivo, 'Débito': cDebito, 'Crédito': cCredito };
+  let metodoTop = '—';
+  let maxMetodo = 0;
+  Object.entries(metodos).forEach(([m, c]) => {
+    if (c > maxMetodo) { maxMetodo = c; metodoTop = m + ' (' + (totalVentas > 0 ? Math.round((c/totalVentas)*100) : 0) + '%)'; }
+  });
+  document.getElementById('cajaMesMetodoTop').textContent = metodoTop;
+}
+
+// Sincronizar caja desde Firebase
+function cargarCajaDesdeFirebase() {
+  if (!window.fbListo) return;
+  fbCargar('caja').then(datos => {
+    if (datos.length > 0) {
+      ventasCaja = datos.sort((a, b) => (b.fecha + b.hora).localeCompare(a.fecha + a.hora));
+      localStorage.setItem('ventasCaja', JSON.stringify(ventasCaja));
+      renderCaja();
+    }
+  });
+}
+
+renderCaja();
+
+// ── Historial de Retiros ──────────────────────────────────────────
+function renderHistRetiros(filtro) {
+  let datos = retirosCaja;
+  if (filtro === 'mes') {
+    const mes = document.getElementById('histRetirosMes').value;
+    if (!mes) { showToast('Selecciona un mes', true); return; }
+    datos = retirosCaja.filter(r => r.fecha && r.fecha.slice(0, 7) === mes);
+  }
+
+  // Sort by date descending
+  datos = [...datos].sort((a, b) => (b.fecha + b.hora).localeCompare(a.fecha + a.hora));
+
+  const tbody = document.getElementById('tbodyHistRetiros');
+  const totalMonto = datos.reduce((a, r) => a + r.monto, 0);
+
+  document.getElementById('histRetirosMonto').textContent = '$' + totalMonto.toLocaleString();
+  document.getElementById('histRetirosCant').textContent = datos.length;
+
+  if (datos.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="8" class="empty-msg">No hay retiros en este período</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = datos.map((r, i) => `<tr>
+    <td>${i + 1}</td>
+    <td>${r.fecha.split('-').reverse().join('/')}</td>
+    <td>${r.hora}</td>
+    <td style="color:#c81e1e;font-weight:bold">-$${r.monto.toLocaleString()}</td>
+    <td>${r.destinatario}</td>
+    <td>${r.quienRetira || '-'}</td>
+    <td>${r.nota || '-'}</td>
+    <td><button class="btn-secondary" style="padding:2px 8px;font-size:0.75rem;margin-right:4px" onclick="editarRetiro('${r.id}')">✏</button><button class="btn-add" style="padding:2px 8px;font-size:0.75rem" onclick="generarPDFRetiro(retirosCaja.find(x=>x.id==='${r.id}'))">🖨</button></td>
+  </tr>`).join('');
+}
+
+document.getElementById('btnHistRetiros').addEventListener('click', () => renderHistRetiros('mes'));
+document.getElementById('btnHistRetirosTodos').addEventListener('click', () => renderHistRetiros('todos'));
+
+// Set default month
+(function() {
+  const el = document.getElementById('histRetirosMes');
+  if (el) el.value = new Date().toISOString().slice(0, 7);
+})();
+
+// ── Ingresos y Egresos ──────────────────────────────────────────
+function registrarMovimiento() {
+  const tipo = document.getElementById('movTipo').value;
+  const monto = parseInt(document.getElementById('movMonto').value);
+  const motivo = document.getElementById('movMotivo').value.trim();
+  const quien = document.getElementById('movQuien').value.trim();
+  const fechaInput = document.getElementById('movFecha').value;
+
+  if (!monto || monto <= 0) { showToast('Ingresa un monto válido', true); return; }
+  if (!motivo) { showToast('Ingresa un motivo', true); return; }
+  if (!quien) { showToast('Ingresa quién realiza el movimiento', true); return; }
+
+  const ahora = new Date();
+  const mov = {
+    id: Date.now().toString(36),
+    tipo: tipo,
+    monto: monto,
+    motivo: motivo,
+    quien: quien,
+    fecha: fechaInput || ahora.toISOString().slice(0, 10),
+    hora: ahora.toTimeString().slice(0, 5)
+  };
+
+  movimientosCaja.unshift(mov);
+  localStorage.setItem('movimientosCaja', JSON.stringify(movimientosCaja));
+  if (window.fbGuardar) fbGuardar('movimientosCaja', mov.id, mov).catch(() => {});
+
+  document.getElementById('movMonto').value = '';
+  document.getElementById('movMotivo').value = '';
+  document.getElementById('movQuien').value = '';
+
+  renderMovimientos();
+  showToast('✔ ' + tipo + ' de $' + monto.toLocaleString() + ' registrado');
+  registrarActividad(tipo + ' de Caja', tipo + ' de $' + monto.toLocaleString() + ' - ' + motivo);
+}
+
+function eliminarMovimiento(id) {
+  if (!confirm('¿Eliminar este movimiento?')) return;
+  movimientosCaja = movimientosCaja.filter(m => m.id !== id);
+  localStorage.setItem('movimientosCaja', JSON.stringify(movimientosCaja));
+  if (window.fbEliminar) fbEliminar('movimientosCaja', id).catch(() => {});
+  renderMovimientos();
+  showToast('Movimiento eliminado');
+}
+
+function renderMovimientos() {
+  const tbody = document.getElementById('tbodyMovimientos');
+  if (!tbody) return;
+
+  const datos = movimientosCaja.slice(0, 50);
+
+  if (datos.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="7" class="empty-msg">No hay movimientos registrados</td></tr>';
+  } else {
+    tbody.innerHTML = datos.map((m, i) => `<tr>
+      <td>${i + 1}</td>
+      <td><span style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:0.75rem;font-weight:bold;background:${m.tipo==='Ingreso'?'#d1fae5':'#fee2e2'};color:${m.tipo==='Ingreso'?'#065f46':'#c81e1e'}">${m.tipo}</span></td>
+      <td>${m.fecha.split('-').reverse().join('/')}</td>
+      <td style="font-weight:bold;color:${m.tipo==='Ingreso'?'#065f46':'#c81e1e'}">${m.tipo==='Ingreso'?'+':'-'}$${m.monto.toLocaleString()}</td>
+      <td>${m.motivo}</td>
+      <td>${m.quien}</td>
+      <td><button class="btn-delete" onclick="eliminarMovimiento('${m.id}')" title="Eliminar">🗑</button></td>
+    </tr>`).join('');
+  }
+
+  // Update totals
+  const ingresos = movimientosCaja.filter(m => m.tipo === 'Ingreso').reduce((a, m) => a + m.monto, 0);
+  const egresos = movimientosCaja.filter(m => m.tipo === 'Egreso').reduce((a, m) => a + m.monto, 0);
+  const balance = ingresos - egresos;
+
+  const elIng = document.getElementById('movTotalIngresos');
+  const elEgr = document.getElementById('movTotalEgresos');
+  const elBal = document.getElementById('movBalance');
+
+  if (elIng) elIng.textContent = '$' + ingresos.toLocaleString();
+  if (elEgr) elEgr.textContent = '$' + egresos.toLocaleString();
+  if (elBal) {
+    elBal.textContent = '$' + balance.toLocaleString();
+    elBal.style.color = balance >= 0 ? '#065f46' : '#c81e1e';
+  }
+}
+
+// Set default date for movimientos
+(function() {
+  const el = document.getElementById('movFecha');
+  if (el) el.value = new Date().toISOString().slice(0, 10);
+})();
+
+document.getElementById('btnRegistrarMov').addEventListener('click', registrarMovimiento);
+
+// Comparar semanas
+document.getElementById('btnCompararSemanas').addEventListener('click', () => {
+  const hoy = new Date();
+  const diaSemana = hoy.getDay() || 7; // 1=lun, 7=dom
+  const inicioEstaSemana = new Date(hoy);
+  inicioEstaSemana.setDate(hoy.getDate() - diaSemana + 1);
+  const finEstaSemana = new Date(inicioEstaSemana);
+  finEstaSemana.setDate(inicioEstaSemana.getDate() + 6);
+  const inicioSemanaAnt = new Date(inicioEstaSemana);
+  inicioSemanaAnt.setDate(inicioEstaSemana.getDate() - 7);
+  const finSemanaAnt = new Date(inicioEstaSemana);
+  finSemanaAnt.setDate(inicioEstaSemana.getDate() - 1);
+
+  const formato = d => d.toISOString().slice(0, 10);
+  const ventasEsta = ventasCaja.filter(v => v.fecha >= formato(inicioEstaSemana) && v.fecha <= formato(finEstaSemana));
+  const ventasAnt = ventasCaja.filter(v => v.fecha >= formato(inicioSemanaAnt) && v.fecha <= formato(finSemanaAnt));
+
+  const totalEsta = ventasEsta.reduce((a, v) => a + v.monto, 0);
+  const totalAnt = ventasAnt.reduce((a, v) => a + v.monto, 0);
+  const cantEsta = ventasEsta.length;
+  const cantAnt = ventasAnt.length;
+
+  function diff(a, b) {
+    const d = b - a;
+    const pct = a > 0 ? Math.round((d / a) * 100) : (b > 0 ? '∞' : 0);
+    const color = d > 0 ? '#065f46' : d < 0 ? '#c81e1e' : '#333';
+    return `<span style="color:${color};font-weight:bold">${d >= 0 ? '+' : ''}${typeof d === 'number' && d > 999 ? '$'+d.toLocaleString() : d} (${pct}%)</span>`;
+  }
+
+  document.getElementById('tbodyCompSemanas').innerHTML = `
+    <tr><td>Total Ventas</td><td>$${totalAnt.toLocaleString()}</td><td>$${totalEsta.toLocaleString()}</td><td>${diff(totalAnt, totalEsta)}</td></tr>
+    <tr><td>Cantidad</td><td>${cantAnt}</td><td>${cantEsta}</td><td>${diff(cantAnt, cantEsta)}</td></tr>
+    <tr><td>Efectivo</td><td>$${ventasAnt.filter(v=>v.metodo==='Efectivo').reduce((a,v)=>a+v.monto,0).toLocaleString()}</td><td>$${ventasEsta.filter(v=>v.metodo==='Efectivo').reduce((a,v)=>a+v.monto,0).toLocaleString()}</td><td></td></tr>
+    <tr><td>Débito</td><td>$${ventasAnt.filter(v=>v.metodo==='Débito').reduce((a,v)=>a+v.monto,0).toLocaleString()}</td><td>$${ventasEsta.filter(v=>v.metodo==='Débito').reduce((a,v)=>a+v.monto,0).toLocaleString()}</td><td></td></tr>
+    <tr><td>Crédito</td><td>$${ventasAnt.filter(v=>v.metodo==='Crédito').reduce((a,v)=>a+v.monto,0).toLocaleString()}</td><td>$${ventasEsta.filter(v=>v.metodo==='Crédito').reduce((a,v)=>a+v.monto,0).toLocaleString()}</td><td></td></tr>
+    
+  `;
+  document.getElementById('comparacionSemanas').style.display = '';
+});
+
+// Gráficos de Caja
+document.getElementById('btnCajaGraficos').addEventListener('click', () => {
+  const mes = document.getElementById('cajaGraficosMes').value;
+  if (!mes) { showToast('Selecciona un mes', true); return; }
+  renderCajaGraficos(mes);
+});
+
+function renderCajaGraficos(mes) {
+  const ventas = ventasCaja.filter(v => v.fecha && v.fecha.slice(0, 7) === mes);
+  if (ventas.length === 0) {
+    document.getElementById('cajaGraficosContainer').innerHTML = '<p style="color:#888;text-align:center">No hay ventas en este mes.</p>';
+    return;
+  }
+
+  // 1. Barras horizontales por día
+  const porDia = {};
+  ventas.forEach(v => {
+    const dia = parseInt(v.fecha.slice(8, 10));
+    porDia[dia] = (porDia[dia] || 0) + v.monto;
+  });
+  const maxDia = Math.max(...Object.values(porDia));
+  let barrasH = '<h3 style="margin-bottom:8px">📊 Ventas por Día (Barras Horizontales)</h3>';
+  const diasOrdenados = Object.keys(porDia).map(Number).sort((a, b) => a - b);
+  diasOrdenados.forEach(dia => {
+    const monto = porDia[dia];
+    const pct = maxDia > 0 ? (monto / maxDia) * 100 : 0;
+    barrasH += '<div class="chart-bar-h"><span class="label">' + dia + '</span><div class="bar" style="width:' + pct + '%"></div><span class="amount">$' + monto.toLocaleString() + '</span></div>';
+  });
+
+  // 2. Torta por método de pago
+  const colores = { Efectivo: '#10b981', 'Débito': '#3b82f6', 'Crédito': '#f59e0b', Transferencia: '#8b5cf6' };
+  const porMetodo = {};
+  ventas.forEach(v => {
+    porMetodo[v.metodo] = (porMetodo[v.metodo] || 0) + v.monto;
+  });
+  const totalMetodos = Object.values(porMetodo).reduce((a, b) => a + b, 0);
+  let gradParts = [];
+  let acum = 0;
+  Object.keys(colores).forEach(m => {
+    if (porMetodo[m]) {
+      const pct = (porMetodo[m] / totalMetodos) * 100;
+      gradParts.push((colores[m] || '#999') + ' ' + acum + '% ' + (acum + pct) + '%');
+      acum += pct;
+    }
+  });
+  const gradiente = gradParts.length > 0 ? gradParts.join(', ') : '#e5e7eb 0% 100%';
+  let torta = '<h3 style="margin:20px 0 8px">🥧 Distribución por Método de Pago</h3>';
+  torta += '<div class="chart-torta" style="background:conic-gradient(' + gradiente + ')"></div>';
+  torta += '<div class="chart-legend">';
+  Object.keys(colores).forEach(m => {
+    if (porMetodo[m]) {
+      const pct = ((porMetodo[m] / totalMetodos) * 100).toFixed(1);
+      torta += '<span><span class="dot" style="background:' + colores[m] + '"></span>' + m + ' ' + pct + '%</span>';
+    }
+  });
+  torta += '</div>';
+
+  // 3. Barras verticales por semana
+  const semanas = [0, 0, 0, 0];
+  ventas.forEach(v => {
+    const dia = parseInt(v.fecha.slice(8, 10));
+    const semIdx = Math.min(Math.floor((dia - 1) / 7), 3);
+    semanas[semIdx] += v.monto;
+  });
+  const maxSem = Math.max(...semanas);
+  let barrasV = '<h3 style="margin:20px 0 8px">📈 Total por Semana (Barras Verticales)</h3>';
+  barrasV += '<div class="chart-vertical">';
+  semanas.forEach((total, i) => {
+    const pctH = maxSem > 0 ? (total / maxSem) * 100 : 0;
+    barrasV += '<div class="vbar" style="height:' + Math.max(pctH, 2) + '%"><div style="margin-top:auto;padding:4px 2px;font-size:0.65rem">$' + total.toLocaleString() + '</div><div style="font-size:0.7rem;padding-bottom:2px">S' + (i + 1) + '</div></div>';
+  });
+  barrasV += '</div>';
+
+  // 4. Barra de progreso apilada
+  let apilada = '<h3 style="margin:20px 0 8px">🔋 Barra Apilada por Método</h3>';
+  apilada += '<div class="chart-stacked">';
+  Object.keys(colores).forEach(m => {
+    if (porMetodo[m]) {
+      const pct = (porMetodo[m] / totalMetodos) * 100;
+      apilada += '<div class="seg" style="width:' + pct + '%;background:' + colores[m] + '">' + (pct >= 8 ? pct.toFixed(0) + '%' : '') + '</div>';
+    }
+  });
+  apilada += '</div>';
+  apilada += '<div class="chart-legend" style="margin-top:6px">';
+  Object.keys(colores).forEach(m => {
+    if (porMetodo[m]) {
+      apilada += '<span><span class="dot" style="background:' + colores[m] + '"></span>' + m + ': $' + porMetodo[m].toLocaleString() + '</span>';
+    }
+  });
+  apilada += '</div>';
+
+  // 5. Barras por día de la semana
+  const diasSemana = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+  const porDiaSemana = [0, 0, 0, 0, 0, 0, 0];
+  ventas.forEach(v => {
+    const d = new Date(v.fecha + 'T12:00:00');
+    const dia = d.getDay(); // 0=dom
+    porDiaSemana[dia === 0 ? 6 : dia - 1] += v.monto;
+  });
+  const maxDS = Math.max(...porDiaSemana);
+  let barrasDiaSemana = '<h3 style="margin:20px 0 8px">📅 Ventas por Día de la Semana</h3>';
+  barrasDiaSemana += '<div class="chart-vertical" style="height:130px">';
+  diasSemana.forEach((nombre, i) => {
+    const pctH = maxDS > 0 ? (porDiaSemana[i] / maxDS) * 100 : 0;
+    const color = porDiaSemana[i] === maxDS && maxDS > 0 ? '#065f46' : '#3b82f6';
+    barrasDiaSemana += '<div class="vbar" style="height:' + Math.max(pctH, 3) + '%;background:' + color + ';width:40px"><div style="margin-top:auto;padding:2px;font-size:0.6rem">$' + (porDiaSemana[i]/1000).toFixed(0) + 'k</div><div style="font-size:0.7rem;padding-bottom:2px">' + nombre + '</div></div>';
+  });
+  barrasDiaSemana += '</div>';
+
+  // 6. Mini sparkline últimos 7 días
+  const hoy = obtenerFechaLocalChile();
+  const ultimos7 = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const fecha = d.toISOString().slice(0, 10);
+    const total = ventasCaja.filter(v => v.fecha === fecha).reduce((a, v) => a + v.monto, 0);
+    ultimos7.push({ fecha: fecha.slice(8, 10) + '/' + fecha.slice(5, 7), total });
+  }
+  const maxSpk = Math.max(...ultimos7.map(d => d.total), 1);
+  let sparkline = '<h3 style="margin:20px 0 8px">📈 Tendencia Últimos 7 Días</h3>';
+  sparkline += '<div style="display:flex;align-items:flex-end;height:80px;gap:4px;border-bottom:1px solid #e5e7eb;padding-bottom:4px">';
+  ultimos7.forEach(d => {
+    const pct = (d.total / maxSpk) * 100;
+    sparkline += '<div style="flex:1;display:flex;flex-direction:column;align-items:center"><div style="width:100%;background:#1a56db;border-radius:3px 3px 0 0;height:' + Math.max(pct, 2) + '%" title="$' + d.total.toLocaleString() + '"></div></div>';
+  });
+  sparkline += '</div>';
+  sparkline += '<div style="display:flex;gap:4px;margin-top:4px">';
+  ultimos7.forEach(d => {
+    sparkline += '<div style="flex:1;text-align:center;font-size:0.65rem;color:#888">' + d.fecha + '</div>';
+  });
+  sparkline += '</div>';
+
+  document.getElementById('cajaGraficosContainer').innerHTML = barrasH + torta + barrasV + apilada + barrasDiaSemana + sparkline;
+}
+
+// Comparar meses de caja
+document.getElementById('btnCajaCompararMeses').addEventListener('click', () => {
+  const mes1 = document.getElementById('cajaCmpMes1').value;
+  const mes2 = document.getElementById('cajaCmpMes2').value;
+  if (!mes1 || !mes2) { showToast('Selecciona ambos meses', true); return; }
+  const v1 = ventasCaja.filter(v => v.fecha && v.fecha.slice(0,7) === mes1);
+  const v2 = ventasCaja.filter(v => v.fecha && v.fecha.slice(0,7) === mes2);
+  const t1 = v1.reduce((a,v) => a + v.monto, 0);
+  const t2 = v2.reduce((a,v) => a + v.monto, 0);
+  const mesesNombres = ['','Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  document.getElementById('cajaCmpTit1').textContent = mesesNombres[parseInt(mes1.split('-')[1])] + ' ' + mes1.split('-')[0];
+  document.getElementById('cajaCmpTit2').textContent = mesesNombres[parseInt(mes2.split('-')[1])] + ' ' + mes2.split('-')[0];
+  function diff(a, b) {
+    const d = b - a;
+    const pct = a > 0 ? Math.round((d/a)*100) : (b > 0 ? '∞' : 0);
+    const color = d > 0 ? '#065f46' : d < 0 ? '#c81e1e' : '#333';
+    return `<span style="color:${color};font-weight:bold">${d>=0?'+':''}$${d.toLocaleString()} (${pct}%)</span>`;
+  }
+  function diffN(a, b) {
+    const d = b - a;
+    const pct = a > 0 ? Math.round((d/a)*100) : (b > 0 ? '∞' : 0);
+    const color = d > 0 ? '#065f46' : d < 0 ? '#c81e1e' : '#333';
+    return `<span style="color:${color};font-weight:bold">${d>=0?'+':''}${d} (${pct}%)</span>`;
+  }
+  document.getElementById('tbodyCajaCompMeses').innerHTML = `
+    <tr><td>Total</td><td>$${t1.toLocaleString()}</td><td>$${t2.toLocaleString()}</td><td>${diff(t1,t2)}</td></tr>
+    <tr><td>Cantidad ventas</td><td>${v1.length}</td><td>${v2.length}</td><td>${diffN(v1.length,v2.length)}</td></tr>
+    <tr><td>Efectivo</td><td>$${v1.filter(v=>v.metodo==='Efectivo').reduce((a,v)=>a+v.monto,0).toLocaleString()}</td><td>$${v2.filter(v=>v.metodo==='Efectivo').reduce((a,v)=>a+v.monto,0).toLocaleString()}</td><td></td></tr>
+    <tr><td>Débito</td><td>$${v1.filter(v=>v.metodo==='Débito').reduce((a,v)=>a+v.monto,0).toLocaleString()}</td><td>$${v2.filter(v=>v.metodo==='Débito').reduce((a,v)=>a+v.monto,0).toLocaleString()}</td><td></td></tr>
+    <tr><td>Crédito</td><td>$${v1.filter(v=>v.metodo==='Crédito').reduce((a,v)=>a+v.monto,0).toLocaleString()}</td><td>$${v2.filter(v=>v.metodo==='Crédito').reduce((a,v)=>a+v.monto,0).toLocaleString()}</td><td></td></tr>
+    
+  `;
+  document.getElementById('cajaCompMeses').style.display = '';
+});
+
+// Día más lento
+document.getElementById('btnCajaDiaLento').addEventListener('click', () => {
+  const mes = document.getElementById('cajaDiaLentoMes').value;
+  if (!mes) { showToast('Selecciona un mes', true); return; }
+  const ventasMes = ventasCaja.filter(v => v.fecha && v.fecha.slice(0,7) === mes);
+  if (ventasMes.length === 0) { document.getElementById('cajaDiaLentoResult').textContent = 'Sin ventas en este mes'; return; }
+  const porDia = {};
+  ventasMes.forEach(v => { porDia[v.fecha] = (porDia[v.fecha] || 0) + v.monto; });
+  let peorDia = '';
+  let minMonto = Infinity;
+  Object.entries(porDia).forEach(([dia, monto]) => {
+    if (monto < minMonto) { minMonto = monto; peorDia = dia; }
+  });
+  document.getElementById('cajaDiaLentoResult').textContent = '📉 ' + peorDia.split('-').reverse().join('/') + ' — $' + minMonto.toLocaleString() + ' (día más lento)';
+});
+
+// ── Informe Mensual Completo PDF ──────────────────────────────
+// ── Estacionalidad Anual ──────────────────────────────────────────
+document.getElementById('cajaEstacionalidadAnio').value = new Date().getFullYear();
+document.getElementById('btnCajaEstacionalidad').addEventListener('click', () => {
+  const anio = document.getElementById('cajaEstacionalidadAnio').value;
+  if (!anio) { showToast('Ingresa un año', true); return; }
+
+  const mesesNombres = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  const datos = [];
+  let maxMonto = 0;
+
+  for (let m = 1; m <= 12; m++) {
+    const mesStr = anio + '-' + String(m).padStart(2, '0');
+    const ventasMes = ventasCaja.filter(v => v.fecha && v.fecha.slice(0, 7) === mesStr);
+    const total = ventasMes.reduce((a, v) => a + v.monto, 0);
+    const cantidad = ventasMes.length;
+    datos.push({ mes: mesesNombres[m-1], total, cantidad });
+    if (total > maxMonto) maxMonto = total;
+  }
+
+  const totalAnual = datos.reduce((a, d) => a + d.total, 0);
+  const promMensual = totalAnual > 0 ? Math.round(totalAnual / datos.filter(d => d.total > 0).length) : 0;
+
+  // Find best and worst months (with data)
+  const conDatos = datos.filter(d => d.total > 0);
+  let mejorMes = '—', peorMes = '—';
+  if (conDatos.length > 0) {
+    const mejor = conDatos.reduce((a, b) => a.total > b.total ? a : b);
+    const peor = conDatos.reduce((a, b) => a.total < b.total ? a : b);
+    mejorMes = mejor.mes + ' ($' + mejor.total.toLocaleString() + ')';
+    peorMes = peor.mes + ' ($' + peor.total.toLocaleString() + ')';
+  }
+
+  const container = document.getElementById('cajaEstacionalidadResult');
+  container.innerHTML = `
+    <div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap">
+      <div style="padding:8px 14px;background:#d1fae5;border-radius:6px;font-size:0.9rem"><strong>Total ${anio}:</strong> $${totalAnual.toLocaleString()}</div>
+      <div style="padding:8px 14px;background:#e0e7ff;border-radius:6px;font-size:0.9rem"><strong>Promedio mensual:</strong> $${promMensual.toLocaleString()}</div>
+      <div style="padding:8px 14px;background:#d1fae5;border-radius:6px;font-size:0.9rem"><strong>Mejor mes:</strong> ${mejorMes}</div>
+      <div style="padding:8px 14px;background:#fee2e2;border-radius:6px;font-size:0.9rem"><strong>Peor mes:</strong> ${peorMes}</div>
+    </div>
+    <div style="display:flex;align-items:flex-end;gap:4px;height:200px;border-bottom:2px solid #333;padding-bottom:4px;margin-bottom:8px">
+      ${datos.map(d => {
+        const pct = maxMonto > 0 ? Math.round((d.total / maxMonto) * 100) : 0;
+        const color = d.total >= promMensual ? '#1a56db' : (d.total > 0 ? '#93c5fd' : '#e5e7eb');
+        return '<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%"><div style="width:100%;background:' + color + ';border-radius:4px 4px 0 0;height:' + pct + '%;min-height:' + (d.total > 0 ? '4px' : '2px') + '" title="' + d.mes + ': $' + d.total.toLocaleString() + '"></div><span style="font-size:0.7rem;margin-top:4px;font-weight:600">' + d.mes + '</span></div>';
+      }).join('')}
+    </div>
+    <div style="display:flex;align-items:center;gap:12px;font-size:0.75rem;color:#555">
+      <div><span style="display:inline-block;width:12px;height:12px;background:#1a56db;border-radius:2px;vertical-align:middle;margin-right:4px"></span>Sobre promedio</div>
+      <div><span style="display:inline-block;width:12px;height:12px;background:#93c5fd;border-radius:2px;vertical-align:middle;margin-right:4px"></span>Bajo promedio</div>
+      <div><span style="display:inline-block;width:12px;height:12px;background:#e5e7eb;border-radius:2px;vertical-align:middle;margin-right:4px"></span>Sin datos</div>
+      <div>Promedio: $${promMensual.toLocaleString()}/mes</div>
+    </div>
+    <table style="margin-top:16px;width:100%;font-size:0.9rem">
+      <thead><tr><th>Mes</th><th>Monto</th><th>Ventas</th><th>vs Promedio</th></tr></thead>
+      <tbody>${datos.map(d => {
+        const diff = promMensual > 0 ? Math.round(((d.total - promMensual) / promMensual) * 100) : 0;
+        const color = d.total >= promMensual ? '#065f46' : '#c81e1e';
+        return '<tr><td>' + d.mes + '</td><td>$' + d.total.toLocaleString() + '</td><td>' + d.cantidad + '</td><td style="color:' + color + ';font-weight:bold">' + (d.total > 0 ? (diff >= 0 ? '+' : '') + diff + '%' : '—') + '</td></tr>';
+      }).join('')}</tbody>
+    </table>
+  `;
+});
+
+document.getElementById('btnCajaInforme').addEventListener('click', () => {
+  const mes = document.getElementById('cajaInformeMes').value;
+  if (!mes) { showToast('Selecciona un mes', true); return; }
+  const mes2 = document.getElementById('cajaInformeMes2').value || null;
+  generarInformeCaja(mes, mes2);
+});
+
+document.getElementById('btnCajaInformeGuardar').addEventListener('click', () => {
+  const mes = document.getElementById('cajaInformeMes').value;
+  if (!mes) { showToast('Selecciona un mes', true); return; }
+  const mes2 = document.getElementById('cajaInformeMes2').value || null;
+  generarInformeCaja(mes, mes2, true);
+});
+
+function generarConclusionAleatoria(nombreMes, total, ventas, metodoTop, mejorDia, mejorMonto, peorDia, peorMonto, promDiario, diasConVentas, diffPct, diaSemNombre, semanas, boletas, facturas, efectivo, debito, credito) {
+  const pctMetodo = Math.round((metodoTop.c/ventas.length)*100);
+  const pctBoletas = Math.round((boletas.length/ventas.length)*100);
+  const pctFacturas = Math.round((facturas.length/ventas.length)*100);
+  const pctSinDoc = Math.round((0/ventas.length)*100);
+  const diffMonto = (mejorMonto - peorMonto).toLocaleString();
+  const maxSem = Math.max(...semanas).toLocaleString();
+  const tendencia = diffPct >= 0 ? 'se registró un crecimiento del ' + diffPct + '% en ingresos, indicando una tendencia positiva.' : 'se observó una disminución del ' + Math.abs(diffPct) + '% en ingresos. Se recomienda evaluar acciones correctivas.';
+  const conclusiones = [
+    '<p><strong>Resumen:</strong> El mes de ' + nombreMes + ' cerró con $' + total.toLocaleString() + ' en ' + ventas.length + ' ventas durante ' + diasConVentas + ' días. Promedio diario: $' + promDiario.toLocaleString() + '.</p><p><strong>Pagos:</strong> ' + metodoTop.n + ' fue el método principal con ' + metodoTop.c + ' operaciones (' + pctMetodo + '%).</p><p><strong>Documentos:</strong> ' + boletas.length + ' boletas (' + pctBoletas + '%), ' + facturas.length + ' facturas (' + pctFacturas + '%), ' + 0 + ' sin documento (' + pctSinDoc + '%).</p><p><strong>Rendimiento:</strong> Mejor día: ' + mejorDia.split("-").reverse().join("/") + ' ($' + mejorMonto.toLocaleString() + '). Peor día: ' + peorDia.split("-").reverse().join("/") + ' ($' + peorMonto.toLocaleString() + '). Diferencia: $' + diffMonto + '.</p><p><strong>Tendencia:</strong> ' + tendencia + '</p><p><strong>Patrones:</strong> ' + diaSemNombre + ' es el día más activo. Semana más fuerte: $' + maxSem + '.</p><p><strong>Recomendaciones:</strong></p><ul style="margin-left:20px;line-height:2"><li>Mantener registro consistente de todas las transacciones.</li><li>Incentivar pagos electrónicos para mayor seguridad.</li><li>Implementar promociones en días de baja actividad.</li><li>Establecer metas mensuales basadas en datos históricos.</li><li>Realizar seguimiento semanal de indicadores clave.</li><li>Capacitar personal para días de alta demanda.</li></ul><p><strong>Nota:</strong> Informe generado automáticamente por Bodega A&M.</p>',
+    '<p><strong>Análisis Final:</strong> Durante ' + nombreMes + ', se procesaron ' + ventas.length + ' ventas por $' + total.toLocaleString() + ' en ' + diasConVentas + ' días operativos. Promedio: $' + promDiario.toLocaleString() + '/día.</p><p><strong>Comportamiento:</strong> Los clientes prefirieron ' + metodoTop.n + ' (' + metodoTop.c + ' ops, ' + pctMetodo + '%). Esto es relevante para la gestión de caja.</p><p><strong>Variabilidad:</strong> La brecha entre mejor día (' + mejorDia.split("-").reverse().join("/") + ': $' + mejorMonto.toLocaleString() + ') y peor (' + peorDia.split("-").reverse().join("/") + ': $' + peorMonto.toLocaleString() + ') fue de $' + diffMonto + '.</p><p><strong>Evolución:</strong> ' + tendencia + '</p><p><strong>Distribución:</strong> ' + diaSemNombre + ' concentra mayor actividad. Semana top: $' + maxSem + '.</p><p><strong>Tributario:</strong> ' + boletas.length + ' boletas, ' + facturas.length + ' facturas, ' + 0 + ' sin documento. Meta: reducir operaciones sin respaldo.</p><p><strong>Plan de Acción:</strong></p><ul style="margin-left:20px;line-height:2"><li>Definir meta del próximo mes basada en promedio actual +10%.</li><li>Reducir ventas sin documento a menos del 5%.</li><li>Evaluar horarios según patrones de demanda.</li><li>Considerar alianzas con proveedores de medios de pago.</li><li>Implementar incentivos para personal en días peak.</li><li>Programar revisiones semanales de KPIs.</li></ul><p><strong>Cierre:</strong> Este informe es base sólida para decisiones. Se recomienda revisión mensual sistemática.</p>',
+    '<p><strong>Conclusiones:</strong> ' + nombreMes + ' registró ' + ventas.length + ' transacciones por $' + total.toLocaleString() + '. Operación en ' + diasConVentas + ' días con promedio de $' + promDiario.toLocaleString() + ' diarios.</p><p><strong>Perfil de Pagos:</strong> ' + metodoTop.n + ' lidera con ' + metodoTop.c + ' operaciones (' + pctMetodo + '%). Información valiosa para planificar flujo de caja.</p><p><strong>Días Destacados:</strong> Mejor: ' + mejorDia.split("-").reverse().join("/") + ' ($' + mejorMonto.toLocaleString() + '). Peor: ' + peorDia.split("-").reverse().join("/") + ' ($' + peorMonto.toLocaleString() + '). Brecha: $' + diffMonto + '.</p><p><strong>Histórico:</strong> ' + tendencia + '</p><p><strong>Ritmo:</strong> ' + diaSemNombre + ' es el día estrella. Semana más productiva: $' + maxSem + '. Estos patrones deben guiar la planificación operativa.</p><p><strong>Cumplimiento:</strong> ' + pctBoletas + '% boletas, ' + pctFacturas + '% facturas, ' + pctSinDoc + '% sin documento. Mejorar progresivamente la formalización.</p><p><strong>Líneas de Acción:</strong></p><ul style="margin-left:20px;line-height:2"><li>Fortalecer atención en días de mayor demanda.</li><li>Desarrollar estrategias de fidelización de clientes.</li><li>Explorar oportunidades de venta cruzada.</li><li>Automatizar generación de reportes para seguimiento ágil.</li><li>Establecer alertas tempranas para caídas en ventas.</li><li>Documentar mejores prácticas de días exitosos.</li></ul><p><strong>Observación:</strong> La consistencia en registro y análisis es base para crecimiento sostenido.</p>'
+  ];
+  return conclusiones[Math.floor(Math.random() * conclusiones.length)];
+}
+
+function generarInformeCaja(mes, mes2, guardarEnEscritorio) {
+  const ventas = ventasCaja.filter(v => v.fecha && v.fecha.slice(0,7) === mes);
+  if (ventas.length === 0) { showToast('No hay ventas en este mes', true); return; }
+
+  const mesesNombres = ['','Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  const [anio, mesNum] = mes.split('-');
+  const nombreMes = mesesNombres[parseInt(mesNum)] + ' ' + anio;
+
+  // Cálculos
+  const total = ventas.reduce((a,v) => a + v.monto, 0);
+  const efectivo = ventas.filter(v => v.metodo==='Efectivo');
+  const debito = ventas.filter(v => v.metodo==='Débito');
+  const credito = ventas.filter(v => v.metodo==='Crédito');
+  const boletas = ventas.filter(v => v.tipoDoc==='Boleta');
+  const facturas = ventas.filter(v => v.tipoDoc==='Factura');
+  
+  // Por día
+  const porDia = {};
+  ventas.forEach(v => { porDia[v.fecha] = (porDia[v.fecha] || 0) + v.monto; });
+  const diasOrdenados = Object.entries(porDia).sort((a,b) => a[0].localeCompare(b[0]));
+  let mejorDia = '', mejorMonto = 0, peorDia = '', peorMonto = Infinity;
+  diasOrdenados.forEach(([dia, monto]) => {
+    if (monto > mejorMonto) { mejorMonto = monto; mejorDia = dia; }
+    if (monto < peorMonto) { peorMonto = monto; peorDia = dia; }
+  });
+
+  // Por semana
+  const semanas = [0,0,0,0];
+  ventas.forEach(v => { const d = parseInt(v.fecha.slice(8,10)); semanas[Math.min(Math.floor((d-1)/7),3)] += v.monto; });
+
+  // Por día de semana
+  const diasSemNombres = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+  const porDiaSem = [0,0,0,0,0,0,0];
+  ventas.forEach(v => { const d = new Date(v.fecha+'T12:00:00').getDay(); porDiaSem[d] += v.monto; });
+  let diaSemMax = 0, diaSemNombre = '';
+  porDiaSem.forEach((m,i) => { if (m > diaSemMax) { diaSemMax = m; diaSemNombre = diasSemNombres[i]; } });
+
+  // Mes anterior
+  const mesAnt = parseInt(mesNum) === 1 ? `${parseInt(anio)-1}-12` : `${anio}-${String(parseInt(mesNum)-1).padStart(2,'0')}`;
+  const ventasAnt = ventasCaja.filter(v => v.fecha && v.fecha.slice(0,7) === mesAnt);
+  const totalAnt = ventasAnt.reduce((a,v) => a + v.monto, 0);
+  const diffPct = totalAnt > 0 ? Math.round(((total - totalAnt) / totalAnt) * 100) : 0;
+
+  // Promedio diario
+  const diasConVentas = Object.keys(porDia).length;
+  const promDiario = diasConVentas > 0 ? Math.round(total / diasConVentas) : 0;
+
+  // Método más usado
+  const metodos = [{n:'Efectivo',c:efectivo.length},{n:'Débito',c:debito.length},{n:'Crédito',c:credito.length}];
+  metodos.sort((a,b) => b.c - a.c);
+  const metodoTop = metodos[0];
+
+  // Retiros del mes
+  const retirosMes = retirosCaja.filter(r => r.fecha && r.fecha.slice(0,7) === mes);
+  const totalRetirosMes = retirosMes.reduce((a, r) => a + r.monto, 0);
+
+  // Por hora del día
+  const porHora = Array(24).fill(0);
+  const ventasPorHora = Array(24).fill(0);
+  ventas.forEach(v => {
+    if (v.hora) {
+      const h = parseInt(v.hora.split(':')[0]);
+      if (h >= 0 && h < 24) { porHora[h] += v.monto; ventasPorHora[h]++; }
+    }
+  });
+  let horaPico = 0, horaMax = 0;
+  porHora.forEach((m, i) => { if (m > horaMax) { horaMax = m; horaPico = i; } });
+
+  const fechaGen = new Date().toLocaleDateString('es-CL');
+
+  
+  // Comparación con mes2 (si se seleccionó)
+  let mes2Data = null;
+  if (mes2) {
+    const ventas2 = ventasCaja.filter(v => v.fecha && v.fecha.slice(0,7) === mes2);
+    const [anio2, mesNum2] = mes2.split('-');
+    const nombreMes2 = mesesNombres[parseInt(mesNum2)] + ' ' + anio2;
+    const total2 = ventas2.reduce((a,v) => a + v.monto, 0);
+    const efectivo2 = ventas2.filter(v => v.metodo==='Efectivo');
+    const debito2 = ventas2.filter(v => v.metodo==='Débito');
+    const credito2 = ventas2.filter(v => v.metodo==='Crédito');
+    const boletas2 = ventas2.filter(v => v.tipoDoc==='Boleta');
+    const facturas2 = ventas2.filter(v => v.tipoDoc==='Factura');
+    const porDia2 = {};
+    ventas2.forEach(v => { porDia2[v.fecha] = (porDia2[v.fecha] || 0) + v.monto; });
+    const diasConVentas2 = Object.keys(porDia2).length;
+    const promDiario2 = diasConVentas2 > 0 ? Math.round(total2 / diasConVentas2) : 0;
+    const diffTotal = total > 0 || total2 > 0 ? Math.round(((total - total2) / (total2 || 1)) * 100) : 0;
+    mes2Data = { nombreMes2, total2, ventas2, efectivo2, debito2, credito2, boletas2, facturas2, diasConVentas2, promDiario2, diffTotal };
+  }
+
+const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>
+    @page { size: letter; margin: 20mm; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; color: #333; line-height: 1.5; }
+    .portada { text-align: center; padding-top: 120px; page-break-after: always; }
+    .portada h1 { font-size: 2.2rem; color: #1a56db; margin-bottom: 10px; }
+    .portada h2 { font-size: 1.5rem; color: #555; font-weight: normal; }
+    .portada .fecha { margin-top: 60px; color: #888; }
+    .indice { page-break-after: always; }
+    .indice h2 { color: #1a56db; border-bottom: 2px solid #1a56db; padding-bottom: 8px; }
+    .indice ul { list-style: none; padding: 0; }
+    .indice li { padding: 8px 0; border-bottom: 1px dotted #ccc; font-size: 1.1rem; }
+    .seccion { page-break-before: always; page-break-inside: avoid; }
+    .seccion h2 { color: #1a56db; border-bottom: 2px solid #e5e7eb; padding-bottom: 8px; margin-bottom: 16px; }
+    table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 0.9rem; page-break-inside: auto; }
+    tr { page-break-inside: avoid; }
+    th { background: #1a56db; color: white; padding: 8px 10px; text-align: left; }
+    td { padding: 7px 10px; border-bottom: 1px solid #eee; }
+    tr:nth-child(even) { background: #f8fafc; }
+    .kpi-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin: 16px 0; }
+    .kpi { background: #f0f4ff; border-radius: 8px; padding: 14px; text-align: center; }
+    .kpi .num { font-size: 1.4rem; font-weight: bold; color: #1a56db; }
+    .kpi .label { font-size: 0.8rem; color: #666; margin-top: 4px; }
+    .conclusion { background: #f0fdf4; border-left: 4px solid #10b981; padding: 16px; border-radius: 8px; margin-top: 16px; }
+    .footer { text-align: center; margin-top: 40px; font-size: 0.8rem; color: #888; border-top: 1px solid #eee; padding-top: 10px; }
+    @media print {
+      .seccion { page-break-before: always !important; }
+      .portada { page-break-after: always !important; }
+      .indice { page-break-after: always !important; }
+      table { page-break-inside: auto !important; }
+      tr { page-break-inside: avoid !important; page-break-after: auto !important; }
+      thead { display: table-header-group; }
+      .conclusion { page-break-inside: avoid !important; }
+    }
+  </style></head><body>
+
+  <!-- PORTADA -->
+  <div class="portada">
+    <h1>📦 Bodega A&amp;M</h1>
+    <h2>Informe Mensual de Caja</h2>
+    <h2 style="color:#1a56db;font-weight:bold">${nombreMes}</h2>
+    <p class="fecha">Generado el ${fechaGen}</p>
+  </div>
+
+  <!-- ÍNDICE -->
+  <div class="indice">
+    <h2>Índice</h2>
+    <ul>
+      <li>1. Introducción</li>
+      <li>2. Resumen Ejecutivo</li>
+      <li>3. Desglose por Método de Pago</li>
+      <li>4. Desglose por Tipo de Documento</li>
+      <li>5. Análisis por Semana</li>
+      <li>6. Análisis por Día de la Semana</li>
+      <li>7. Mejor y Peor Día del Mes</li>
+      <li>8. Comparación con Mes Anterior</li>
+      <li>9. Retiros de Caja</li>
+      <li>10. Horarios Pico de Ventas</li>
+      <li>11. Gráfico de Tendencia Diaria</li>
+      <li>12. Detalle Diario Resumido</li>
+      <li>13. Detalle Completo de Ventas</li>
+      <li>14. Conclusión y Recomendaciones</li>
+    </ul>
+  </div>
+
+  <!-- 1. INTRODUCCIÓN -->
+  <div class="seccion">
+    <h2>1. Introducción</h2>
+    <p>El presente informe tiene como objetivo proporcionar un análisis detallado y completo de las operaciones de caja realizadas durante el mes de <strong>${nombreMes}</strong> en Bodega A&M.</p>
+    <p>Este documento recopila toda la información financiera registrada en el sistema de caja, incluyendo los ingresos por ventas, los métodos de pago utilizados por los clientes, la distribución por tipo de documento tributario, y el comportamiento de las transacciones a lo largo del período analizado.</p>
+    <p>El análisis abarca múltiples dimensiones: desde el comportamiento diario y semanal de las ventas, hasta la comparación con períodos anteriores, permitiendo identificar tendencias, patrones de consumo y oportunidades de mejora en la gestión financiera del negocio.</p>
+    <p>La información contenida en este informe es de carácter interno y confidencial, destinada exclusivamente a facilitar la toma de decisiones estratégicas por parte de la administración de Bodega A&M.</p>
+    <p>Los datos presentados fueron extraídos directamente del sistema de registro de caja digital, garantizando la precisión y confiabilidad de las cifras reportadas. Cada transacción fue registrada en tiempo real durante las operaciones diarias del establecimiento, asegurando la integridad de la información.</p>
+    <p>Se recomienda utilizar este informe como herramienta de referencia para evaluar el desempeño financiero del mes, identificar los días y métodos de pago más relevantes, y planificar estrategias comerciales para los períodos siguientes.</p>
+    <p>El documento se estructura en secciones que van desde un resumen ejecutivo con los indicadores clave, pasando por análisis detallados por método de pago, tipo de documento, comportamiento semanal y diario, hasta llegar a una conclusión con recomendaciones concretas para la mejora continua del negocio.</p>
+    <p>Este informe fue generado de forma automática por el sistema de gestión de Bodega A&M el día ${fechaGen}, y corresponde al período comprendido entre el 1 y el último día del mes de ${nombreMes}.</p>
+  </div>
+
+  <!-- 2. RESUMEN EJECUTIVO -->
+  <div class="seccion" style="page-break-inside:auto">
+    <h2>2. Resumen Ejecutivo</h2>
+    <p style="font-size:0.82rem;color:#555;margin-bottom:10px;line-height:1.5">
+      Esta sección presenta los indicadores clave de rendimiento (KPI) del mes de ${nombreMes}.<br>
+      Se muestra el ingreso total, cantidad de ventas, promedio diario, días operativos, método preferido y variación vs mes anterior.<br>
+      Estos indicadores ofrecen una fotografía rápida del desempeño financiero mensual.
+    </p>
+    <div class="kpi-grid">
+      <div class="kpi"><div class="num">${total.toLocaleString()}</div><div class="label">Total del Mes</div></div>
+      <div class="kpi"><div class="num">${ventas.length}</div><div class="label">Total Ventas</div></div>
+      <div class="kpi"><div class="num">${promDiario.toLocaleString()}</div><div class="label">Promedio Diario</div></div>
+      <div class="kpi"><div class="num">${diasConVentas}</div><div class="label">Días con Ventas</div></div>
+      <div class="kpi"><div class="num">${metodoTop.n}</div><div class="label">Método Más Usado</div></div>
+      <div class="kpi"><div class="num">${diffPct >= 0 ? '+' : ''}${diffPct}%</div><div class="label">vs Mes Anterior</div></div>
+    </div>
+    <div style="margin-top:12px;padding:12px 14px;background:#f0f4ff;border-radius:6px;font-size:0.82rem;color:#444;border-left:3px solid #1a56db;line-height:1.6">
+      <strong>Conclusión de esta sección:</strong><br>
+      Durante ${nombreMes} se procesaron ${ventas.length} transacciones que generaron ingresos por $${total.toLocaleString()}.<br>
+      El promedio diario de ventas fue de $${promDiario.toLocaleString()}, calculado sobre ${diasConVentas} días con actividad comercial registrada.<br>
+      El método de pago preferido por los clientes fue ${metodoTop.n}, concentrando ${metodoTop.c} operaciones del total.<br>
+      ${diffPct >= 0 ? 'Se observa un crecimiento del ' + diffPct + '% respecto al mes anterior, indicando tendencia positiva.' : 'Se registró una caída del ' + Math.abs(diffPct) + '% respecto al mes anterior, lo que requiere atención.'}<br>
+      Estos números reflejan el pulso general del negocio y sirven como base para decisiones estratégicas.<br>
+      Se recomienda revisar las secciones siguientes para entender el comportamiento detrás de estos indicadores.<br>
+      El análisis por método de pago y tipo de documento complementa esta visión general.
+    </div>
+  </div>
+
+  <!-- 2. DESGLOSE POR MÉTODO -->
+  <div class="seccion">
+    <h2>3. Desglose por Método de Pago</h2>
+    <p style="font-size:0.85rem;color:#555;margin-bottom:14px;line-height:1.6">
+      En esta sección se analiza cómo se distribuyeron los pagos según el medio utilizado por los clientes.<br>
+      Se presentan los cuatro métodos disponibles: Efectivo, Débito, Crédito y Transferencia bancaria.<br>
+      Para cada método se muestra el monto total recaudado, la cantidad de transacciones y su porcentaje.<br>
+      El gráfico circular permite visualizar rápidamente qué método predomina en cantidad de operaciones.<br>
+      Las barras de distribución por monto muestran qué método concentra mayor volumen de dinero.<br>
+      Esta información es útil para evaluar si conviene incentivar algún medio de pago específico.<br>
+      También permite anticipar necesidades de cambio en efectivo o verificar comisiones por tarjeta.
+    </p>
+    <table>
+      <tr><th>Método</th><th>Monto</th><th>Ventas</th><th>%</th></tr>
+      <tr><td>Efectivo</td><td>$${efectivo.reduce((a,v)=>a+v.monto,0).toLocaleString()}</td><td>${efectivo.length}</td><td>${ventas.length>0?Math.round((efectivo.length/ventas.length)*100):0}%</td></tr>
+      <tr><td>Débito</td><td>$${debito.reduce((a,v)=>a+v.monto,0).toLocaleString()}</td><td>${debito.length}</td><td>${ventas.length>0?Math.round((debito.length/ventas.length)*100):0}%</td></tr>
+      <tr><td>Crédito</td><td>$${credito.reduce((a,v)=>a+v.monto,0).toLocaleString()}</td><td>${credito.length}</td><td>${ventas.length>0?Math.round((credito.length/ventas.length)*100):0}%</td></tr>
+      
+      <tr style="font-weight:bold;background:#e0e7ff"><td>TOTAL</td><td>$${total.toLocaleString()}</td><td>${ventas.length}</td><td>100%</td></tr>
+    </table>
+    <div style="display:flex;align-items:center;justify-content:space-around;margin-top:20px;flex-wrap:wrap">
+      <div style="width:160px;height:160px;border-radius:50%;background:conic-gradient(#10b981 0% ${ventas.length>0?Math.round((efectivo.length/ventas.length)*100):0}%, #3b82f6 ${ventas.length>0?Math.round((efectivo.length/ventas.length)*100):0}% ${ventas.length>0?Math.round(((efectivo.length+debito.length)/ventas.length)*100):0}%, #f59e0b ${ventas.length>0?Math.round(((efectivo.length+debito.length)/ventas.length)*100):0}% ${ventas.length>0?Math.round(((efectivo.length+debito.length+credito.length)/ventas.length)*100):0}%)"></div>
+      <div style="font-size:0.85rem">
+        <div style="margin:6px 0"><span style="display:inline-block;width:14px;height:14px;background:#10b981;border-radius:50%;vertical-align:middle;margin-right:6px"></span>Efectivo: ${ventas.length>0?Math.round((efectivo.length/ventas.length)*100):0}%</div>
+        <div style="margin:6px 0"><span style="display:inline-block;width:14px;height:14px;background:#3b82f6;border-radius:50%;vertical-align:middle;margin-right:6px"></span>Débito: ${ventas.length>0?Math.round((debito.length/ventas.length)*100):0}%</div>
+        <div style="margin:6px 0"><span style="display:inline-block;width:14px;height:14px;background:#f59e0b;border-radius:50%;vertical-align:middle;margin-right:6px"></span>Crédito: ${ventas.length>0?Math.round((credito.length/ventas.length)*100):0}%</div>
+        <div style="margin:6px 0"><span style="display:inline-block;width:14px;height:14px;background:#8b5cf6;border-radius:50%;vertical-align:middle;margin-right:6px"></span>Transferencia: ${ventas.length>0?Math.round((0/ventas.length)*100):0}%</div>
+      </div>
+    </div>
+    <div style="margin-top:20px">
+      <p style="font-weight:600;margin-bottom:8px">Distribución por Monto:</p>
+      <div style="display:flex;align-items:center;margin:4px 0"><span style="width:100px;font-size:0.8rem">Efectivo</span><div style="height:20px;background:#10b981;border-radius:3px;width:${total>0?Math.round((efectivo.reduce((a,v)=>a+v.monto,0)/total)*100):0}%"></div><span style="margin-left:6px;font-size:0.8rem">${total>0?Math.round((efectivo.reduce((a,v)=>a+v.monto,0)/total)*100):0}%</span></div>
+      <div style="display:flex;align-items:center;margin:4px 0"><span style="width:100px;font-size:0.8rem">Débito</span><div style="height:20px;background:#3b82f6;border-radius:3px;width:${total>0?Math.round((debito.reduce((a,v)=>a+v.monto,0)/total)*100):0}%"></div><span style="margin-left:6px;font-size:0.8rem">${total>0?Math.round((debito.reduce((a,v)=>a+v.monto,0)/total)*100):0}%</span></div>
+      <div style="display:flex;align-items:center;margin:4px 0"><span style="width:100px;font-size:0.8rem">Crédito</span><div style="height:20px;background:#f59e0b;border-radius:3px;width:${total>0?Math.round((credito.reduce((a,v)=>a+v.monto,0)/total)*100):0}%"></div><span style="margin-left:6px;font-size:0.8rem">${total>0?Math.round((credito.reduce((a,v)=>a+v.monto,0)/total)*100):0}%</span></div>
+      <div style="display:flex;align-items:center;margin:4px 0"><span style="width:100px;font-size:0.8rem">Transferencia</span><div style="height:20px;background:#8b5cf6;border-radius:3px;width:${total>0?Math.round((0/total)*100):0}%"></div><span style="margin-left:6px;font-size:0.8rem">${total>0?Math.round((0/total)*100):0}%</span></div>
+    </div>
+
+    <div style="margin-top:16px;padding:12px 14px;background:#f0f4ff;border-radius:6px;font-size:0.82rem;color:#444;border-left:3px solid #1a56db;line-height:1.6">
+      <strong>Conclusión de esta sección:</strong><br>
+      El método de pago dominante en ${nombreMes} fue ${metodoTop.n} con ${metodoTop.c} transacciones (${ventas.length>0?Math.round((metodoTop.c/ventas.length)*100):0}% del total).<br>
+      En términos de monto, Efectivo representó ${efectivo.reduce((a,v)=>a+v.monto,0).toLocaleString()}, Débito ${debito.reduce((a,v)=>a+v.monto,0).toLocaleString()}, Crédito ${credito.reduce((a,v)=>a+v.monto,0).toLocaleString()}<br>
+      La distribución muestra las preferencias de los clientes y permite anticipar necesidades operativas.<br>
+      Si el efectivo predomina, es importante mantener fondo de caja suficiente para dar cambio.<br>
+      Las transferencias bancarias reducen el riesgo de manejo de efectivo aunque demoran en confirmarse.<br>
+      Se sugiere monitorear mes a mes si algún método crece o decrece para adaptar la infraestructura.<br>
+      Considere ofrecer incentivos en métodos que desee promover según conveniencia del negocio.
+    </div>
+  </div>
+
+  <!-- 3. DESGLOSE POR TIPO DOCUMENTO -->
+  <div class="seccion">
+    <h2>4. Desglose por Tipo de Documento</h2>
+    <p style="font-size:0.85rem;color:#555;margin-bottom:14px;line-height:1.6">
+      Esta sección muestra la distribución de ventas según el tipo de documento tributario emitido.<br>
+      Se clasifican en Boleta y Factura, indicando monto, cantidad y porcentaje de cada tipo.<br>
+      Las boletas corresponden a ventas a consumidor final, mientras que las facturas se emiten a empresas.<br>
+            Este análisis permite verificar el cumplimiento de obligaciones tributarias del negocio.<br>
+            Utilice estos datos para preparar declaraciones de impuestos y auditorías internas.
+    </p>
+    <table>
+      <tr><th>Tipo</th><th>Monto</th><th>Cantidad</th><th>%</th></tr>
+      <tr><td>Boleta</td><td>$${boletas.reduce((a,v)=>a+v.monto,0).toLocaleString()}</td><td>${boletas.length}</td><td>${ventas.length>0?Math.round((boletas.length/ventas.length)*100):0}%</td></tr>
+      <tr><td>Factura</td><td>$${facturas.reduce((a,v)=>a+v.monto,0).toLocaleString()}</td><td>${facturas.length}</td><td>${ventas.length>0?Math.round((facturas.length/ventas.length)*100):0}%</td></tr>
+      
+    </table>
+
+    <div style="margin-top:16px;padding:12px 14px;background:#f0f4ff;border-radius:6px;font-size:0.82rem;color:#444;border-left:3px solid #1a56db;line-height:1.6">
+      <strong>Conclusión de esta sección:</strong><br>
+      Del total de ${ventas.length} ventas, se emitieron ${boletas.length} boletas (${ventas.length>0?Math.round((boletas.length/ventas.length)*100):0}%), ${facturas.length} facturas (${ventas.length>0?Math.round((facturas.length/ventas.length)*100):0}%) y ${0} sin documento (${ventas.length>0?Math.round((0/ventas.length)*100):0}%).<br>
+      Las boletas generaron ${boletas.reduce((a,v)=>a+v.monto,0).toLocaleString()} y las facturas ${facturas.reduce((a,v)=>a+v.monto,0).toLocaleString()} en ingresos documentados.<br>
+      ${0 > 0 ? 'Existen ' + 0 + ' ventas sin respaldo tributario, lo cual debe reducirse progresivamente.' : 'Todas las ventas cuentan con respaldo tributario, lo cual es óptimo.'}<br>
+      El cumplimiento tributario es fundamental para evitar sanciones del SII y mantener la formalidad.<br>
+      Se recomienda que toda venta, sin importar el monto, cuente con al menos una boleta como respaldo.<br>
+      Las facturas son relevantes para clientes empresa y permiten recuperar IVA en compras corporativas.<br>
+      Mantenga el registro formal de todas las ventas para cumplimiento tributario.
+    </div>
+  </div>
+
+  <!-- 4. ANÁLISIS POR SEMANA -->
+  <div class="seccion">
+    <h2>5. Análisis por Semana</h2>
+    <p style="font-size:0.85rem;color:#555;margin-bottom:14px;line-height:1.6">
+      Aquí se divide el mes en cuatro semanas para identificar en qué período se concentran las ventas.<br>
+      La Semana 1 comprende los días 1 al 7, la Semana 2 del 8 al 14, la Semana 3 del 15 al 21 y la Semana 4 del 22 en adelante.<br>
+      Para cada semana se muestra el monto total recaudado y su porcentaje respecto al ingreso mensual.<br>
+      Este análisis permite detectar si las ventas se concentran a inicio, mitad o fin de mes.<br>
+      Patrones como mayor venta en la primera semana pueden indicar compras post-sueldo de los clientes.<br>
+      Identificar semanas débiles ayuda a planificar promociones o acciones comerciales específicas.<br>
+      Compare estos datos mes a mes para confirmar si los patrones semanales son consistentes.
+    </p>
+    <table>
+      <tr><th>Semana</th><th>Período</th><th>Monto</th><th>% del Total</th></tr>
+      <tr><td>Semana 1</td><td>Días 1-7</td><td>$${semanas[0].toLocaleString()}</td><td>${total>0?Math.round((semanas[0]/total)*100):0}%</td></tr>
+      <tr><td>Semana 2</td><td>Días 8-14</td><td>$${semanas[1].toLocaleString()}</td><td>${total>0?Math.round((semanas[1]/total)*100):0}%</td></tr>
+      <tr><td>Semana 3</td><td>Días 15-21</td><td>$${semanas[2].toLocaleString()}</td><td>${total>0?Math.round((semanas[2]/total)*100):0}%</td></tr>
+      <tr><td>Semana 4</td><td>Días 22+</td><td>$${semanas[3].toLocaleString()}</td><td>${total>0?Math.round((semanas[3]/total)*100):0}%</td></tr>
+    </table>
+
+    <div style="margin-top:16px;padding:12px 14px;background:#f0f4ff;border-radius:6px;font-size:0.82rem;color:#444;border-left:3px solid #1a56db;line-height:1.6">
+      <strong>Conclusión de esta sección:</strong><br>
+      La semana con mayor recaudación alcanzó ${Math.max(...semanas).toLocaleString()}, representando ${total>0?Math.round((Math.max(...semanas)/total)*100):0}% del ingreso total.<br>
+      Distribución: Semana 1 (${semanas[0].toLocaleString()}), Semana 2 (${semanas[1].toLocaleString()}), Semana 3 (${semanas[2].toLocaleString()}) y Semana 4 (${semanas[3].toLocaleString()}).<br>
+      ${semanas[0] > semanas[3] ? 'Las ventas se concentran al inicio del mes, posiblemente por el ciclo de pago de sueldos.' : 'Las ventas se concentran hacia fin de mes, lo que puede indicar compras de reposición.'}<br>
+      Una distribución equilibrada entre semanas indica estabilidad en la demanda del negocio.<br>
+      Si alguna semana es significativamente baja, considere implementar promociones en ese período.<br>
+      Monitorear este patrón mes a mes permite confirmar si es comportamiento estacional o puntual.<br>
+      Use esta información para planificar compras a proveedores y gestionar el flujo de caja semanal.
+    </div>
+  </div>
+
+  <!-- 5. ANÁLISIS POR DÍA DE LA SEMANA -->
+  <div class="seccion">
+    <h2>6. Análisis por Día de la Semana</h2>
+    <p style="font-size:0.85rem;color:#555;margin-bottom:14px;line-height:1.6">
+      Esta sección agrupa todas las ventas del mes según el día de la semana en que se realizaron.<br>
+      Se muestra el monto acumulado para cada día (Lunes a Domingo) y su porcentaje del total mensual.<br>
+      El día con mayor recaudación se resalta en verde para identificarlo rápidamente.<br>
+      Este análisis revela los días de mayor y menor actividad comercial de la bodega.<br>
+      Conocer los días fuertes permite optimizar la dotación de personal y el stock disponible.<br>
+      Los días débiles pueden aprovecharse para tareas administrativas, reposición o promociones.<br>
+      Si un día específico es consistentemente bajo, considere ajustar horarios u ofertas especiales.
+    </p>
+    <table>
+      <tr><th>Día</th><th>Monto Total</th><th>% del Total</th></tr>
+      ${diasSemNombres.map((n,i) => `<tr${porDiaSem[i]===diaSemMax?' style="background:#d1fae5;font-weight:bold"':''}><td>${n}</td><td>$${porDiaSem[i].toLocaleString()}</td><td>${total>0?Math.round((porDiaSem[i]/total)*100):0}%</td></tr>`).join('')}
+    </table>
+    <p style="margin-top:8px"><strong>Día más activo:</strong> ${diaSemNombre}</p>
+
+    <div style="margin-top:16px;padding:12px 14px;background:#f0f4ff;border-radius:6px;font-size:0.82rem;color:#444;border-left:3px solid #1a56db;line-height:1.6">
+      <strong>Conclusión de esta sección:</strong><br>
+      El día de la semana con mayor actividad fue ${diaSemNombre}, acumulando ${diaSemMax.toLocaleString()} (${total>0?Math.round((diaSemMax/total)*100):0}% del total).<br>
+      Este patrón indica que los clientes tienden a realizar sus compras principalmente los días ${diaSemNombre}.<br>
+      Los días con menor recaudación representan oportunidades para implementar estrategias de atracción.<br>
+      Se recomienda reforzar el personal y el stock disponible en los días de mayor demanda identificados.<br>
+      En los días más tranquilos, aproveche para realizar inventarios, limpieza y tareas administrativas.<br>
+      Si este patrón se repite mes a mes, puede considerarse ajustar horarios de apertura según demanda.<br>
+      Compare con meses anteriores para confirmar si ${diaSemNombre} es consistentemente el día más fuerte.
+    </div>
+  </div>
+
+  <!-- 6. MEJOR Y PEOR DÍA -->
+  <div class="seccion">
+    <h2>7. Mejor y Peor Día del Mes</h2>
+    <p style="font-size:0.85rem;color:#555;margin-bottom:14px;line-height:1.6">
+      Se identifican los dos días extremos del mes: el de mayor y menor recaudación.<br>
+      El mejor día representa la jornada con más ingresos, posiblemente por eventos o demanda estacional.<br>
+      El peor día muestra la jornada con menor actividad, útil para investigar causas (feriados, clima).<br>
+      La diferencia entre ambos indica la variabilidad de las ventas durante el mes.<br>
+      Si la brecha es muy grande, el negocio depende de días puntuales y debería buscar mayor estabilidad.<br>
+      Analizar qué ocurrió en el mejor día puede ayudar a replicar esas condiciones en el futuro.<br>
+      Entender el peor día permite tomar medidas preventivas para evitar jornadas improductivas.
+    </p>
+    <div class="kpi-grid" style="grid-template-columns:1fr 1fr">
+      <div class="kpi" style="background:#d1fae5"><div class="num">$${mejorMonto.toLocaleString()}</div><div class="label">🏆 Mejor Día: ${mejorDia.split('-').reverse().join('/')}</div></div>
+      <div class="kpi" style="background:#fee2e2"><div class="num">$${peorMonto.toLocaleString()}</div><div class="label">📉 Peor Día: ${peorDia.split('-').reverse().join('/')}</div></div>
+    </div>
+
+    <div style="margin-top:16px;padding:12px 14px;background:#f0f4ff;border-radius:6px;font-size:0.82rem;color:#444;border-left:3px solid #1a56db;line-height:1.6">
+      <strong>Conclusión de esta sección:</strong><br>
+      El mejor día del mes fue el ${mejorDia.split('-').reverse().join('/')} con ${mejorMonto.toLocaleString()}, y el peor fue el ${peorDia.split('-').reverse().join('/')} con ${peorMonto.toLocaleString()}.<br>
+      La diferencia entre ambos extremos es de ${(mejorMonto - peorMonto).toLocaleString()}, reflejando la variabilidad de ventas.<br>
+      ${(mejorMonto - peorMonto) > promDiario * 2 ? 'La brecha es significativa, indicando dependencia de días puntuales de alta demanda.' : 'La brecha es moderada, sugiriendo una demanda relativamente estable.'}<br>
+      Investigue qué factores contribuyeron al éxito del mejor día para intentar replicarlos.<br>
+      Analice si el peor día coincidió con feriados, mal clima u otros factores externos.<br>
+      El objetivo es reducir esta brecha logrando ventas más consistentes a lo largo del mes.<br>
+      Establezca un piso mínimo de ventas diarias como meta y actúe cuando un día caiga por debajo.
+    </div>
+  </div>
+
+  <!-- 7. COMPARACIÓN CON MES ANTERIOR -->
+  <div class="seccion">
+    <h2>8. Comparación con Mes Anterior</h2>
+    <p style="font-size:0.85rem;color:#555;margin-bottom:14px;line-height:1.6">
+      Esta sección compara el rendimiento del mes actual con el mes inmediatamente anterior.<br>
+      Se contrastan el monto total recaudado y la cantidad de ventas realizadas en ambos períodos.<br>
+      La columna de diferencia muestra el crecimiento o decrecimiento en porcentaje y unidades.<br>
+      Un valor positivo (verde) indica mejora respecto al mes anterior; negativo (rojo) indica retroceso.<br>
+      Esta comparación es fundamental para evaluar la tendencia del negocio mes a mes.<br>
+      Caídas significativas deben investigarse: pueden deberse a estacionalidad o competencia.<br>
+      Crecimientos sostenidos confirman que las estrategias comerciales están funcionando correctamente.
+    </p>
+    <table>
+      <tr><th>Indicador</th><th>${nombreMes}</th><th>Mes Anterior</th><th>Diferencia</th></tr>
+      <tr><td>Total</td><td>$${total.toLocaleString()}</td><td>$${totalAnt.toLocaleString()}</td><td style="color:${diffPct>=0?'#065f46':'#c81e1e'};font-weight:bold">${diffPct>=0?'+':''}${diffPct}%</td></tr>
+      <tr><td>Cantidad Ventas</td><td>${ventas.length}</td><td>${ventasAnt.length}</td><td>${ventas.length - ventasAnt.length >= 0 ? '+' : ''}${ventas.length - ventasAnt.length}</td></tr>
+    </table>
+
+    <div style="margin-top:16px;padding:12px 14px;background:#f0f4ff;border-radius:6px;font-size:0.82rem;color:#444;border-left:3px solid #1a56db;line-height:1.6">
+      <strong>Conclusión de esta sección:</strong><br>
+      ${diffPct >= 0 ? 'El mes de ' + nombreMes + ' mostró un crecimiento del ' + diffPct + '% en ingresos respecto al mes anterior.' : 'El mes de ' + nombreMes + ' mostró una caída del ' + Math.abs(diffPct) + '% en ingresos respecto al mes anterior.'}<br>
+      En cantidad de transacciones, se pasó de ${ventasAnt.length} a ${ventas.length} ventas (${ventas.length - ventasAnt.length >= 0 ? '+' : ''}${ventas.length - ventasAnt.length} operaciones).<br>
+      ${diffPct >= 0 ? 'Esta tendencia positiva debe mantenerse y potenciarse con las estrategias actuales.' : 'Se recomienda investigar las causas de la disminución y tomar medidas correctivas.'}<br>
+      Factores como estacionalidad, días hábiles y eventos especiales pueden influir en estas variaciones.<br>
+      Compare al menos 3 meses consecutivos para identificar si es una tendencia o un evento aislado.<br>
+      Establezca metas mensuales basadas en el promedio de los últimos 3 meses más un % de crecimiento.<br>
+      El seguimiento mensual constante es la base para una gestión financiera efectiva del negocio.
+    </div>
+  </div>
+
+  ${mes2Data ? `
+  <!-- COMPARACIÓN CON MES SELECCIONADO -->
+  <div class="seccion" style="page-break-inside:auto">
+    <h2>Comparación: ${nombreMes} vs ${mes2Data.nombreMes2}</h2>
+    <p style="font-size:0.85rem;color:#555;margin-bottom:14px;line-height:1.6">
+      Esta sección compara el rendimiento entre los dos meses seleccionados.<br>
+      Se contrastan los principales indicadores financieros para evaluar la evolución del negocio.<br>
+      Los valores positivos (verde) indican mejora del mes principal respecto al mes comparado.<br>
+      Los valores negativos (rojo) indican que el mes comparado tuvo mejor desempeño.<br>
+      Esta comparación permite identificar tendencias y tomar decisiones informadas.<br>
+      Analice las diferencias en cada indicador para entender qué factores influyeron.<br>
+      Use esta información para establecer metas realistas para los próximos meses.
+    </p>
+    <table>
+      <tr><th>Indicador</th><th>${nombreMes}</th><th>${mes2Data.nombreMes2}</th><th>Diferencia</th></tr>
+      <tr><td>Total Ingresos</td><td>$${total.toLocaleString()}</td><td>$${mes2Data.total2.toLocaleString()}</td><td style="color:${total >= mes2Data.total2 ? '#065f46' : '#c81e1e'};font-weight:bold">${total >= mes2Data.total2 ? '+' : ''}${mes2Data.diffTotal}%</td></tr>
+      <tr><td>Cantidad de Ventas</td><td>${ventas.length}</td><td>${mes2Data.ventas2.length}</td><td style="color:${ventas.length >= mes2Data.ventas2.length ? '#065f46' : '#c81e1e'};font-weight:bold">${ventas.length >= mes2Data.ventas2.length ? '+' : ''}${ventas.length - mes2Data.ventas2.length}</td></tr>
+      <tr><td>Promedio Diario</td><td>$${promDiario.toLocaleString()}</td><td>$${mes2Data.promDiario2.toLocaleString()}</td><td style="color:${promDiario >= mes2Data.promDiario2 ? '#065f46' : '#c81e1e'};font-weight:bold">${promDiario >= mes2Data.promDiario2 ? '+' : ''}$${(promDiario - mes2Data.promDiario2).toLocaleString()}</td></tr>
+      <tr><td>Días con Ventas</td><td>${diasConVentas}</td><td>${mes2Data.diasConVentas2}</td><td>${diasConVentas - mes2Data.diasConVentas2 >= 0 ? '+' : ''}${diasConVentas - mes2Data.diasConVentas2}</td></tr>
+      <tr><td>Ventas Efectivo</td><td>${efectivo.length}</td><td>${mes2Data.efectivo2.length}</td><td>${efectivo.length - mes2Data.efectivo2.length >= 0 ? '+' : ''}${efectivo.length - mes2Data.efectivo2.length}</td></tr>
+      <tr><td>Ventas Débito</td><td>${debito.length}</td><td>${mes2Data.debito2.length}</td><td>${debito.length - mes2Data.debito2.length >= 0 ? '+' : ''}${debito.length - mes2Data.debito2.length}</td></tr>
+      <tr><td>Ventas Crédito</td><td>${credito.length}</td><td>${mes2Data.credito2.length}</td><td>${credito.length - mes2Data.credito2.length >= 0 ? '+' : ''}${credito.length - mes2Data.credito2.length}</td></tr>
+      <tr><td>Boletas</td><td>${boletas.length}</td><td>${mes2Data.boletas2.length}</td><td>${boletas.length - mes2Data.boletas2.length >= 0 ? '+' : ''}${boletas.length - mes2Data.boletas2.length}</td></tr>
+      <tr><td>Facturas</td><td>${facturas.length}</td><td>${mes2Data.facturas2.length}</td><td>${facturas.length - mes2Data.facturas2.length >= 0 ? '+' : ''}${facturas.length - mes2Data.facturas2.length}</td></tr>
+    </table>
+    <div style="margin-top:12px;padding:12px 14px;background:#f0f4ff;border-radius:6px;font-size:0.82rem;color:#444;border-left:3px solid #1a56db;line-height:1.6">
+      <strong>Conclusión de esta sección:</strong><br>
+      ${mes2Data.diffTotal >= 0 ? nombreMes + ' superó a ' + mes2Data.nombreMes2 + ' en un ' + mes2Data.diffTotal + '% en ingresos totales.' : mes2Data.nombreMes2 + ' superó a ' + nombreMes + ' en un ' + Math.abs(mes2Data.diffTotal) + '% en ingresos totales.'}<br>
+      En cantidad de operaciones, ${nombreMes} tuvo ${ventas.length} ventas vs ${mes2Data.ventas2.length} de ${mes2Data.nombreMes2}.<br>
+      El promedio diario pasó de $${mes2Data.promDiario2.toLocaleString()} a $${promDiario.toLocaleString()} (${promDiario >= mes2Data.promDiario2 ? 'mejora' : 'retroceso'}).<br>
+      ${diasConVentas >= mes2Data.diasConVentas2 ? 'Se trabajó más días en ' + nombreMes + ', lo que contribuyó al resultado.' : 'Se trabajó menos días en ' + nombreMes + ', lo que pudo afectar el resultado.'}<br>
+      Analice los factores externos (estacionalidad, feriados, clima) que pudieron influir en las diferencias.<br>
+      Use esta comparación para establecer metas realistas y estrategias de mejora continua.<br>
+      Se recomienda comparar al menos 3 períodos para identificar tendencias confiables.
+    </div>
+  </div>
+  ` : ''}
+
+  <!-- RETIROS DE CAJA -->
+  <div class="seccion" style="page-break-inside:auto">
+    <h2>9. Retiros de Caja</h2>
+    <p style="font-size:0.85rem;color:#555;margin-bottom:14px;line-height:1.6">
+      Registro de todos los retiros de efectivo realizados durante el mes.<br>
+      Los retiros corresponden a entregas de dinero desde la caja hacia los propietarios del negocio.<br>
+      Se detalla el monto, destinatario, fecha, hora y operador que realizó cada retiro.<br>
+      Esta información permite llevar un control preciso del efectivo que sale de la caja.<br>
+      El saldo neto (ventas - retiros) indica cuánto dinero debería quedar físicamente en caja.<br>
+      Mantenga un registro consistente de retiros para evitar descuadres al cierre del día.<br>
+      Compare el total de retiros con el total de ventas en efectivo para verificar coherencia.
+    </p>
+    <div class="kpi-grid" style="grid-template-columns:1fr 1fr 1fr;margin-bottom:16px">
+      <div class="kpi"><div class="num">${retirosMes.length}</div><div class="label">Total Retiros</div></div>
+      <div class="kpi"><div class="num">$${totalRetirosMes.toLocaleString()}</div><div class="label">Monto Retirado</div></div>
+      <div class="kpi"><div class="num">$${(total - totalRetirosMes).toLocaleString()}</div><div class="label">Ingreso Neto</div></div>
+    </div>
+    ${retirosMes.length > 0 ? '<table><tr><th>#</th><th>Fecha</th><th>Hora</th><th>Monto</th><th>Entregar a</th><th>Quien retira</th><th>Nota</th></tr>' + retirosMes.map((r,i) => '<tr><td>' + (i+1) + '</td><td>' + r.fecha.split('-').reverse().join('/') + '</td><td>' + r.hora + '</td><td style="color:#c81e1e;font-weight:bold">-$' + r.monto.toLocaleString() + '</td><td>' + r.destinatario + '</td><td>' + (r.quienRetira||r.operador) + '</td><td>' + (r.nota||'-') + '</td></tr>').join('') + '</table>' : '<p style="text-align:center;color:#888">No se registraron retiros en este mes</p>'}
+    <div style="margin-top:12px;padding:12px 14px;background:#f0f4ff;border-radius:6px;font-size:0.82rem;color:#444;border-left:3px solid #1a56db;line-height:1.6">
+      <strong>Conclusión de esta sección:</strong><br>
+      Durante ${nombreMes} se realizaron ${retirosMes.length} retiros de caja por un total de $${totalRetirosMes.toLocaleString()}.<br>
+      El ingreso neto del mes (ventas menos retiros) fue de $${(total - totalRetirosMes).toLocaleString()}.<br>
+      ${retirosMes.length > 0 ? 'El retiro promedio fue de $' + Math.round(totalRetirosMes / retirosMes.length).toLocaleString() + ' por operación.' : 'No se registraron retiros durante este período.'}<br>
+      Los retiros representan el ${total > 0 ? Math.round((totalRetirosMes/total)*100) : 0}% del total de ventas del mes.<br>
+      Es importante que cada retiro quede documentado para mantener la trazabilidad del efectivo.<br>
+      Verifique que el saldo físico en caja coincida con el saldo calculado por el sistema.<br>
+      Un control riguroso de retiros previene descuadres y facilita la rendición de cuentas.
+    </div>
+  </div>
+
+  <!-- 9. HORARIOS PICO -->
+  <div class="seccion" style="page-break-inside:auto">
+    <h2>10. Horarios Pico de Ventas</h2>
+    <p style="font-size:0.85rem;color:#555;margin-bottom:14px;line-height:1.6">
+      Esta sección analiza en qué horas del día se concentran las ventas del mes.<br>
+      Se muestra el monto acumulado y la cantidad de transacciones para cada franja horaria.<br>
+      Identificar los horarios pico permite optimizar la atención al cliente y la dotación de personal.<br>
+      Las horas con baja actividad pueden aprovecharse para tareas administrativas o reposición.<br>
+      El gráfico de barras visualiza rápidamente las horas de mayor y menor movimiento.<br>
+      Esta información es clave para definir horarios de apertura y cierre óptimos.<br>
+      Compare con meses anteriores para confirmar si los patrones horarios son consistentes.
+    </p>
+    <table>
+      <tr><th>Hora</th><th>Monto</th><th>Ventas</th><th>Barra</th></tr>
+      ${porHora.map((m, i) => {
+        if (ventasPorHora[i] === 0) return '';
+        const pct = horaMax > 0 ? Math.round((m / horaMax) * 100) : 0;
+        return '<tr' + (i === horaPico ? ' style="background:#d1fae5;font-weight:bold"' : '') + '><td>' + String(i).padStart(2,'0') + ':00 - ' + String(i).padStart(2,'0') + ':59</td><td>$' + m.toLocaleString() + '</td><td>' + ventasPorHora[i] + '</td><td><div style="height:14px;background:#1a56db;border-radius:3px;width:' + pct + '%"></div></td></tr>';
+      }).filter(r => r).join('')}
+    </table>
+    <p style="margin-top:8px"><strong>Hora pico:</strong> ${String(horaPico).padStart(2,'0')}:00 - ${String(horaPico).padStart(2,'0')}:59 con $${horaMax.toLocaleString()} en ventas</p>
+    <div style="margin-top:12px;padding:12px 14px;background:#f0f4ff;border-radius:6px;font-size:0.82rem;color:#444;border-left:3px solid #1a56db;line-height:1.6">
+      <strong>Conclusión de esta sección:</strong><br>
+      La hora con mayor actividad fue las ${String(horaPico).padStart(2,'0')}:00, acumulando $${horaMax.toLocaleString()} en ventas.<br>
+      ${ventasPorHora[horaPico]} transacciones se realizaron en esa franja horaria durante todo el mes.<br>
+      Los horarios con mayor movimiento deben contar con personal suficiente para atender la demanda.<br>
+      Las horas sin ventas registradas indican períodos donde el local podría estar cerrado o sin clientes.<br>
+      Si hay ventas concentradas en pocas horas, considere extender horarios o crear incentivos fuera de pico.<br>
+      Conocer los horarios pico también ayuda a planificar los horarios de colación del personal.<br>
+      Use esta información para decidir si conviene abrir más temprano o cerrar más tarde según la demanda real.
+    </div>
+  </div>
+
+  <!-- 10. GRÁFICO DE TENDENCIA DIARIA -->
+  <div class="seccion" style="page-break-inside:auto">
+    <h2>11. Gráfico de Tendencia Diaria</h2>
+    <p style="font-size:0.85rem;color:#555;margin-bottom:14px;line-height:1.6">
+      Visualización gráfica de la evolución de ventas día a día durante el mes.<br>
+      Cada barra representa el monto total vendido en un día específico del mes.<br>
+      La línea punteada indica el promedio diario como referencia visual.<br>
+      Los días por encima del promedio se muestran en azul oscuro, los que están por debajo en azul claro.<br>
+      Este gráfico permite identificar rápidamente tendencias, picos y caídas en las ventas.<br>
+      Es útil para detectar patrones como caídas de fin de semana o picos a inicio de mes.<br>
+      Compare visualmente con el gráfico del mes anterior para evaluar la evolución del negocio.
+    </p>
+    <div style="display:flex;align-items:flex-end;gap:2px;height:180px;border-bottom:2px solid #333;padding-bottom:4px;margin-bottom:8px">
+      ${diasOrdenados.map(([dia, monto]) => {
+        const pct = mejorMonto > 0 ? Math.round((monto / mejorMonto) * 100) : 0;
+        const color = monto >= promDiario ? '#1a56db' : '#93c5fd';
+        const d = dia.slice(8,10);
+        return '<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%"><div style="width:100%;background:' + color + ';border-radius:3px 3px 0 0;height:' + pct + '%;min-height:2px" title="' + dia + ': $' + monto.toLocaleString() + '"></div><span style="font-size:7px;margin-top:2px">' + d + '</span></div>';
+      }).join('')}
+    </div>
+    <div style="display:flex;align-items:center;gap:12px;font-size:0.75rem;color:#555;margin-top:4px">
+      <div><span style="display:inline-block;width:12px;height:12px;background:#1a56db;border-radius:2px;vertical-align:middle;margin-right:4px"></span>Sobre promedio</div>
+      <div><span style="display:inline-block;width:12px;height:12px;background:#93c5fd;border-radius:2px;vertical-align:middle;margin-right:4px"></span>Bajo promedio</div>
+      <div>Promedio diario: $${promDiario.toLocaleString()}</div>
+    </div>
+    <div style="margin-top:12px;padding:12px 14px;background:#f0f4ff;border-radius:6px;font-size:0.82rem;color:#444;border-left:3px solid #1a56db;line-height:1.6">
+      <strong>Conclusión de esta sección:</strong><br>
+      El gráfico muestra la evolución de ventas durante los ${diasConVentas} días operativos del mes.<br>
+      El promedio diario fue de $${promDiario.toLocaleString()}, representado como línea de referencia.<br>
+      ${diasOrdenados.filter(([,m]) => m >= promDiario).length} días superaron el promedio (barras azul oscuro) y ${diasOrdenados.filter(([,m]) => m < promDiario).length} quedaron por debajo (azul claro).<br>
+      El día más alto alcanzó $${mejorMonto.toLocaleString()} y el más bajo $${peorMonto.toLocaleString()}.<br>
+      Una tendencia ascendente indica crecimiento progresivo; descendente sugiere pérdida de impulso.<br>
+      Los picos aislados pueden corresponder a eventos especiales, promociones o días de alta demanda estacional.<br>
+      Utilice este gráfico para planificar acciones comerciales en los períodos de menor actividad.
+    </div>
+  </div>
+
+    <!-- 11. DETALLE DIARIO RESUMIDO -->
+  <div class="seccion">
+    <h2>12. Detalle Diario Resumido</h2>
+    <p style="font-size:0.85rem;color:#555;margin-bottom:14px;line-height:1.6">
+      Tabla con el resumen de ventas día por día durante todo el mes analizado.<br>
+      Para cada fecha se muestra el monto total recaudado y la cantidad de transacciones realizadas.<br>
+      Los días sin registro no aparecen en la tabla, indicando jornadas sin actividad comercial.<br>
+      Este detalle permite identificar patrones diarios, días atípicos o irregularidades en el registro.<br>
+      Es útil para cruzar información con otros registros como inventario o asistencia del personal.<br>
+      Los días con montos inusualmente altos o bajos merecen revisión para entender sus causas.<br>
+      Utilice esta tabla como respaldo para conciliaciones bancarias y cuadraturas de caja diarias.
+    </p>
+    <table>
+      <tr><th>Fecha</th><th>Monto</th><th>Ventas</th></tr>
+      ${diasOrdenados.map(([dia, monto]) => {
+        const cantDia = ventas.filter(v => v.fecha === dia).length;
+        return `<tr><td>${dia.split('-').reverse().join('/')}</td><td>$${monto.toLocaleString()}</td><td>${cantDia}</td></tr>`;
+      }).join('')}
+    </table>
+
+    <div style="margin-top:16px;padding:12px 14px;background:#f0f4ff;border-radius:6px;font-size:0.82rem;color:#444;border-left:3px solid #1a56db;line-height:1.6">
+      <strong>Conclusión de esta sección:</strong><br>
+      Se registraron ventas en ${diasConVentas} días del mes, con ingreso total de ${total.toLocaleString()} y promedio de ${promDiario.toLocaleString()} por día.<br>
+      El día más productivo generó ${mejorMonto.toLocaleString()} y el menos productivo ${peorMonto.toLocaleString()}.<br>
+      ${diasConVentas < 25 ? 'Hubo ' + (30 - diasConVentas) + ' días sin ventas, lo que podría indicar días de cierre o falta de registro.' : 'La cobertura de días con ventas es alta, indicando operación regular del negocio.'}<br>
+      Los días con montos superiores al promedio representan oportunidades para entender qué genera mayor demanda.<br>
+      Los días por debajo del promedio deben analizarse para identificar si son patrones o situaciones puntuales.<br>
+      Esta tabla es útil para la cuadratura diaria de caja y para detectar posibles omisiones en el registro.<br>
+      Mantenga un registro consistente todos los días para que este análisis sea cada vez más preciso.
+    </div>
+  </div>
+
+  <!-- 12. DETALLE COMPLETO -->
+  <div class="seccion">
+    <h2>13. Detalle Completo de Ventas</h2>
+    <p style="font-size:0.85rem;color:#555;margin-bottom:14px;line-height:1.6">
+      Listado exhaustivo de cada transacción individual registrada durante el mes.<br>
+      Cada fila incluye: número correlativo, fecha, hora, monto, método de pago y tipo de documento.<br>
+      Este es el registro más detallado disponible y sirve como respaldo documental completo.<br>
+      Permite verificar transacciones específicas en caso de reclamos, devoluciones o auditorías.<br>
+      La hora de registro ayuda a identificar los horarios de mayor actividad durante el día.<br>
+      Si detecta registros duplicados o montos incorrectos, puede corregirlos desde el módulo de caja.<br>
+      Este detalle es equivalente al libro de ventas diario y puede usarse para fines contables y tributarios.
+    </p>
+    <table>
+      <tr><th>#</th><th>Fecha</th><th>Hora</th><th>Monto</th><th>Método</th><th>Documento</th></tr>
+      ${ventas.map((v,i) => `<tr><td>${i+1}</td><td>${v.fecha.split('-').reverse().join('/')}</td><td>${v.hora||'-'}</td><td>$${v.monto.toLocaleString()}</td><td>${v.metodo}</td><td>${v.tipoDoc||'-'}</td></tr>`).join('')}
+    </table>
+
+    <div style="margin-top:16px;padding:12px 14px;background:#f0f4ff;border-radius:6px;font-size:0.82rem;color:#444;border-left:3px solid #1a56db;line-height:1.6">
+      <strong>Conclusión de esta sección:</strong><br>
+      Se registraron ${ventas.length} transacciones individuales durante ${nombreMes} por un total de ${total.toLocaleString()}.<br>
+      El monto promedio por transacción fue de ${ventas.length > 0 ? Math.round(total/ventas.length).toLocaleString() : 0}, reflejando el ticket promedio del negocio.<br>
+      El método de pago más frecuente fue ${metodoTop.n} con ${metodoTop.c} operaciones registradas.<br>
+      Este listado constituye el respaldo completo de todas las operaciones y tiene valor legal y contable.<br>
+      En caso de discrepancias con el banco o con clientes, este detalle permite rastrear cada transacción.<br>
+      Se recomienda verificar que todas las ventas tengan hora registrada para un control más preciso.<br>
+      Conserve este informe como archivo histórico para futuras auditorías o consultas administrativas.
+    </div>
+  </div>
+
+  <!-- 13. CONCLUSIÓN -->
+  <div class="seccion">
+    <h2>14. Conclusión y Recomendaciones</h2>
+    <div class="conclusion">
+      ${generarConclusionAleatoria(nombreMes, total, ventas, metodoTop, mejorDia, mejorMonto, peorDia, peorMonto, promDiario, diasConVentas, diffPct, diaSemNombre, semanas, boletas, facturas, efectivo, debito, credito)}
+    </div>
+    ${mes2Data ? `
+    <div style="margin-top:20px;padding:16px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px">
+      <h3 style="color:#1a56db;margin-bottom:10px;font-size:1rem">Conclusión Comparativa: ${nombreMes} vs ${mes2Data.nombreMes2}</h3>
+      <p style="font-size:0.9rem;line-height:1.7">
+        ${mes2Data.diffTotal >= 0 
+          ? 'El mes de ' + nombreMes + ' superó a ' + mes2Data.nombreMes2 + ' en un <strong>' + mes2Data.diffTotal + '%</strong> en ingresos totales, pasando de $' + mes2Data.total2.toLocaleString() + ' a $' + total.toLocaleString() + '.'
+          : 'El mes de ' + mes2Data.nombreMes2 + ' fue superior a ' + nombreMes + ' en un <strong>' + Math.abs(mes2Data.diffTotal) + '%</strong> en ingresos, con $' + mes2Data.total2.toLocaleString() + ' vs $' + total.toLocaleString() + '.'}<br>
+        En volumen de operaciones, ${nombreMes} registró ${ventas.length} ventas mientras que ${mes2Data.nombreMes2} tuvo ${mes2Data.ventas2.length} (diferencia de ${ventas.length - mes2Data.ventas2.length >= 0 ? '+' : ''}${ventas.length - mes2Data.ventas2.length}).<br>
+        El promedio diario ${promDiario >= mes2Data.promDiario2 ? 'mejoró' : 'disminuyó'}, pasando de $${mes2Data.promDiario2.toLocaleString()} a $${promDiario.toLocaleString()} por día.<br>
+        ${diasConVentas >= mes2Data.diasConVentas2 ? 'Se operó más días en ' + nombreMes + ' (' + diasConVentas + ' vs ' + mes2Data.diasConVentas2 + '), lo que contribuyó al resultado.' : 'Se operó menos días en ' + nombreMes + ' (' + diasConVentas + ' vs ' + mes2Data.diasConVentas2 + '), lo que pudo afectar negativamente.'}<br>
+        <strong>Recomendación:</strong> ${mes2Data.diffTotal >= 0 ? 'Mantener las estrategias que generaron el crecimiento y buscar consolidar la tendencia positiva en los próximos meses.' : 'Investigar las causas de la caída (estacionalidad, competencia, días no operativos) y definir acciones correctivas para recuperar el nivel de ' + mes2Data.nombreMes2 + '.'}
+      </p>
+    </div>
+    ` : ''}
+  </div>
+
+  <div class="footer">Bodega A&amp;M — Informe generado automáticamente el ${fechaGen}</div>
+  </body></html>`;
+
+  if (window.require) {
+    const { ipcRenderer } = window.require('electron');
+    if (guardarEnEscritorio) {
+      ipcRenderer.send('guardarInformePDF', html);
+      ipcRenderer.once('informe-guardado', (event, ruta) => {
+        showToast('✔ Informe guardado en: ' + ruta);
+      });
+      ipcRenderer.once('informe-error', (event, err) => {
+        showToast('Error al guardar: ' + err, true);
+      });
+    } else {
+      ipcRenderer.send('vistaPreviewPDF', html);
+    }
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// ── COMPARADOR DE PRECIOS DIMARSA ─────────────────────────────
 let dimarsaHistorial = JSON.parse(localStorage.getItem('dimarsaHistorial') || '{}');
 let dimarsaOcultos = JSON.parse(localStorage.getItem('dimarsaOcultos') || '[]');
 let dimarsaFavoritos = JSON.parse(localStorage.getItem('dimarsaFavoritos') || '[]');
 
-async function dimarsaFetch(url) {
-  try {
-    const response = await fetch(url);
-    if (!response.ok) throw new Error('HTTP ' + response.status);
-    return await response.json();
-  } catch(e) {
-    console.error('Dimarsa fetch error:', e);
-    return null;
-  }
-}
+async function dimarsaFetch(url) { try { const r = await fetch(url); if (!r.ok) throw new Error('HTTP '+r.status); return await r.json(); } catch(e) { return null; } }
 
 async function dimarsaCargarFerreteria() {
   const status = document.getElementById('dimarsaStatus');
-  status.textContent = 'Consultando precios de Dimarsa...';
-  
+  status.textContent = 'Consultando precios...';
   const baseUrl = 'https://www.dimarsa.cl/api/catalog_system/pub/products/search';
-  const categorias = [
-    'ferreteria',
-    'ferreteria/gasfiteria',
-    'ferreteria/fijaciones-y-complementos',
-    'construccion/materiales-de-construccion',
-    'construccion/materiales-de-construccion/cemento-y-complementos',
-    'construccion/materiales-de-construccion/perfiles-y-barras',
-    'construccion/materiales-de-construccion/tableros',
-    'construccion/pinturas'
-  ];
-  let todosProductos = [];
-
+  const categorias = ['ferreteria','ferreteria/gasfiteria','ferreteria/fijaciones-y-complementos','construccion/materiales-de-construccion','construccion/materiales-de-construccion/cemento-y-complementos','construccion/materiales-de-construccion/perfiles-y-barras','construccion/materiales-de-construccion/tableros','construccion/pinturas'];
+  let todos = [];
   for (const cat of categorias) {
     for (let page = 1; page <= 5; page++) {
-      status.textContent = 'Cargando ' + cat + ' (página ' + page + ')...';
-      const url = baseUrl + '/' + cat + '?_from=' + ((page-1)*50) + '&_to=' + (page*50-1);
-      const datos = await dimarsaFetch(url);
+      status.textContent = 'Cargando ' + cat.split('/').pop() + ' (p' + page + ')...';
+      const datos = await dimarsaFetch(baseUrl+'/'+cat+'?_from='+((page-1)*50)+'&_to='+(page*50-1));
       if (!datos || datos.length === 0) break;
-      
-      datos.forEach(prod => {
-        const seller = prod.items && prod.items[0] && prod.items[0].sellers && prod.items[0].sellers[0];
-        const precio = seller ? seller.commertialOffer.Price : 0;
-        const disponible = seller ? seller.commertialOffer.IsAvailable : false;
-        
-        if (precio > 0) {
-          todosProductos.push({
-            id: prod.productId,
-            nombre: prod.productName,
-            marca: prod.brand || '-',
-            precio: precio,
-            disponible: disponible,
-            sku: prod.productReference || ''
-          });
-        }
-      });
+      datos.forEach(prod => { const s = prod.items&&prod.items[0]&&prod.items[0].sellers&&prod.items[0].sellers[0]; const precio = s?s.commertialOffer.Price:0; const disp = s?s.commertialOffer.IsAvailable:false; if (precio>0) todos.push({id:prod.productId,nombre:prod.productName,marca:prod.brand||'-',precio,disponible:disp}); });
       await new Promise(r => setTimeout(r, 500));
     }
   }
-
-  // Eliminar duplicados
-  const unicos = {};
-  todosProductos.forEach(p => { unicos[p.id] = p; });
-  todosProductos = Object.values(unicos);
-
-  if (todosProductos.length === 0) {
-    status.textContent = 'No se encontraron productos. Verifica tu conexión.';
-    return;
-  }
-
-  // Agregar al historial
-  const hoy = new Date().toISOString().slice(0, 10);
-  todosProductos.forEach(p => {
-    if (!dimarsaHistorial[p.id]) dimarsaHistorial[p.id] = { nombre: p.nombre, marca: p.marca, registros: [] };
-    dimarsaHistorial[p.id].nombre = p.nombre;
-    dimarsaHistorial[p.id].marca = p.marca;
-    // Solo agregar si no hay registro de hoy
-    const yaHoy = dimarsaHistorial[p.id].registros.find(r => r.fecha === hoy);
-    if (!yaHoy) {
-      dimarsaHistorial[p.id].registros.push({ precio: p.precio, fecha: hoy, disponible: p.disponible });
-      // Mantener máximo 60 registros por producto
-      if (dimarsaHistorial[p.id].registros.length > 60) dimarsaHistorial[p.id].registros.shift();
-    }
-  });
-
+  const unicos = {}; todos.forEach(p => { unicos[p.id] = p; }); todos = Object.values(unicos);
+  if (todos.length === 0) { status.textContent = 'Sin productos.'; return; }
+  const hoy = new Date().toISOString().slice(0,10);
+  todos.forEach(p => { if (!dimarsaHistorial[p.id]) dimarsaHistorial[p.id] = {nombre:p.nombre,marca:p.marca,registros:[]}; dimarsaHistorial[p.id].nombre=p.nombre; dimarsaHistorial[p.id].marca=p.marca; if (!dimarsaHistorial[p.id].registros.find(r=>r.fecha===hoy)) { dimarsaHistorial[p.id].registros.push({precio:p.precio,fecha:hoy,disponible:p.disponible}); if (dimarsaHistorial[p.id].registros.length>60) dimarsaHistorial[p.id].registros.shift(); } });
   localStorage.setItem('dimarsaHistorial', JSON.stringify(dimarsaHistorial));
-  if (window.fbGuardar) fbGuardar('dimarsaHistorial', 'data', { data: dimarsaHistorial, fecha: new Date().toISOString() }).catch(() => {});
-
-  status.textContent = todosProductos.length + ' productos actualizados (' + hoy + ')';
+  if (window.fbGuardar) fbGuardar('dimarsaHistorial','data',{data:dimarsaHistorial,fecha:new Date().toISOString()}).catch(()=>{});
+  status.textContent = todos.length + ' productos actualizados (' + hoy + ')';
   dimarsaRender();
 }
 
 async function dimarsaBuscarProducto() {
   const q = document.getElementById('dimarsaBuscar').value.trim();
-  
-  // Si hay texto, filtrar los productos locales primero
-  if (q && Object.keys(dimarsaHistorial).length > 0) {
-    dimarsaRender(q);
-    return;
-  }
+  if (q && Object.keys(dimarsaHistorial).length > 0) { dimarsaRender(q); return; }
   if (!q) { dimarsaRender(); return; }
-
-  const status = document.getElementById('dimarsaStatus');
-  status.textContent = 'Buscando "' + q + '"...';
-
-  const url = 'https://www.dimarsa.cl/api/catalog_system/pub/products/search/' + encodeURIComponent(q);
-  const datos = await dimarsaFetch(url);
-
-  if (!datos || datos.length === 0) {
-    status.textContent = 'No se encontraron resultados para "' + q + '"';
-    return;
-  }
-
-  // Agregar resultados al historial
-  const hoy = new Date().toISOString().slice(0, 10);
-  datos.forEach(prod => {
-    const seller = prod.items && prod.items[0] && prod.items[0].sellers && prod.items[0].sellers[0];
-    const precio = seller ? seller.commertialOffer.Price : 0;
-    const disponible = seller ? seller.commertialOffer.IsAvailable : false;
-    if (precio > 0) {
-      if (!dimarsaHistorial[prod.productId]) dimarsaHistorial[prod.productId] = { nombre: prod.productName, marca: prod.brand || '-', registros: [] };
-      const yaHoy = dimarsaHistorial[prod.productId].registros.find(r => r.fecha === hoy);
-      if (!yaHoy) {
-        dimarsaHistorial[prod.productId].registros.push({ precio, fecha: hoy, disponible });
-        if (dimarsaHistorial[prod.productId].registros.length > 60) dimarsaHistorial[prod.productId].registros.shift();
-      }
-    }
-  });
-
+  const status = document.getElementById('dimarsaStatus'); status.textContent = 'Buscando...';
+  const datos = await dimarsaFetch('https://www.dimarsa.cl/api/catalog_system/pub/products/search/'+encodeURIComponent(q));
+  if (!datos||datos.length===0) { status.textContent = 'Sin resultados.'; return; }
+  const hoy = new Date().toISOString().slice(0,10);
+  datos.forEach(prod => { const s=prod.items&&prod.items[0]&&prod.items[0].sellers&&prod.items[0].sellers[0]; const precio=s?s.commertialOffer.Price:0; const disp=s?s.commertialOffer.IsAvailable:false; if(precio>0){if(!dimarsaHistorial[prod.productId])dimarsaHistorial[prod.productId]={nombre:prod.productName,marca:prod.brand||'-',registros:[]};if(!dimarsaHistorial[prod.productId].registros.find(r=>r.fecha===hoy))dimarsaHistorial[prod.productId].registros.push({precio,fecha:hoy,disponible:disp});} });
   localStorage.setItem('dimarsaHistorial', JSON.stringify(dimarsaHistorial));
-  status.textContent = datos.length + ' resultados para "' + q + '"';
-  dimarsaRender();
+  status.textContent = datos.length + ' resultados.'; dimarsaRender();
 }
 
-function dimarsaToggleFav(id) {
-  if (dimarsaFavoritos.includes(id)) {
-    dimarsaFavoritos = dimarsaFavoritos.filter(f => f !== id);
-  } else {
-    dimarsaFavoritos.push(id);
-  }
-  localStorage.setItem('dimarsaFavoritos', JSON.stringify(dimarsaFavoritos));
-  if (window.fbGuardar) fbGuardar('dimarsaConfig', 'favoritos', { ids: dimarsaFavoritos }).catch(() => {});
-  dimarsaRender();
-}
+function dimarsaToggleFav(id) { if(dimarsaFavoritos.includes(id))dimarsaFavoritos=dimarsaFavoritos.filter(f=>f!==id);else dimarsaFavoritos.push(id); localStorage.setItem('dimarsaFavoritos',JSON.stringify(dimarsaFavoritos)); if(window.fbGuardar)fbGuardar('dimarsaConfig','favoritos',{ids:dimarsaFavoritos}).catch(()=>{}); dimarsaRender(); }
+function dimarsaVerFavoritos() { dimarsaRender('__FAV__'); }
+function dimarsaEliminar(id) { dimarsaOcultos.push(id); localStorage.setItem('dimarsaOcultos',JSON.stringify(dimarsaOcultos)); if(window.fbGuardar)fbGuardar('dimarsaConfig','ocultos',{ids:dimarsaOcultos}).catch(()=>{}); dimarsaRender(); }
 
-function dimarsaVerFavoritos() {
-  const tbody = document.getElementById('tbodyDimarsa');
-  const ids = dimarsaFavoritos.filter(id => dimarsaHistorial[id] && !dimarsaOcultos.includes(id));
-  
-  if (ids.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="6" class="empty-msg">No tienes productos favoritos. Usa la ★ para agregar.</td></tr>';
-    document.getElementById('dimarsaResumen').style.display = 'none';
-    return;
-  }
-
-  // Reuse render logic with favorites filter
-  dimarsaRender('__FAV__');
-}
-
-function dimarsaEliminar(id) {
-  dimarsaOcultos.push(id);
-  localStorage.setItem('dimarsaOcultos', JSON.stringify(dimarsaOcultos));
-  if (window.fbGuardar) fbGuardar('dimarsaConfig', 'ocultos', { ids: dimarsaOcultos }).catch(() => {});
-  dimarsaRender();
-}
-
-function dimarsaMiniGrafico(registros) {
-  if (registros.length < 2) return '<span style="color:#888;font-size:0.75rem">Sin historial</span>';
-  const precios = registros.map(r => r.precio);
-  const max = Math.max(...precios);
-  const min = Math.min(...precios);
-  const rango = max - min || 1;
-  const ancho = Math.min(registros.length * 8, 120);
-  const alto = 30;
-  
-  const puntos = precios.map((p, i) => {
-    const x = (i / (precios.length - 1)) * ancho;
-    const y = alto - ((p - min) / rango) * (alto - 4);
-    return x + ',' + y;
-  }).join(' ');
-
-  const color = precios[precios.length-1] <= precios[0] ? '#065f46' : '#c81e1e';
-  return '<svg width="' + ancho + '" height="' + alto + '" style="vertical-align:middle"><polyline points="' + puntos + '" fill="none" stroke="' + color + '" stroke-width="2"/></svg>';
-}
+function dimarsaMiniGrafico(regs) { if(regs.length<2)return''; const p=regs.map(r=>r.precio);const max=Math.max(...p);const min=Math.min(...p);const rng=max-min||1;const w=Math.min(regs.length*8,120);const h=30; const pts=p.map((v,i)=>{const x=(i/(p.length-1))*w;const y=h-((v-min)/rng)*(h-4);return x+','+y;}).join(' '); const col=p[p.length-1]<=p[0]?'#065f46':'#c81e1e'; return'<svg width="'+w+'" height="'+h+'" style="vertical-align:middle"><polyline points="'+pts+'" fill="none" stroke="'+col+'" stroke-width="2"/></svg>'; }
 
 function dimarsaRender(filtro) {
-  const tbody = document.getElementById('tbodyDimarsa');
-  let ids = Object.keys(dimarsaHistorial).filter(id => !dimarsaOcultos.includes(id));
-  
-  // Filtrar por texto si hay filtro
-  if (filtro === '__FAV__') {
-    ids = ids.filter(id => dimarsaFavoritos.includes(id));
-  } else if (filtro) {
-    const q = filtro.toLowerCase();
-    ids = ids.filter(id => {
-      const p = dimarsaHistorial[id];
-      return p.nombre.toLowerCase().includes(q) || p.marca.toLowerCase().includes(q);
-    });
-  }
-  
-  if (ids.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="6" class="empty-msg">No hay productos. Presiona "Cargar Ferretería" para consultar.</td></tr>';
-    document.getElementById('dimarsaResumen').style.display = 'none';
-    return;
-  }
-
-  let mantiene = 0, subio = 0, bajo = 0;
-
+  const tbody = document.getElementById('tbodyDimarsa'); if(!tbody)return;
+  let ids = Object.keys(dimarsaHistorial).filter(id=>!dimarsaOcultos.includes(id));
+  if(filtro==='__FAV__')ids=ids.filter(id=>dimarsaFavoritos.includes(id));
+  else if(filtro){const q=filtro.toLowerCase();ids=ids.filter(id=>{const p=dimarsaHistorial[id];return p.nombre.toLowerCase().includes(q)||p.marca.toLowerCase().includes(q);});}
+  if(ids.length===0){tbody.innerHTML='<tr><td colspan="6" class="empty-msg">No hay productos.</td></tr>';const res=document.getElementById('dimarsaResumen');if(res)res.style.display='none';return;}
+  let mantiene=0,subio=0,bajo=0;
   tbody.innerHTML = ids.map(id => {
-    const prod = dimarsaHistorial[id];
-    const regs = prod.registros;
-    if (regs.length === 0) return '';
-    
-    const actual = regs[regs.length - 1];
-    const anterior = regs.length > 1 ? regs[regs.length - 2] : null;
-    const minHistorico = Math.min(...regs.map(r => r.precio));
-    
-    // Últimos 4 precios con fecha y cambio
-    const ultimos4 = regs.slice(-5, -1).reverse();
-    const historial4 = ultimos4.length > 0 
-      ? ultimos4.map((r, i) => {
-        const idx = regs.indexOf(r);
-        const prev = idx > 0 ? regs[idx - 1] : null;
-        let cambioH = '';
-        if (prev) {
-          if (r.precio > prev.precio) cambioH = ' <span style="color:#c81e1e">\u25B2+$' + (r.precio - prev.precio).toLocaleString() + '</span>';
-          else if (r.precio < prev.precio) cambioH = ' <span style="color:#065f46">\u25BC-$' + (prev.precio - r.precio).toLocaleString() + '</span>';
-          else cambioH = ' <span style="color:#888">\u2014</span>';
-        }
-        return '<span style="font-size:0.72rem">' + r.fecha.slice(5).split('-').reverse().join('/') + ': $' + r.precio.toLocaleString() + cambioH + '</span>';
-      }).join('<br>')
-      : '-';
-    
-    let cambio = '';
-    if (anterior) {
-      if (actual.precio > anterior.precio) { cambio = '<span style="color:#c81e1e;font-weight:bold">▲ +$' + (actual.precio - anterior.precio).toLocaleString() + '</span>'; subio++; }
-      else if (actual.precio < anterior.precio) { cambio = '<span style="color:#065f46;font-weight:bold">▼ -$' + (anterior.precio - actual.precio).toLocaleString() + '</span>'; bajo++; }
-      else { cambio = '<span style="color:#888">— Igual</span>'; mantiene++; }
-    } else { cambio = '<span style="color:#3b82f6">1er registro</span>'; mantiene++; }
-
-    const cercaMinimo = actual.precio <= minHistorico * 1.05;
-    const indicador = cercaMinimo ? '<span style="color:#065f46;font-size:0.7rem;font-weight:bold">✅ Buen precio</span>' : '';
-
-    return `<tr>
-      <td>
-        <strong>${prod.nombre}</strong><br>
-        <span style="font-size:0.7rem;color:#888">${prod.marca} | Mínimo histórico: $${minHistorico.toLocaleString()} ${indicador}</span><br>
-        ${dimarsaMiniGrafico(regs)}
-      </td>
-      <td style="font-weight:bold">$${actual.precio.toLocaleString()}</td>
-      <td>${historial4}</td>
-      <td>${cambio}</td>
-      <td>${actual.disponible ? '✅' : '❌'}</td>
-      <td><button style="padding:2px 6px;font-size:0.9rem;background:none;border:none;cursor:pointer" onclick="dimarsaToggleFav('${id}')">${dimarsaFavoritos.includes(id) ? '★' : '☆'}</button><button class="btn-delete" style="padding:2px 6px;font-size:0.7rem" onclick="dimarsaEliminar('${id}')">✖</button></td>
-    </tr>`;
-  }).filter(r => r).join('');
-
-  // Resumen
-  document.getElementById('dimarsaResumen').style.display = '';
-  document.getElementById('dimarsaMantiene').textContent = mantiene;
-  document.getElementById('dimarsaSubio').textContent = subio;
-  document.getElementById('dimarsaBajo').textContent = bajo;
-  document.getElementById('dimarsaTotal').textContent = ids.length;
-  const ultimaFecha = Object.values(dimarsaHistorial).reduce((ult, p) => {
-    const f = p.registros.length > 0 ? p.registros[p.registros.length-1].fecha : '';
-    return f > ult ? f : ult;
-  }, '');
-  document.getElementById('dimarsaUltimaConsulta').textContent = ultimaFecha ? ultimaFecha.split('-').reverse().join('/') : '—';
+    const prod=dimarsaHistorial[id];const regs=prod.registros;if(regs.length===0)return'';
+    const actual=regs[regs.length-1];const anterior=regs.length>1?regs[regs.length-2]:null;
+    const minH=Math.min(...regs.map(r=>r.precio));
+    const u4=regs.slice(-5,-1).reverse();
+    const hist4=u4.length>0?u4.map(r=>{const idx=regs.indexOf(r);const prev=idx>0?regs[idx-1]:null;let ch='';if(prev){if(r.precio>prev.precio)ch=' <span style="color:#c81e1e">▲+$'+(r.precio-prev.precio).toLocaleString()+'</span>';else if(r.precio<prev.precio)ch=' <span style="color:#065f46">▼-$'+(prev.precio-r.precio).toLocaleString()+'</span>';else ch=' <span style="color:#888">—</span>';}return'<span style="font-size:0.72rem">'+r.fecha.slice(5).split('-').reverse().join('/')+': $'+r.precio.toLocaleString()+ch+'</span>';}).join('<br>'):'—';
+    let cambio='';if(anterior){if(actual.precio>anterior.precio){cambio='<span style="color:#c81e1e;font-weight:bold">▲ +$'+(actual.precio-anterior.precio).toLocaleString()+'</span>';subio++;}else if(actual.precio<anterior.precio){cambio='<span style="color:#065f46;font-weight:bold">▼ -$'+(anterior.precio-actual.precio).toLocaleString()+'</span>';bajo++;}else{cambio='<span style="color:#888">— Igual</span>';mantiene++;}}else{cambio='<span style="color:#3b82f6">1er reg</span>';mantiene++;}
+    const buenPrecio=actual.precio<=minH*1.05?'<span style="color:#065f46;font-size:0.7rem;font-weight:bold">✅ Buen precio</span>':'';
+    return `<tr><td><strong>${prod.nombre}</strong><br><span style="font-size:0.7rem;color:#888">${prod.marca} | Mín: $${minH.toLocaleString()} ${buenPrecio}</span><br>${dimarsaMiniGrafico(regs)}</td><td style="font-weight:bold">$${actual.precio.toLocaleString()}</td><td>${hist4}</td><td>${cambio}</td><td>${actual.disponible?'✅':'❌'}</td><td><button style="padding:2px 6px;font-size:0.9rem;background:none;border:none;cursor:pointer" onclick="dimarsaToggleFav('${id}')">${dimarsaFavoritos.includes(id)?'★':'☆'}</button><button class="btn-delete" style="padding:2px 6px;font-size:0.7rem" onclick="dimarsaEliminar('${id}')">✖</button></td></tr>`;
+  }).filter(r=>r).join('');
+  const res=document.getElementById('dimarsaResumen');if(res){res.style.display='';document.getElementById('dimarsaMantiene').textContent=mantiene;document.getElementById('dimarsaSubio').textContent=subio;document.getElementById('dimarsaBajo').textContent=bajo;document.getElementById('dimarsaTotal').textContent=ids.length;const uf=Object.values(dimarsaHistorial).reduce((u,p)=>{const f=p.registros.length>0?p.registros[p.registros.length-1].fecha:'';return f>u?f:u;},'');document.getElementById('dimarsaUltimaConsulta').textContent=uf?uf.split('-').reverse().join('/'):'—';}
 }
 
-// Event listeners
 document.getElementById('btnDimarsaCargar').addEventListener('click', dimarsaCargarFerreteria);
 document.getElementById('btnDimarsaBuscar').addEventListener('click', dimarsaBuscarProducto);
-document.getElementById('dimarsaBuscar').addEventListener('keydown', e => { if (e.key === 'Enter') dimarsaBuscarProducto(); });
+document.getElementById('dimarsaBuscar').addEventListener('keydown', e => { if(e.key==='Enter')dimarsaBuscarProducto(); });
+if(Object.keys(dimarsaHistorial).length>0)setTimeout(()=>dimarsaRender(),500);
+(async function(){if(!window.fbListo){setTimeout(arguments.callee,1000);return;}try{const d=await fbCargar('dimarsaHistorial');if(d&&d.length>0){const doc=d.find(x=>x.data);if(doc&&doc.data){Object.keys(doc.data).forEach(id=>{if(!dimarsaHistorial[id]||(doc.data[id].registros&&doc.data[id].registros.length>(dimarsaHistorial[id].registros||[]).length))dimarsaHistorial[id]=doc.data[id];});localStorage.setItem('dimarsaHistorial',JSON.stringify(dimarsaHistorial));}}const cfg=await fbCargar('dimarsaConfig');if(cfg)cfg.forEach(x=>{if(x._id==='favoritos'&&x.ids){dimarsaFavoritos=x.ids;localStorage.setItem('dimarsaFavoritos',JSON.stringify(dimarsaFavoritos));}if(x._id==='ocultos'&&x.ids){dimarsaOcultos=x.ids;localStorage.setItem('dimarsaOcultos',JSON.stringify(dimarsaOcultos));}});dimarsaRender();}catch(e){}})();
 
-// Render al inicio si hay datos
-if (Object.keys(dimarsaHistorial).length > 0) {
-  setTimeout(() => dimarsaRender(), 500);
-}
-
-// Cargar datos de Dimarsa desde Firebase al inicio
-(async function cargarDimarsaDesdeFirebase() {
-  if (!window.fbListo) { setTimeout(cargarDimarsaDesdeFirebase, 1000); return; }
-  try {
-    const datos = await fbCargar('dimarsaHistorial');
-    const dataDoc = datos.find(d => d.data);
-    if (dataDoc && dataDoc.data) {
-      const fbHist = dataDoc.data;
-      // Merge: Firebase tiene prioridad si tiene más registros
-      Object.keys(fbHist).forEach(id => {
-        if (!dimarsaHistorial[id] || (fbHist[id].registros && fbHist[id].registros.length > (dimarsaHistorial[id].registros || []).length)) {
-          dimarsaHistorial[id] = fbHist[id];
-        }
-      });
-      localStorage.setItem('dimarsaHistorial', JSON.stringify(dimarsaHistorial));
-      dimarsaRender();
-    }
-    
-    const configDatos = await fbCargar('dimarsaConfig');
-    const favDoc = configDatos.find(d => d.ids && !d.ocultos);
-    const ocuDoc = configDatos.find(d => d.ids && d.ocultos);
-    // Actually find by document structure
-    configDatos.forEach(doc => {
-      if (doc._id === 'favoritos' && doc.ids) {
-        dimarsaFavoritos = doc.ids;
-        localStorage.setItem('dimarsaFavoritos', JSON.stringify(dimarsaFavoritos));
-      }
-      if (doc._id === 'ocultos' && doc.ids) {
-        dimarsaOcultos = doc.ids;
-        localStorage.setItem('dimarsaOcultos', JSON.stringify(dimarsaOcultos));
-      }
-    });
-    dimarsaRender();
-  } catch(e) { console.error('Error cargando Dimarsa desde Firebase:', e); }
-})();
 
 // ── PANEL DE DIAGNÓSTICOS ─────────────────────────────────────
 // ══════════════════════════════════════════════════════════════
