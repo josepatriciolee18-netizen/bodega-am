@@ -4998,11 +4998,30 @@ function dimarsaEliminar(id) { dimarsaOcultos.push(id); localStorage.setItem('di
 
 function dimarsaMiniGrafico(regs) { if(regs.length<2)return''; const p=regs.map(r=>r.precio);const max=Math.max(...p);const min=Math.min(...p);const rng=max-min||1;const w=Math.min(regs.length*8,120);const h=30; const pts=p.map((v,i)=>{const x=(i/(p.length-1))*w;const y=h-((v-min)/rng)*(h-4);return x+','+y;}).join(' '); const col=p[p.length-1]<=p[0]?'#065f46':'#c81e1e'; return'<svg width="'+w+'" height="'+h+'" style="vertical-align:middle"><polyline points="'+pts+'" fill="none" stroke="'+col+'" stroke-width="2"/></svg>'; }
 
+function dimarsaFiltrarCat(cat) {
+  dimarsaRender(cat);
+}
+
 function dimarsaRender(filtro) {
   const tbody = document.getElementById('tbodyDimarsa'); if(!tbody)return;
   let ids = Object.keys(dimarsaHistorial).filter(id=>!dimarsaOcultos.includes(id));
   if(filtro==='__FAV__')ids=ids.filter(id=>dimarsaFavoritos.includes(id));
   else if(filtro){const q=filtro.toLowerCase();ids=ids.filter(id=>{const p=dimarsaHistorial[id];return p.nombre.toLowerCase().includes(q)||p.marca.toLowerCase().includes(q);});}
+  // Filtrar solo los que cambiaron
+  const soloCambios = document.getElementById('dimarsaSoloCambios') && document.getElementById('dimarsaSoloCambios').checked;
+  if (soloCambios) {
+    ids = ids.filter(id => {
+      const regs = dimarsaHistorial[id].registros;
+      if (regs.length < 2) return false;
+      return regs[regs.length-1].precio !== regs[regs.length-2].precio;
+    });
+  }
+  // Ordenar
+  const orden = document.getElementById('dimarsaOrden') ? document.getElementById('dimarsaOrden').value : '';
+  if (orden === 'precio-asc') ids.sort((a,b) => { const pa = dimarsaHistorial[a].registros; const pb = dimarsaHistorial[b].registros; return (pa.length?pa[pa.length-1].precio:0) - (pb.length?pb[pb.length-1].precio:0); });
+  else if (orden === 'precio-desc') ids.sort((a,b) => { const pa = dimarsaHistorial[a].registros; const pb = dimarsaHistorial[b].registros; return (pb.length?pb[pb.length-1].precio:0) - (pa.length?pa[pa.length-1].precio:0); });
+  else if (orden === 'subio') ids.sort((a,b) => { const ra=dimarsaHistorial[a].registros;const rb=dimarsaHistorial[b].registros; const da=ra.length>1?ra[ra.length-1].precio-ra[ra.length-2].precio:0; const db=rb.length>1?rb[rb.length-1].precio-rb[rb.length-2].precio:0; return db-da; });
+  else if (orden === 'bajo') ids.sort((a,b) => { const ra=dimarsaHistorial[a].registros;const rb=dimarsaHistorial[b].registros; const da=ra.length>1?ra[ra.length-1].precio-ra[ra.length-2].precio:0; const db=rb.length>1?rb[rb.length-1].precio-rb[rb.length-2].precio:0; return da-db; });
   if(ids.length===0){tbody.innerHTML='<tr><td colspan="6" class="empty-msg">No hay productos.</td></tr>';const res=document.getElementById('dimarsaResumen');if(res)res.style.display='none';return;}
   let mantiene=0,subio=0,bajo=0;
   tbody.innerHTML = ids.map(id => {

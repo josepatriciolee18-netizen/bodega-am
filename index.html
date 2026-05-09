@@ -1066,6 +1066,30 @@
           <button type="button" id="btnDimarsaCargar" class="btn-primary">📦 Cargar Ferretería</button>
         </div>
         <div id="dimarsaStatus" style="font-size:0.85rem;color:#888;margin-bottom:8px"></div>
+        <!-- Filtros por categoría -->
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
+          <button class="btn-secondary" style="padding:4px 10px;font-size:0.78rem" onclick="dimarsaRender()">Todos</button>
+          <button class="btn-secondary" style="padding:4px 10px;font-size:0.78rem" onclick="dimarsaFiltrarCat('Ferreter')">Ferretería</button>
+          <button class="btn-secondary" style="padding:4px 10px;font-size:0.78rem" onclick="dimarsaFiltrarCat('Cemento')">Cemento</button>
+          <button class="btn-secondary" style="padding:4px 10px;font-size:0.78rem" onclick="dimarsaFiltrarCat('Perfil')">Perfiles</button>
+          <button class="btn-secondary" style="padding:4px 10px;font-size:0.78rem" onclick="dimarsaFiltrarCat('Pintura')">Pinturas</button>
+          <button class="btn-secondary" style="padding:4px 10px;font-size:0.78rem" onclick="dimarsaFiltrarCat('Tablero')">Tableros</button>
+          <button class="btn-secondary" style="padding:4px 10px;font-size:0.78rem" onclick="dimarsaFiltrarCat('Gasfit')">Gasfitería</button>
+        </div>
+        <!-- Ordenar y filtrar cambios -->
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;align-items:center">
+          <span style="font-size:0.8rem;color:#555">Ordenar:</span>
+          <select id="dimarsaOrden" onchange="dimarsaRender()" style="padding:4px 8px;font-size:0.8rem;border-radius:4px;border:1px solid #ccc">
+            <option value="">Sin orden</option>
+            <option value="precio-asc">Precio ↑ menor a mayor</option>
+            <option value="precio-desc">Precio ↓ mayor a menor</option>
+            <option value="subio">Los que más subieron</option>
+            <option value="bajo">Los que más bajaron</option>
+          </select>
+          <label style="font-size:0.8rem;display:flex;align-items:center;gap:4px;cursor:pointer">
+            <input type="checkbox" id="dimarsaSoloCambios" onchange="dimarsaRender()"> Solo los que cambiaron
+          </label>
+        </div>
         <div style="overflow-x:auto">
           <table>
             <thead>
