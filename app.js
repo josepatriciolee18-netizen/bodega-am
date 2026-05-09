@@ -2141,6 +2141,7 @@ function aplicarPermisos() {
   document.querySelector('[data-tab="recepciones"]').style.display = (esAdmin || p.recepciones)  ? '' : 'none';
   document.querySelector('[data-tab="usuarios"]').style.display    = (esAdmin || p.usuarios)     ? '' : 'none';
   document.querySelector('[data-tab="caja"]').style.display        = (esAdmin || p.caja)         ? '' : 'none';
+  document.querySelector('[data-tab="dimarsa"]').style.display     = (esAdmin || p.comparador)   ? '' : 'none';
   document.querySelector('[data-tab="papelera"]').style.display    = esAdmin ? '' : 'none';
   document.querySelector('[data-tab="diagnosticos"]').style.display = esAdmin ? '' : 'none';
 
@@ -2549,6 +2550,7 @@ document.getElementById('btnGuardarUsuario').addEventListener('click', async () 
     clientes:         document.getElementById('permClientes').checked,
     recepciones:      document.getElementById('permRecepciones').checked,
     caja:             document.getElementById('permCaja').checked,
+    comparador:       document.getElementById('permComparador').checked,
     usuarios:         document.getElementById('permUsuarios').checked,
   };
 
@@ -2590,6 +2592,7 @@ document.getElementById('btnGuardarUsuario').addEventListener('click', async () 
   document.getElementById('permClientes').checked        = true;
   document.getElementById('permRecepciones').checked     = true;
   document.getElementById('permCaja').checked            = true;
+  document.getElementById('permComparador').checked      = false;
   document.getElementById('permUsuarios').checked        = false;
 });
 
@@ -2609,6 +2612,7 @@ function editarUsuario(i) {
   document.getElementById('permClientes').checked        = p.clientes        ?? true;
   document.getElementById('permRecepciones').checked     = p.recepciones     ?? true;
   document.getElementById('permCaja').checked            = p.caja            ?? true;
+  document.getElementById('permComparador').checked      = p.comparador      ?? false;
   document.getElementById('permUsuarios').checked        = p.usuarios        ?? false;
   const btn = document.getElementById('btnGuardarUsuario');
   btn.textContent = '✔ Actualizar';
