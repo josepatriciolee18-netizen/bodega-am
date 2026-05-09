@@ -3623,6 +3623,8 @@ function editarRetiro(id) {
       <div style="background:white;border-radius:12px;padding:24px;width:400px;max-width:90%">
         <h3 style="margin-bottom:16px">✏️ Editar Retiro</h3>
         <div class="field"><label>Monto ($)</label><input type="number" id="editRetiroMonto" value="${r.monto}" min="1" /></div>
+        <div class="field" style="margin-top:10px"><label>Fecha</label><input type="date" id="editRetiroFecha" value="${r.fecha}" /></div>
+        <div class="field" style="margin-top:10px"><label>Hora</label><input type="time" id="editRetiroHora" value="${r.hora}" /></div>
         <div class="field" style="margin-top:10px"><label>Entregar a</label>
           <select id="editRetiroDestinatario">
             <option value="Gloria Almonacid" ${r.destinatario==='Gloria Almonacid'?'selected':''}>Gloria Almonacid</option>
@@ -3650,6 +3652,8 @@ function guardarEdicionRetiro(id) {
   const destinatario = document.getElementById('editRetiroDestinatario').value;
   const nota = document.getElementById('editRetiroNota').value.trim();
   const quienRetira = document.getElementById('editRetiroQuienRetira').value;
+  const fecha = document.getElementById('editRetiroFecha').value;
+  const hora = document.getElementById('editRetiroHora').value;
 
   if (!monto || monto <= 0) { showToast('Monto inválido', true); return; }
   if (!destinatario) { showToast('Selecciona destinatario', true); return; }
@@ -3661,6 +3665,8 @@ function guardarEdicionRetiro(id) {
   retirosCaja[idx].destinatario = destinatario;
   retirosCaja[idx].nota = nota;
   retirosCaja[idx].quienRetira = quienRetira;
+  if (fecha) retirosCaja[idx].fecha = fecha;
+  if (hora) retirosCaja[idx].hora = hora;
 
   localStorage.setItem('retirosCaja', JSON.stringify(retirosCaja));
   if (window.fbGuardar) fbGuardar('retirosCaja', id, retirosCaja[idx]).catch(() => {});
