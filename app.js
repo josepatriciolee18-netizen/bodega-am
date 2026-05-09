@@ -603,7 +603,10 @@ async function cargarDesdeFirebase() {
             localStorage.setItem('sesionActiva', JSON.stringify(usuarioFresco));
             // Reaplicar permisos en las pestañas
             aplicarPermisos();
-          } else if (usuarioActivo.login !== 'admin') {
+          } else if (usuarioActivo.login === 'admin' || usuarioActivo.rol === 'Admin') {
+            // Nunca cerrar sesión del admin
+            aplicarPermisos();
+          } else {
             // Usuario desactivado — cerrar sesión
             localStorage.removeItem('sesionActiva');
             usuarioActivo = null;
