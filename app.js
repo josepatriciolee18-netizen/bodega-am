@@ -3429,8 +3429,8 @@ function editarVentaCaja(id) {
 // ── Retiros de Caja ──────────────────────────────────────────
 
 function generarPDFRetiro(retiro) {
-  // Generar número correlativo basado en cantidad de retiros
-  const nroComprobante = String(retirosCaja.indexOf(retiro) + 1).padStart(4, '0');
+  // Generar número correlativo basado en total histórico de retiros
+  const nroComprobante = String(retirosCaja.length).padStart(4, '0');
 
   const montoEnPalabras = convertirMontoAPalabras(retiro.monto);
 
