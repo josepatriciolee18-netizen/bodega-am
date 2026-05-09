@@ -3289,11 +3289,20 @@ async function dimarsaCargarFerreteria() {
   status.textContent = 'Consultando precios de Dimarsa...';
   
   const baseUrl = 'https://www.dimarsa.cl/api/catalog_system/pub/products/search';
-  const categorias = ['ferreteria', 'herramientas', 'construccion/materiales-de-construccion'];
+  const categorias = [
+    'ferreteria',
+    'ferreteria/gasfiteria',
+    'ferreteria/fijaciones-y-complementos',
+    'construccion/materiales-de-construccion',
+    'construccion/materiales-de-construccion/cemento-y-complementos',
+    'construccion/materiales-de-construccion/perfiles-y-barras',
+    'construccion/materiales-de-construccion/tableros',
+    'construccion/pinturas'
+  ];
   let todosProductos = [];
 
   for (const cat of categorias) {
-    for (let page = 1; page <= 3; page++) {
+    for (let page = 1; page <= 5; page++) {
       status.textContent = 'Cargando ' + cat + ' (página ' + page + ')...';
       const url = baseUrl + '/' + cat + '?_from=' + ((page-1)*50) + '&_to=' + (page*50-1);
       const datos = await dimarsaFetch(url);
