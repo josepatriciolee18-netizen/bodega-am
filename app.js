@@ -3263,6 +3263,183 @@ if (window.require) {
 }
 
 // ══════════════════════════════════════════════════════════════
+// ── PRECIOS DIMARSA ───────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════
+
+let dimarsaPrecios = JSON.parse(localStorage.getItem('dimarsaPrecios') || '[]');
+let dimarsaPreciosAnteriores = JSON.parse(localStorage.getItem('dimarsaPreciosAnt') || '[]');
+
+async function dimarsaFetch(url) {
+  try {
+    const response = await fetch(url);
+    if (!response.ok) throw new Error('HTTP ' + response.status);
+    return await response.json();
+  } catch(e) {
+    console.error('Dimarsa fetch error:', e);
+    return null;
+  }
+}
+
+async function dimarsaCargarFerreteria() {
+  const status = document.getElementById('dimarsaStatus');
+  status.textContent = 'Consultando precios de Dimarsa...';
+  
+  const baseUrl = 'https://www.dimarsa.cl/api/catalog_system/pub/products/search';
+  const categorias = ['ferreteria', 'herramientas', 'construccion/materiales-de-construccion'];
+  let todosProductos = [];
+
+  for (const cat of categorias) {
+    for (let page = 1; page <= 3; page++) {
+      status.textContent = 'Cargando ' + cat + ' (página ' + page + ')...';
+      const url = baseUrl + '/' + cat + '?_from=' + ((page-1)*50) + '&_to=' + (page*50-1);
+      const datos = await dimarsaFetch(url);
+      if (!datos || datos.length === 0) break;
+      
+      datos.forEach(prod => {
+        const seller = prod.items && prod.items[0] && prod.items[0].sellers && prod.items[0].sellers[0];
+        const precio = seller ? seller.commertialOffer.Price : 0;
+        const disponible = seller ? seller.commertialOffer.IsAvailable : false;
+        
+        // Solo agregar si tiene precio y es de ferretería/construcción
+        if (precio > 0) {
+          todosProductos.push({
+            id: prod.productId,
+            nombre: prod.productName,
+            marca: prod.brand || '-',
+            precio: precio,
+            disponible: disponible,
+            categoria: prod.categories ? prod.categories[0] : '',
+            sku: prod.productReference || '',
+            fecha: new Date().toISOString().slice(0, 10)
+          });
+        }
+      });
+      
+      // Pausa entre peticiones para no saturar
+      await new Promise(r => setTimeout(r, 500));
+    }
+  }
+
+  // Eliminar duplicados por ID
+  const unicos = {};
+  todosProductos.forEach(p => { unicos[p.id] = p; });
+  todosProductos = Object.values(unicos);
+
+  if (todosProductos.length === 0) {
+    status.textContent = 'No se encontraron productos. Verifica tu conexión.';
+    return;
+  }
+
+  // Guardar precios anteriores antes de actualizar
+  dimarsaPreciosAnteriores = [...dimarsaPrecios];
+  localStorage.setItem('dimarsaPreciosAnt', JSON.stringify(dimarsaPreciosAnteriores));
+
+  // Guardar nuevos precios
+  dimarsaPrecios = todosProductos;
+  localStorage.setItem('dimarsaPrecios', JSON.stringify(dimarsaPrecios));
+
+  // Guardar en Firebase
+  if (window.fbGuardar) {
+    fbGuardar('dimarsaPrecios', 'actual', { productos: dimarsaPrecios, fecha: new Date().toISOString() }).catch(() => {});
+    fbGuardar('dimarsaPrecios', 'anterior', { productos: dimarsaPreciosAnteriores, fecha: new Date().toISOString() }).catch(() => {});
+  }
+
+  status.textContent = todosProductos.length + ' productos cargados.';
+  dimarsaRender(todosProductos);
+}
+
+async function dimarsaBuscarProducto() {
+  const q = document.getElementById('dimarsaBuscar').value.trim();
+  if (!q) { showToast('Escribe un producto para buscar', true); return; }
+
+  const status = document.getElementById('dimarsaStatus');
+  status.textContent = 'Buscando "' + q + '"...';
+
+  const url = 'https://www.dimarsa.cl/api/catalog_system/pub/products/search/' + encodeURIComponent(q) + '?fq=C:/7/';
+  const datos = await dimarsaFetch(url);
+
+  if (!datos || datos.length === 0) {
+    // Intentar sin filtro de categoría
+    const url2 = 'https://www.dimarsa.cl/api/catalog_system/pub/products/search/' + encodeURIComponent(q);
+    const datos2 = await dimarsaFetch(url2);
+    if (!datos2 || datos2.length === 0) {
+      status.textContent = 'No se encontraron resultados para "' + q + '"';
+      return;
+    }
+    dimarsaRenderBusqueda(datos2);
+    status.textContent = datos2.length + ' resultados para "' + q + '"';
+    return;
+  }
+
+  dimarsaRenderBusqueda(datos);
+  status.textContent = datos.length + ' resultados para "' + q + '"';
+}
+
+function dimarsaRenderBusqueda(datos) {
+  const tbody = document.getElementById('tbodyDimarsa');
+  tbody.innerHTML = datos.map(prod => {
+    const seller = prod.items && prod.items[0] && prod.items[0].sellers && prod.items[0].sellers[0];
+    const precio = seller ? seller.commertialOffer.Price : 0;
+    const disponible = seller ? seller.commertialOffer.IsAvailable : false;
+    
+    // Buscar precio anterior
+    const anterior = dimarsaPreciosAnteriores.find(p => p.id === prod.productId);
+    const precioAnt = anterior ? anterior.precio : null;
+    let cambio = '';
+    if (precioAnt !== null && precioAnt > 0) {
+      if (precio > precioAnt) cambio = '<span style="color:#c81e1e;font-weight:bold">▲ +$' + (precio - precioAnt).toLocaleString() + '</span>';
+      else if (precio < precioAnt) cambio = '<span style="color:#065f46;font-weight:bold">▼ -$' + (precioAnt - precio).toLocaleString() + '</span>';
+      else cambio = '<span style="color:#888">— Igual</span>';
+    } else {
+      cambio = '<span style="color:#3b82f6">Nuevo</span>';
+    }
+
+    return '<tr><td>' + prod.productName + '</td><td>' + (prod.brand||'-') + '</td><td style="font-weight:bold">$' + precio.toLocaleString() + '</td><td>' + (precioAnt ? '$' + precioAnt.toLocaleString() : '-') + '</td><td>' + cambio + '</td><td>' + (disponible ? '✅' : '❌') + '</td></tr>';
+  }).join('');
+}
+
+function dimarsaRender(productos) {
+  const tbody = document.getElementById('tbodyDimarsa');
+  let mantiene = 0, subio = 0, bajo = 0;
+
+  tbody.innerHTML = productos.map(p => {
+    const anterior = dimarsaPreciosAnteriores.find(a => a.id === p.id);
+    const precioAnt = anterior ? anterior.precio : null;
+    let cambio = '';
+    
+    if (precioAnt !== null && precioAnt > 0) {
+      if (p.precio > precioAnt) { cambio = '<span style="color:#c81e1e;font-weight:bold">▲ +$' + (p.precio - precioAnt).toLocaleString() + '</span>'; subio++; }
+      else if (p.precio < precioAnt) { cambio = '<span style="color:#065f46;font-weight:bold">▼ -$' + (precioAnt - p.precio).toLocaleString() + '</span>'; bajo++; }
+      else { cambio = '<span style="color:#888">— Igual</span>'; mantiene++; }
+    } else {
+      cambio = '<span style="color:#3b82f6">Nuevo</span>';
+      mantiene++;
+    }
+
+    return '<tr><td>' + p.nombre + '</td><td>' + p.marca + '</td><td style="font-weight:bold">$' + p.precio.toLocaleString() + '</td><td>' + (precioAnt ? '$' + precioAnt.toLocaleString() : '-') + '</td><td>' + cambio + '</td><td>' + (p.disponible ? '✅' : '❌') + '</td></tr>';
+  }).join('');
+
+  // Resumen
+  document.getElementById('dimarsaResumen').style.display = '';
+  document.getElementById('dimarsaMantiene').textContent = mantiene;
+  document.getElementById('dimarsaSubio').textContent = subio;
+  document.getElementById('dimarsaBajo').textContent = bajo;
+  document.getElementById('dimarsaTotal').textContent = productos.length;
+  document.getElementById('dimarsaUltimaConsulta').textContent = new Date().toLocaleString('es-CL');
+}
+
+// Event listeners
+document.getElementById('btnDimarsaCargar').addEventListener('click', dimarsaCargarFerreteria);
+document.getElementById('btnDimarsaBuscar').addEventListener('click', dimarsaBuscarProducto);
+document.getElementById('dimarsaBuscar').addEventListener('keydown', e => { if (e.key === 'Enter') dimarsaBuscarProducto(); });
+
+// Cargar precios guardados al inicio
+if (dimarsaPrecios.length > 0) {
+  setTimeout(() => dimarsaRender(dimarsaPrecios), 1000);
+}
+
+
+// ══════════════════════════════════════════════════════════════
 // ── CAJA / VENTAS DEL DÍA ─────────────────────────────────────
 // ══════════════════════════════════════════════════════════════
 

@@ -102,6 +102,7 @@
       <button class="tab" data-tab="recepciones">📥 Recepción de Órdenes</button>
       <button class="tab" data-tab="usuarios">👤 Usuarios</button>
       <button class="tab" data-tab="caja">💰 Caja Bodega</button>
+      <button class="tab" data-tab="dimarsa">🏪 Dimarsa</button>
       <button class="tab" data-tab="papelera">🗑 Papelera</button>
       <button class="tab" data-tab="diagnosticos">🩺 Diagnósticos</button>
     </nav>
@@ -1044,6 +1045,42 @@
           <div class="field"><label>Comparar con (opcional)</label><input type="month" id="cajaInformeMes2" /></div>
           <button type="button" id="btnCajaInforme" class="btn-primary">📄 Ver e Imprimir Informe</button>
           <button type="button" id="btnCajaInformeGuardar" class="btn-secondary">💾 Guardar PDF en Escritorio</button>
+        </div>
+      </section>
+    </div>
+
+    <!-- ── PESTAÑA: PRECIOS DIMARSA ── -->
+    <div id="tab-dimarsa" class="tab-content">
+      <section class="section">
+        <h2>🏪 Precios Dimarsa — Ferretería</h2>
+        <p style="font-size:0.85rem;color:#666;margin-bottom:12px">Consulta precios actuales de ferretería en Dimarsa y detecta cambios respecto a la última consulta.</p>
+        <div class="filtros" style="margin-bottom:12px">
+          <div class="field" style="flex:2">
+            <label>Buscar producto</label>
+            <input type="text" id="dimarsaBuscar" placeholder="Ej: cemento, tornillo, sika..." />
+          </div>
+          <button type="button" id="btnDimarsaBuscar" class="btn-add">🔍 Buscar</button>
+          <button type="button" id="btnDimarsaCargar" class="btn-primary">📦 Cargar Ferretería</button>
+        </div>
+        <div id="dimarsaStatus" style="font-size:0.85rem;color:#888;margin-bottom:8px"></div>
+        <div style="overflow-x:auto">
+          <table>
+            <thead>
+              <tr><th>Producto</th><th>Marca</th><th>Precio Actual</th><th>Precio Anterior</th><th>Cambio</th><th>Disponible</th></tr>
+            </thead>
+            <tbody id="tbodyDimarsa">
+              <tr><td colspan="6" class="empty-msg">Presiona "Cargar Ferretería" para consultar precios</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div id="dimarsaResumen" style="margin-top:12px;display:none">
+          <div style="display:flex;gap:12px;flex-wrap:wrap">
+            <div style="padding:8px 14px;background:#d1fae5;border-radius:6px;font-size:0.85rem">🟢 Se mantienen: <strong id="dimarsaMantiene">0</strong></div>
+            <div style="padding:8px 14px;background:#fee2e2;border-radius:6px;font-size:0.85rem">🔴 Subieron: <strong id="dimarsaSubio">0</strong></div>
+            <div style="padding:8px 14px;background:#fef3c7;border-radius:6px;font-size:0.85rem">🟡 Bajaron: <strong id="dimarsaBajo">0</strong></div>
+            <div style="padding:8px 14px;background:#e0e7ff;border-radius:6px;font-size:0.85rem">📦 Total: <strong id="dimarsaTotal">0</strong></div>
+          </div>
+          <p style="font-size:0.75rem;color:#888;margin-top:8px">Última consulta: <span id="dimarsaUltimaConsulta">—</span></p>
         </div>
       </section>
     </div>
