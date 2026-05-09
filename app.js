@@ -4215,6 +4215,70 @@ document.getElementById('btnCajaDiaLento').addEventListener('click', () => {
 });
 
 // ── Informe Mensual Completo PDF ──────────────────────────────
+// ── Estacionalidad Anual ──────────────────────────────────────────
+document.getElementById('cajaEstacionalidadAnio').value = new Date().getFullYear();
+document.getElementById('btnCajaEstacionalidad').addEventListener('click', () => {
+  const anio = document.getElementById('cajaEstacionalidadAnio').value;
+  if (!anio) { showToast('Ingresa un año', true); return; }
+
+  const mesesNombres = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  const datos = [];
+  let maxMonto = 0;
+
+  for (let m = 1; m <= 12; m++) {
+    const mesStr = anio + '-' + String(m).padStart(2, '0');
+    const ventasMes = ventasCaja.filter(v => v.fecha && v.fecha.slice(0, 7) === mesStr);
+    const total = ventasMes.reduce((a, v) => a + v.monto, 0);
+    const cantidad = ventasMes.length;
+    datos.push({ mes: mesesNombres[m-1], total, cantidad });
+    if (total > maxMonto) maxMonto = total;
+  }
+
+  const totalAnual = datos.reduce((a, d) => a + d.total, 0);
+  const promMensual = totalAnual > 0 ? Math.round(totalAnual / datos.filter(d => d.total > 0).length) : 0;
+
+  // Find best and worst months (with data)
+  const conDatos = datos.filter(d => d.total > 0);
+  let mejorMes = '—', peorMes = '—';
+  if (conDatos.length > 0) {
+    const mejor = conDatos.reduce((a, b) => a.total > b.total ? a : b);
+    const peor = conDatos.reduce((a, b) => a.total < b.total ? a : b);
+    mejorMes = mejor.mes + ' ($' + mejor.total.toLocaleString() + ')';
+    peorMes = peor.mes + ' ($' + peor.total.toLocaleString() + ')';
+  }
+
+  const container = document.getElementById('cajaEstacionalidadResult');
+  container.innerHTML = `
+    <div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap">
+      <div style="padding:8px 14px;background:#d1fae5;border-radius:6px;font-size:0.9rem"><strong>Total ${anio}:</strong> $${totalAnual.toLocaleString()}</div>
+      <div style="padding:8px 14px;background:#e0e7ff;border-radius:6px;font-size:0.9rem"><strong>Promedio mensual:</strong> $${promMensual.toLocaleString()}</div>
+      <div style="padding:8px 14px;background:#d1fae5;border-radius:6px;font-size:0.9rem"><strong>Mejor mes:</strong> ${mejorMes}</div>
+      <div style="padding:8px 14px;background:#fee2e2;border-radius:6px;font-size:0.9rem"><strong>Peor mes:</strong> ${peorMes}</div>
+    </div>
+    <div style="display:flex;align-items:flex-end;gap:4px;height:200px;border-bottom:2px solid #333;padding-bottom:4px;margin-bottom:8px">
+      ${datos.map(d => {
+        const pct = maxMonto > 0 ? Math.round((d.total / maxMonto) * 100) : 0;
+        const color = d.total >= promMensual ? '#1a56db' : (d.total > 0 ? '#93c5fd' : '#e5e7eb');
+        return '<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%"><div style="width:100%;background:' + color + ';border-radius:4px 4px 0 0;height:' + pct + '%;min-height:' + (d.total > 0 ? '4px' : '2px') + '" title="' + d.mes + ': $' + d.total.toLocaleString() + '"></div><span style="font-size:0.7rem;margin-top:4px;font-weight:600">' + d.mes + '</span></div>';
+      }).join('')}
+    </div>
+    <div style="display:flex;align-items:center;gap:12px;font-size:0.75rem;color:#555">
+      <div><span style="display:inline-block;width:12px;height:12px;background:#1a56db;border-radius:2px;vertical-align:middle;margin-right:4px"></span>Sobre promedio</div>
+      <div><span style="display:inline-block;width:12px;height:12px;background:#93c5fd;border-radius:2px;vertical-align:middle;margin-right:4px"></span>Bajo promedio</div>
+      <div><span style="display:inline-block;width:12px;height:12px;background:#e5e7eb;border-radius:2px;vertical-align:middle;margin-right:4px"></span>Sin datos</div>
+      <div>Promedio: $${promMensual.toLocaleString()}/mes</div>
+    </div>
+    <table style="margin-top:16px;width:100%;font-size:0.9rem">
+      <thead><tr><th>Mes</th><th>Monto</th><th>Ventas</th><th>vs Promedio</th></tr></thead>
+      <tbody>${datos.map(d => {
+        const diff = promMensual > 0 ? Math.round(((d.total - promMensual) / promMensual) * 100) : 0;
+        const color = d.total >= promMensual ? '#065f46' : '#c81e1e';
+        return '<tr><td>' + d.mes + '</td><td>$' + d.total.toLocaleString() + '</td><td>' + d.cantidad + '</td><td style="color:' + color + ';font-weight:bold">' + (d.total > 0 ? (diff >= 0 ? '+' : '') + diff + '%' : '—') + '</td></tr>';
+      }).join('')}</tbody>
+    </table>
+  `;
+});
+
 document.getElementById('btnCajaInforme').addEventListener('click', () => {
   const mes = document.getElementById('cajaInformeMes').value;
   if (!mes) { showToast('Selecciona un mes', true); return; }
