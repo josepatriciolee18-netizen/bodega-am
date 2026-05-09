@@ -3485,6 +3485,12 @@ function dimarsaRender(filtro) {
     const anterior = regs.length > 1 ? regs[regs.length - 2] : null;
     const minHistorico = Math.min(...regs.map(r => r.precio));
     
+    // Últimos 4 precios con fecha
+    const ultimos4 = regs.slice(-5, -1).reverse();
+    const historial4 = ultimos4.length > 0 
+      ? ultimos4.map(r => '<span style="font-size:0.72rem">' + r.fecha.slice(5).split('-').reverse().join('/') + ': $' + r.precio.toLocaleString() + '</span>').join('<br>')
+      : '-';
+    
     let cambio = '';
     if (anterior) {
       if (actual.precio > anterior.precio) { cambio = '<span style="color:#c81e1e;font-weight:bold">▲ +$' + (actual.precio - anterior.precio).toLocaleString() + '</span>'; subio++; }
@@ -3502,7 +3508,7 @@ function dimarsaRender(filtro) {
         ${dimarsaMiniGrafico(regs)}
       </td>
       <td style="font-weight:bold">$${actual.precio.toLocaleString()}</td>
-      <td>${anterior ? '$' + anterior.precio.toLocaleString() : '-'}</td>
+      <td>${historial4}</td>
       <td>${cambio}</td>
       <td>${actual.disponible ? '✅' : '❌'}</td>
       <td><button style="padding:2px 6px;font-size:0.9rem;background:none;border:none;cursor:pointer" onclick="dimarsaToggleFav('${id}')">${dimarsaFavoritos.includes(id) ? '★' : '☆'}</button><button class="btn-delete" style="padding:2px 6px;font-size:0.7rem" onclick="dimarsaEliminar('${id}')">✖</button></td>
