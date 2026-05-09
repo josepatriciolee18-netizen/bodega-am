@@ -3489,10 +3489,20 @@ function dimarsaRender(filtro) {
     const anterior = regs.length > 1 ? regs[regs.length - 2] : null;
     const minHistorico = Math.min(...regs.map(r => r.precio));
     
-    // Últimos 4 precios con fecha
+    // Últimos 4 precios con fecha y cambio
     const ultimos4 = regs.slice(-5, -1).reverse();
     const historial4 = ultimos4.length > 0 
-      ? ultimos4.map(r => '<span style="font-size:0.72rem">' + r.fecha.slice(5).split('-').reverse().join('/') + ': $' + r.precio.toLocaleString() + '</span>').join('<br>')
+      ? ultimos4.map((r, i) => {
+        const idx = regs.indexOf(r);
+        const prev = idx > 0 ? regs[idx - 1] : null;
+        let cambioH = '';
+        if (prev) {
+          if (r.precio > prev.precio) cambioH = ' <span style="color:#c81e1e">\u25B2+$' + (r.precio - prev.precio).toLocaleString() + '</span>';
+          else if (r.precio < prev.precio) cambioH = ' <span style="color:#065f46">\u25BC-$' + (prev.precio - r.precio).toLocaleString() + '</span>';
+          else cambioH = ' <span style="color:#888">\u2014</span>';
+        }
+        return '<span style="font-size:0.72rem">' + r.fecha.slice(5).split('-').reverse().join('/') + ': $' + r.precio.toLocaleString() + cambioH + '</span>';
+      }).join('<br>')
       : '-';
     
     let cambio = '';
