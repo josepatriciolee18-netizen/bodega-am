@@ -3345,7 +3345,7 @@ async function dimarsaCargarFerreteria() {
   });
 
   localStorage.setItem('dimarsaHistorial', JSON.stringify(dimarsaHistorial));
-  if (window.fbGuardar) fbGuardar('dimarsaHistorial', 'data', dimarsaHistorial).catch(() => {});
+  if (window.fbGuardar) fbGuardar('dimarsaHistorial', 'data', { data: dimarsaHistorial, fecha: new Date().toISOString() }).catch(() => {});
 
   status.textContent = todosProductos.length + ' productos actualizados (' + hoy + ')';
   dimarsaRender();
@@ -3400,6 +3400,7 @@ function dimarsaToggleFav(id) {
     dimarsaFavoritos.push(id);
   }
   localStorage.setItem('dimarsaFavoritos', JSON.stringify(dimarsaFavoritos));
+  if (window.fbGuardar) fbGuardar('dimarsaConfig', 'favoritos', { ids: dimarsaFavoritos }).catch(() => {});
   dimarsaRender();
 }
 
@@ -3420,6 +3421,7 @@ function dimarsaVerFavoritos() {
 function dimarsaEliminar(id) {
   dimarsaOcultos.push(id);
   localStorage.setItem('dimarsaOcultos', JSON.stringify(dimarsaOcultos));
+  if (window.fbGuardar) fbGuardar('dimarsaConfig', 'ocultos', { ids: dimarsaOcultos }).catch(() => {});
   dimarsaRender();
 }
 
@@ -3520,6 +3522,42 @@ document.getElementById('dimarsaBuscar').addEventListener('keydown', e => { if (
 if (Object.keys(dimarsaHistorial).length > 0) {
   setTimeout(() => dimarsaRender(), 500);
 }
+
+// Cargar datos de Dimarsa desde Firebase al inicio
+(async function cargarDimarsaDesdeFirebase() {
+  if (!window.fbListo) { setTimeout(cargarDimarsaDesdeFirebase, 1000); return; }
+  try {
+    const datos = await fbCargar('dimarsaHistorial');
+    const dataDoc = datos.find(d => d.data);
+    if (dataDoc && dataDoc.data) {
+      const fbHist = dataDoc.data;
+      // Merge: Firebase tiene prioridad si tiene más registros
+      Object.keys(fbHist).forEach(id => {
+        if (!dimarsaHistorial[id] || (fbHist[id].registros && fbHist[id].registros.length > (dimarsaHistorial[id].registros || []).length)) {
+          dimarsaHistorial[id] = fbHist[id];
+        }
+      });
+      localStorage.setItem('dimarsaHistorial', JSON.stringify(dimarsaHistorial));
+      dimarsaRender();
+    }
+    
+    const configDatos = await fbCargar('dimarsaConfig');
+    const favDoc = configDatos.find(d => d.ids && !d.ocultos);
+    const ocuDoc = configDatos.find(d => d.ids && d.ocultos);
+    // Actually find by document structure
+    configDatos.forEach(doc => {
+      if (doc._id === 'favoritos' && doc.ids) {
+        dimarsaFavoritos = doc.ids;
+        localStorage.setItem('dimarsaFavoritos', JSON.stringify(dimarsaFavoritos));
+      }
+      if (doc._id === 'ocultos' && doc.ids) {
+        dimarsaOcultos = doc.ids;
+        localStorage.setItem('dimarsaOcultos', JSON.stringify(dimarsaOcultos));
+      }
+    });
+    dimarsaRender();
+  } catch(e) { console.error('Error cargando Dimarsa desde Firebase:', e); }
+})();
 
 // ── PANEL DE DIAGNÓSTICOS ─────────────────────────────────────
 // ══════════════════════════════════════════════════════════════
