@@ -3271,6 +3271,7 @@ if (window.require) {
 // Historial: { productoId: [{ precio, fecha }] }
 let dimarsaHistorial = JSON.parse(localStorage.getItem('dimarsaHistorial') || '{}');
 let dimarsaOcultos = JSON.parse(localStorage.getItem('dimarsaOcultos') || '[]');
+let dimarsaFavoritos = JSON.parse(localStorage.getItem('dimarsaFavoritos') || '[]');
 
 async function dimarsaFetch(url) {
   try {
@@ -3352,7 +3353,13 @@ async function dimarsaCargarFerreteria() {
 
 async function dimarsaBuscarProducto() {
   const q = document.getElementById('dimarsaBuscar').value.trim();
-  if (!q) { showToast('Escribe un producto para buscar', true); return; }
+  
+  // Si hay texto, filtrar los productos locales primero
+  if (q && Object.keys(dimarsaHistorial).length > 0) {
+    dimarsaRender(q);
+    return;
+  }
+  if (!q) { dimarsaRender(); return; }
 
   const status = document.getElementById('dimarsaStatus');
   status.textContent = 'Buscando "' + q + '"...';
@@ -3386,6 +3393,30 @@ async function dimarsaBuscarProducto() {
   dimarsaRender();
 }
 
+function dimarsaToggleFav(id) {
+  if (dimarsaFavoritos.includes(id)) {
+    dimarsaFavoritos = dimarsaFavoritos.filter(f => f !== id);
+  } else {
+    dimarsaFavoritos.push(id);
+  }
+  localStorage.setItem('dimarsaFavoritos', JSON.stringify(dimarsaFavoritos));
+  dimarsaRender();
+}
+
+function dimarsaVerFavoritos() {
+  const tbody = document.getElementById('tbodyDimarsa');
+  const ids = dimarsaFavoritos.filter(id => dimarsaHistorial[id] && !dimarsaOcultos.includes(id));
+  
+  if (ids.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" class="empty-msg">No tienes productos favoritos. Usa la ★ para agregar.</td></tr>';
+    document.getElementById('dimarsaResumen').style.display = 'none';
+    return;
+  }
+
+  // Reuse render logic with favorites filter
+  dimarsaRender('__FAV__');
+}
+
 function dimarsaEliminar(id) {
   dimarsaOcultos.push(id);
   localStorage.setItem('dimarsaOcultos', JSON.stringify(dimarsaOcultos));
@@ -3411,9 +3442,20 @@ function dimarsaMiniGrafico(registros) {
   return '<svg width="' + ancho + '" height="' + alto + '" style="vertical-align:middle"><polyline points="' + puntos + '" fill="none" stroke="' + color + '" stroke-width="2"/></svg>';
 }
 
-function dimarsaRender() {
+function dimarsaRender(filtro) {
   const tbody = document.getElementById('tbodyDimarsa');
-  const ids = Object.keys(dimarsaHistorial).filter(id => !dimarsaOcultos.includes(id));
+  let ids = Object.keys(dimarsaHistorial).filter(id => !dimarsaOcultos.includes(id));
+  
+  // Filtrar por texto si hay filtro
+  if (filtro === '__FAV__') {
+    ids = ids.filter(id => dimarsaFavoritos.includes(id));
+  } else if (filtro) {
+    const q = filtro.toLowerCase();
+    ids = ids.filter(id => {
+      const p = dimarsaHistorial[id];
+      return p.nombre.toLowerCase().includes(q) || p.marca.toLowerCase().includes(q);
+    });
+  }
   
   if (ids.length === 0) {
     tbody.innerHTML = '<tr><td colspan="6" class="empty-msg">No hay productos. Presiona "Cargar Ferretería" para consultar.</td></tr>';
@@ -3452,7 +3494,7 @@ function dimarsaRender() {
       <td>${anterior ? '$' + anterior.precio.toLocaleString() : '-'}</td>
       <td>${cambio}</td>
       <td>${actual.disponible ? '✅' : '❌'}</td>
-      <td><button class="btn-delete" style="padding:2px 6px;font-size:0.7rem" onclick="dimarsaEliminar('${id}')">✖</button></td>
+      <td><button style="padding:2px 6px;font-size:0.9rem;background:none;border:none;cursor:pointer" onclick="dimarsaToggleFav('${id}')">${dimarsaFavoritos.includes(id) ? '★' : '☆'}</button><button class="btn-delete" style="padding:2px 6px;font-size:0.7rem" onclick="dimarsaEliminar('${id}')">✖</button></td>
     </tr>`;
   }).filter(r => r).join('');
 
