@@ -4968,14 +4968,14 @@ async function dimarsaCargarFerreteria() {
       status.textContent = 'Cargando ' + cat.split('/').pop() + ' (p' + page + ')...';
       const datos = await dimarsaFetch(baseUrl+'/'+cat+'?_from='+((page-1)*50)+'&_to='+(page*50-1));
       if (!datos || datos.length === 0) break;
-      datos.forEach(prod => { const s = prod.items&&prod.items[0]&&prod.items[0].sellers&&prod.items[0].sellers[0]; const precio = s?s.commertialOffer.Price:0; const disp = s?s.commertialOffer.IsAvailable:false; if (precio>0) { const img = prod.items&&prod.items[0]&&prod.items[0].images&&prod.items[0].images[0]?prod.items[0].images[0].imageUrl:''; todos.push({id:prod.productId,nombre:prod.productName,marca:prod.brand||'-',precio,disponible:disp,img:img}); } });
+      datos.forEach(prod => { const s = prod.items&&prod.items[0]&&prod.items[0].sellers&&prod.items[0].sellers[0]; const precio = s?s.commertialOffer.Price:0; const disp = s?s.commertialOffer.IsAvailable:false; if (precio>0) { const img = prod.items&&prod.items[0]&&prod.items[0].images&&prod.items[0].images[0]?prod.items[0].images[0].imageUrl:''; const cats = prod.categories?prod.categories.join(' '):''; todos.push({id:prod.productId,nombre:prod.productName,marca:prod.brand||'-',precio,disponible:disp,img:img,cat:cats}); } });
       await new Promise(r => setTimeout(r, 500));
     }
   }
   const unicos = {}; todos.forEach(p => { unicos[p.id] = p; }); todos = Object.values(unicos);
   if (todos.length === 0) { status.textContent = 'Sin productos.'; return; }
   const hoy = new Date().toISOString().slice(0,10);
-  todos.forEach(p => { if (!dimarsaHistorial[p.id]) dimarsaHistorial[p.id] = {nombre:p.nombre,marca:p.marca,img:'',registros:[]}; if(p.img) dimarsaHistorial[p.id].img = p.img; dimarsaHistorial[p.id].nombre=p.nombre; dimarsaHistorial[p.id].marca=p.marca; if (!dimarsaHistorial[p.id].registros.find(r=>r.fecha===hoy)) { dimarsaHistorial[p.id].registros.push({precio:p.precio,fecha:hoy,disponible:p.disponible}); if (dimarsaHistorial[p.id].registros.length>60) dimarsaHistorial[p.id].registros.shift(); } });
+  todos.forEach(p => { if (!dimarsaHistorial[p.id]) dimarsaHistorial[p.id] = {nombre:p.nombre,marca:p.marca,img:'',cat:'',registros:[]}; if(p.img) dimarsaHistorial[p.id].img = p.img; if(p.cat) dimarsaHistorial[p.id].cat = p.cat; dimarsaHistorial[p.id].nombre=p.nombre; dimarsaHistorial[p.id].marca=p.marca; if (!dimarsaHistorial[p.id].registros.find(r=>r.fecha===hoy)) { dimarsaHistorial[p.id].registros.push({precio:p.precio,fecha:hoy,disponible:p.disponible}); if (dimarsaHistorial[p.id].registros.length>60) dimarsaHistorial[p.id].registros.shift(); } });
   localStorage.setItem('dimarsaHistorial', JSON.stringify(dimarsaHistorial));
   if (window.fbGuardar) fbGuardar('dimarsaHistorial','data',{data:dimarsaHistorial,fecha:new Date().toISOString()}).catch(()=>{});
   status.textContent = todos.length + ' productos actualizados (' + hoy + ')';
@@ -5009,7 +5009,7 @@ function dimarsaRender(filtro) {
   const tbody = document.getElementById('tbodyDimarsa'); if(!tbody)return;
   let ids = Object.keys(dimarsaHistorial).filter(id=>!dimarsaOcultos.includes(id));
   if(filtro==='__FAV__')ids=ids.filter(id=>dimarsaFavoritos.includes(id));
-  else if(filtro){const q=filtro.toLowerCase();ids=ids.filter(id=>{const p=dimarsaHistorial[id];return p.nombre.toLowerCase().includes(q)||p.marca.toLowerCase().includes(q);});}
+  else if(filtro){const q=filtro.toLowerCase();ids=ids.filter(id=>{const p=dimarsaHistorial[id];return p.nombre.toLowerCase().includes(q)||p.marca.toLowerCase().includes(q)||(p.cat&&p.cat.toLowerCase().includes(q));});}
   // Filtrar solo los que cambiaron
   const soloCambios = document.getElementById('dimarsaSoloCambios') && document.getElementById('dimarsaSoloCambios').checked;
   if (soloCambios) {
