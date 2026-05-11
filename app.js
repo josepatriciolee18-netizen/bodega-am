@@ -4989,7 +4989,7 @@ function procesarPegadoLaudus() {
         descripcion: encontrado.nombre,
         unidad: encontrado.unidad || 'unidad',
         cantidad: cantidad,
-        palabras: typeof cantidadEnPalabras === 'function' ? cantidadEnPalabras(cantidad) : ''
+        palabras: numeroAPalabras(cantidad)
       });
       productosAgregados++;
     } else {
@@ -4999,7 +4999,7 @@ function procesarPegadoLaudus() {
         descripcion: descripcion,
         unidad: 'unidad',
         cantidad: cantidad,
-        palabras: typeof cantidadEnPalabras === 'function' ? cantidadEnPalabras(cantidad) : ''
+        palabras: numeroAPalabras(cantidad)
       });
       productosAgregados++;
       noEncontrados.push(codigoLaudus + ' - ' + descripcion);
