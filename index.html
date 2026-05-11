@@ -102,6 +102,7 @@
       <button class="tab" data-tab="recepciones">📥 Recepción de Órdenes</button>
       <button class="tab" data-tab="usuarios">👤 Usuarios</button>
       <button class="tab" data-tab="caja">💰 Caja Bodega</button>
+      <button class="tab" data-tab="facturas">🧾 Recepción de Facturas</button>
 
       <button class="tab" data-tab="papelera">🗑 Papelera</button>
       <button class="tab" data-tab="diagnosticos">🩺 Diagnósticos</button>
@@ -726,6 +727,7 @@
             <label class="perm-item"><input type="checkbox" id="permClientes" checked /> Ver Clientes</label>
             <label class="perm-item"><input type="checkbox" id="permRecepciones" checked /> Recepciones de Órdenes</label>
             <label class="perm-item"><input type="checkbox" id="permCaja" checked /> Caja Bodega</label>
+            <label class="perm-item"><input type="checkbox" id="permFacturas" /> Recepción de Facturas</label>
 
             <label class="perm-item"><input type="checkbox" id="permUsuarios" /> Gestionar Usuarios</label>
           </div>
@@ -1053,6 +1055,163 @@
           <button type="button" id="btnCajaInformeGuardar" class="btn-secondary">💾 Guardar PDF en Escritorio</button>
         </div>
       </section>
+    </div>
+
+    <!-- ── PESTAÑA: RECEPCIÓN DE FACTURAS ── -->
+    <div id="tab-facturas" class="tab-content">
+
+      <!-- Formulario de registro de factura -->
+      <section class="section">
+        <h2>🧾 Recepción de Facturas de Proveedores</h2>
+        <div class="grid-2">
+          <div class="field">
+            <label>N° Factura</label>
+            <input type="text" id="facNroFactura" placeholder="Ej: 001234" />
+          </div>
+          <div class="field" style="position:relative">
+            <label>Proveedor</label>
+            <input type="text" id="facProveedor" placeholder="Nombre del proveedor" autocomplete="off" />
+            <ul id="facSugerenciasProveedor" class="sugerencias"></ul>
+          </div>
+          <div class="field">
+            <label>RUT Proveedor</label>
+            <input type="text" id="facRutProveedor" placeholder="Ej: 12.345.678-9" />
+          </div>
+          <div class="field">
+            <label>Fecha Factura</label>
+            <input type="date" id="facFecha" />
+          </div>
+          <div class="field">
+            <label>Condición de Pago</label>
+            <select id="facCondicionPago">
+              <option value="">-- Seleccionar --</option>
+              <option value="Contado">Contado</option>
+              <option value="30 días">30 días</option>
+              <option value="60 días">60 días</option>
+              <option value="90 días">90 días</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Fecha Vencimiento</label>
+            <input type="date" id="facFechaVencimiento" />
+          </div>
+        </div>
+
+        <!-- Fila de agregar producto -->
+        <div class="add-product-row">
+          <div class="field" style="flex:2; position:relative">
+            <label>Buscar Producto</label>
+            <input type="text" id="facInputBuscar" placeholder="Código o nombre" autocomplete="off" />
+            <ul id="facSugerencias" class="sugerencias"></ul>
+          </div>
+          <div class="field">
+            <label>Código</label>
+            <input type="text" id="facInputCodigo" placeholder="Código" />
+          </div>
+          <div class="field" style="flex:2">
+            <label>Descripción</label>
+            <input type="text" id="facInputDescripcion" placeholder="Descripción del producto" />
+          </div>
+          <div class="field">
+            <label>Unidad</label>
+            <select id="facInputUnidad">
+              <option value="unidad">Unidad</option>
+              <option value="kg">Kg</option>
+              <option value="litro">Litro</option>
+              <option value="caja">Caja</option>
+              <option value="metro">Metro</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Cantidad</label>
+            <input type="number" id="facInputCantidad" placeholder="0" min="0.1" step="0.1" />
+          </div>
+          <div class="field">
+            <label>Precio Unit.</label>
+            <input type="number" id="facInputPrecio" placeholder="0" min="0" step="1" />
+          </div>
+          <button type="button" id="btnAgregarProductoFac" class="btn-add">+ Agregar</button>
+        </div>
+
+        <!-- Tabla de productos de la factura -->
+        <div style="overflow-x:auto">
+          <table id="tablaProductosFac">
+            <thead>
+              <tr>
+                <th>Código</th>
+                <th>Descripción</th>
+                <th>Unidad</th>
+                <th>Cantidad</th>
+                <th>Precio Unit.</th>
+                <th>Subtotal</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="tbodyProductosFac">
+              <tr><td colspan="7" class="empty-msg">No hay productos agregados</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Totales -->
+        <div class="stats-grid" style="margin-top:12px; grid-template-columns: repeat(3, 1fr);">
+          <div class="stat-card"><span class="stat-num" id="facNeto">$0</span><span class="stat-label">Neto</span></div>
+          <div class="stat-card"><span class="stat-num" id="facIva">$0</span><span class="stat-label">IVA 19%</span></div>
+          <div class="stat-card" style="background:#1a56db;color:white"><span class="stat-num" id="facTotal" style="color:white">$0</span><span class="stat-label" style="color:rgba(255,255,255,0.8)">Total</span></div>
+        </div>
+
+        <!-- Observaciones -->
+        <div class="field" style="margin-top:12px">
+          <label>Observaciones</label>
+          <textarea id="facObservaciones" rows="3" placeholder="Notas adicionales..."></textarea>
+        </div>
+
+        <!-- Botón registrar -->
+        <div style="margin-top:16px; text-align:right">
+          <button type="button" id="btnRegistrarFactura" class="btn-primary">✔ Registrar Factura</button>
+        </div>
+      </section>
+
+      <!-- Facturas registradas -->
+      <section class="section">
+        <h2>📋 Facturas Registradas</h2>
+        <div class="filtros" style="margin-bottom:12px">
+          <div class="field" style="flex:2">
+            <label>Buscar factura</label>
+            <input type="text" id="facFiltro" placeholder="N° registro, N° factura, proveedor..." />
+          </div>
+          <button type="button" id="btnFiltrarFacturas" class="btn-add">🔍 Buscar</button>
+        </div>
+        <div style="overflow-x:auto">
+          <table id="tablaFacturasProveedores">
+            <thead>
+              <tr>
+                <th>N° Registro</th>
+                <th>N° Factura</th>
+                <th>Fecha</th>
+                <th>Proveedor</th>
+                <th>Total</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyFacturasProveedores">
+              <tr><td colspan="7" class="empty-msg">No hay facturas registradas</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+
+    <!-- Modal detalle factura proveedor -->
+    <div id="modalFacturaProveedor" class="modal-overlay" style="display:none">
+      <div class="modal">
+        <div class="modal-header">
+          <h3>Detalle de Factura</h3>
+          <button onclick="document.getElementById('modalFacturaProveedor').style.display='none'" class="modal-close">✕</button>
+        </div>
+        <div id="modalFacturaBody" class="modal-body"></div>
+      </div>
     </div>
 
     <!-- ── PESTAÑA: PAPELERA ── -->

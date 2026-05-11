@@ -1,6 +1,6 @@
 {
   "name": "bodega-am",
-  "version": "1.1.233",
+  "version": "1.1.234",
   "description": "Sistema de Bodega A&M",
   "main": "main.js",
   "scripts": {
