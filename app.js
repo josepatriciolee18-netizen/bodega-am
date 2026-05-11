@@ -5023,19 +5023,15 @@ function procesarPegadoLaudus() {
 
 // Fix modal display
 document.getElementById('btnPegarLaudus').addEventListener('click', () => {
-  document.getElementById('modalPegarLaudus').style.display = 'flex';
-  document.getElementById('laudusTexto').value = '';
-  setTimeout(() => document.getElementById('laudusTexto').focus(), 200);
-});
-
-// Habilitar pegar con click derecho en el textarea de Laudus
-document.getElementById('laudusTexto').addEventListener('contextmenu', (e) => {
-  e.preventDefault();
   navigator.clipboard.readText().then(text => {
+    if (!text || !text.trim()) { showToast('No hay texto en el portapapeles', true); return; }
     document.getElementById('laudusTexto').value = text;
-    showToast('Texto pegado');
+    procesarPegadoLaudus();
   }).catch(() => {
-    showToast('Usa Ctrl+V para pegar', true);
+    // Fallback: abrir modal si no se puede leer portapapeles
+    document.getElementById('modalPegarLaudus').style.display = 'flex';
+    document.getElementById('laudusTexto').value = '';
+    showToast('Pega con Ctrl+V y presiona Cargar', true);
   });
 });
 
