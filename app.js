@@ -4989,7 +4989,7 @@ function procesarPegadoLaudus() {
         descripcion: encontrado.nombre,
         unidad: encontrado.unidad || 'unidad',
         cantidad: cantidad,
-        palabras: ''
+        palabras: typeof cantidadEnPalabras === 'function' ? cantidadEnPalabras(cantidad) : ''
       });
       productosAgregados++;
     } else {
@@ -4999,7 +4999,7 @@ function procesarPegadoLaudus() {
         descripcion: descripcion,
         unidad: 'unidad',
         cantidad: cantidad,
-        palabras: ''
+        palabras: typeof cantidadEnPalabras === 'function' ? cantidadEnPalabras(cantidad) : ''
       });
       productosAgregados++;
       noEncontrados.push(codigoLaudus + ' - ' + descripcion);
@@ -5025,7 +5025,18 @@ function procesarPegadoLaudus() {
 document.getElementById('btnPegarLaudus').addEventListener('click', () => {
   document.getElementById('modalPegarLaudus').style.display = 'flex';
   document.getElementById('laudusTexto').value = '';
-  document.getElementById('laudusTexto').focus();
+  setTimeout(() => document.getElementById('laudusTexto').focus(), 200);
+});
+
+// Habilitar pegar con click derecho en el textarea de Laudus
+document.getElementById('laudusTexto').addEventListener('contextmenu', (e) => {
+  e.preventDefault();
+  navigator.clipboard.readText().then(text => {
+    document.getElementById('laudusTexto').value = text;
+    showToast('Texto pegado');
+  }).catch(() => {
+    showToast('Usa Ctrl+V para pegar', true);
+  });
 });
 
 
