@@ -4950,6 +4950,85 @@ const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>
 }
 
 // ══════════════════════════════════════════════════════════════
+// ── Pegar desde Laudus ────────────────────────────────────────
+function procesarPegadoLaudus() {
+  const texto = document.getElementById('laudusTexto').value.trim();
+  if (!texto) { showToast('Pega el texto de Laudus primero', true); return; }
+
+  // Parse tab-separated text from Laudus
+  const lineas = texto.split('\n').filter(l => l.trim());
+  
+  // Skip header line if present
+  let inicio = 0;
+  if (lineas[0] && (lineas[0].includes('PRODUCTO') || lineas[0].includes('DESCRIPCI'))) {
+    inicio = 1;
+  }
+
+  let productosAgregados = 0;
+  let noEncontrados = [];
+
+  for (let i = inicio; i < lineas.length; i++) {
+    const cols = lineas[i].split('\t');
+    if (cols.length < 3) continue;
+
+    const codigoLaudus = cols[0].trim();
+    const descripcion = cols[1].trim();
+    const cantidadStr = cols[2].trim().replace(',', '.');
+    const cantidad = parseFloat(cantidadStr) || 1;
+
+    // Buscar en catálogo ignorando ceros a la izquierda
+    const codigoSinCeros = codigoLaudus.replace(/^0+/, '');
+    const encontrado = catalogo.find(p => {
+      const codCat = p.codigo.replace(/^0+/, '');
+      return p.codigo === codigoLaudus || codCat === codigoSinCeros || p.codigo === codigoSinCeros;
+    });
+
+    if (encontrado) {
+      productos.push({
+        codigo: encontrado.codigo,
+        descripcion: encontrado.nombre,
+        unidad: encontrado.unidad || 'unidad',
+        cantidad: cantidad,
+        palabras: ''
+      });
+      productosAgregados++;
+    } else {
+      // Agregar con datos de Laudus directamente
+      productos.push({
+        codigo: codigoLaudus,
+        descripcion: descripcion,
+        unidad: 'unidad',
+        cantidad: cantidad,
+        palabras: ''
+      });
+      productosAgregados++;
+      noEncontrados.push(codigoLaudus + ' - ' + descripcion);
+    }
+  }
+
+  renderTabla();
+  document.getElementById('modalPegarLaudus').style.display = 'none';
+  document.getElementById('laudusTexto').value = '';
+
+  if (productosAgregados > 0) {
+    let msg = '✔ ' + productosAgregados + ' productos cargados desde Laudus';
+    if (noEncontrados.length > 0) {
+      msg += ' (' + noEncontrados.length + ' no estaban en catálogo)';
+    }
+    showToast(msg);
+  } else {
+    showToast('No se pudieron cargar productos. Verifica el formato.', true);
+  }
+}
+
+// Fix modal display
+document.getElementById('btnPegarLaudus').addEventListener('click', () => {
+  document.getElementById('modalPegarLaudus').style.display = 'flex';
+  document.getElementById('laudusTexto').value = '';
+  document.getElementById('laudusTexto').focus();
+});
+
+
 // ── COMPARADOR DE PRECIOS DIMARSA ─────────────────────────────
 let dimarsaHistorial = JSON.parse(localStorage.getItem('dimarsaHistorial') || '{}');
 let dimarsaOcultos = JSON.parse(localStorage.getItem('dimarsaOcultos') || '[]');
