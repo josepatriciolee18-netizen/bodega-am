@@ -599,7 +599,7 @@ async function cargarDesdeFirebase() {
 
     // Escuchar cambios en usuarios - reemplaza lista completa
     _unsubscribers.push(fbEscuchar('usuarios', (datos) => {
-      if (datos.length >= 0) {
+      if (datos.length > 0) {
         const adminLocal = usuarios.find(u => u.login === 'admin');
         usuarios = datos;
         if (adminLocal && !usuarios.some(u => u.login === 'admin')) {
@@ -619,14 +619,8 @@ async function cargarDesdeFirebase() {
           } else if (usuarioActivo.login === 'admin' || usuarioActivo.rol === 'Admin') {
             // Nunca cerrar sesión del admin
             aplicarPermisos();
-          } else {
-            // Usuario desactivado — cerrar sesión
-            localStorage.removeItem('sesionActiva');
-            usuarioActivo = null;
-            document.getElementById('appMain').style.display = 'none';
-            document.getElementById('loginScreen').style.display = 'flex';
-            showToast('Tu cuenta fue desactivada', true);
           }
+          // Ya no cerramos sesión automáticamente — puede ser un error temporal de Firebase
         }
       }
     }));
