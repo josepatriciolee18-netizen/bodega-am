@@ -102,7 +102,7 @@
       <button class="tab" data-tab="recepciones">📥 Recepción de Órdenes</button>
       <button class="tab" data-tab="usuarios">👤 Usuarios</button>
       <button class="tab" data-tab="caja">💰 Caja Bodega</button>
-      <button class="tab" data-tab="dimarsa">🏪 Comparador de Precios</button>
+
       <button class="tab" data-tab="papelera">🗑 Papelera</button>
       <button class="tab" data-tab="diagnosticos">🩺 Diagnósticos</button>
     </nav>
@@ -726,7 +726,7 @@
             <label class="perm-item"><input type="checkbox" id="permClientes" checked /> Ver Clientes</label>
             <label class="perm-item"><input type="checkbox" id="permRecepciones" checked /> Recepciones de Órdenes</label>
             <label class="perm-item"><input type="checkbox" id="permCaja" checked /> Caja Bodega</label>
-            <label class="perm-item"><input type="checkbox" id="permComparador" /> Comparador de Precios</label>
+
             <label class="perm-item"><input type="checkbox" id="permUsuarios" /> Gestionar Usuarios</label>
           </div>
         </div>
@@ -1051,82 +1051,6 @@
           <div class="field"><label>Comparar con (opcional)</label><input type="month" id="cajaInformeMes2" /></div>
           <button type="button" id="btnCajaInforme" class="btn-primary">📄 Ver e Imprimir Informe</button>
           <button type="button" id="btnCajaInformeGuardar" class="btn-secondary">💾 Guardar PDF en Escritorio</button>
-        </div>
-      </section>
-    </div>
-
-    <!-- ── PESTAÑA: PRECIOS DIMARSA ── -->
-    <div id="tab-dimarsa" class="tab-content">
-      <section class="section">
-        <h2>🏪 Comparador de Precios — Ferretería</h2>
-        <p style="font-size:0.85rem;color:#666;margin-bottom:12px">Consulta precios actuales de ferretería en Dimarsa y detecta cambios respecto a la última consulta.</p>
-        <div class="filtros" style="margin-bottom:12px">
-          <div class="field" style="flex:2">
-            <label>Buscar producto</label>
-            <input type="text" id="dimarsaBuscar" placeholder="Ej: cemento, tornillo, sika..." />
-          </div>
-          <button type="button" id="btnDimarsaBuscar" class="btn-add">🔍 Buscar</button>
-          <button type="button" id="btnDimarsaFavoritos" class="btn-secondary" onclick="dimarsaVerFavoritos()">⭐ Favoritos</button>
-          <button type="button" id="btnDimarsaTodos" class="btn-secondary" onclick="dimarsaRender()">📋 Ver Todos</button>
-          <button type="button" id="btnDimarsaCargar" class="btn-primary">📦 Cargar Ferretería</button>
-        </div>
-        <div id="dimarsaStatus" style="font-size:0.85rem;color:#888;margin-bottom:8px"></div>
-        <!-- Filtros por categoría -->
-        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
-          <button class="btn-secondary" style="padding:4px 10px;font-size:0.78rem" onclick="dimarsaRender()">Todos</button>
-          <button class="btn-secondary" style="padding:4px 10px;font-size:0.78rem" onclick="dimarsaFiltrarCat('Ferreter')">Ferretería</button>
-          <button class="btn-secondary" style="padding:4px 10px;font-size:0.78rem" onclick="dimarsaFiltrarCat('Cemento')">Cemento</button>
-          <button class="btn-secondary" style="padding:4px 10px;font-size:0.78rem" onclick="dimarsaFiltrarCat('Perfil')">Perfiles</button>
-          <button class="btn-secondary" style="padding:4px 10px;font-size:0.78rem" onclick="dimarsaFiltrarCat('Pintura')">Pinturas</button>
-          <button class="btn-secondary" style="padding:4px 10px;font-size:0.78rem" onclick="dimarsaFiltrarCat('Tablero')">Tableros</button>
-          <button class="btn-secondary" style="padding:4px 10px;font-size:0.78rem" onclick="dimarsaFiltrarCat('Gasfit')">Gasfitería</button>
-          <button class="btn-secondary" style="padding:4px 10px;font-size:0.78rem" onclick="dimarsaFiltrarCat('Herramienta')">Herramientas</button>
-          <button class="btn-secondary" style="padding:4px 10px;font-size:0.78rem" onclick="dimarsaFiltrarCat('Fijacion')">Fijaciones</button>
-        </div>
-        <!-- Ordenar y filtrar cambios -->
-        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;align-items:center">
-          <span style="font-size:0.8rem;color:#555">Ordenar:</span>
-          <select id="dimarsaOrden" onchange="dimarsaRender()" style="padding:4px 8px;font-size:0.8rem;border-radius:4px;border:1px solid #ccc">
-            <option value="">Sin orden</option>
-            <option value="precio-asc">Precio ↑ menor a mayor</option>
-            <option value="precio-desc">Precio ↓ mayor a menor</option>
-            <option value="subio">Los que más subieron</option>
-            <option value="bajo">Los que más bajaron</option>
-          </select>
-          <label style="font-size:0.8rem;display:flex;align-items:center;gap:4px;cursor:pointer">
-            <input type="checkbox" id="dimarsaSoloCambios" onchange="dimarsaRender()"> Solo los que cambiaron
-          </label>
-        </div>
-        <div style="overflow-x:auto">
-          <table>
-            <thead>
-              <tr><th>Producto</th><th>Precio Actual</th><th>Historial (últimos 4)</th><th>Cambio</th><th>Disponible</th><th></th></tr>
-            </thead>
-            <tbody id="tbodyDimarsa">
-              <tr><td colspan="6" class="empty-msg">Presiona "Cargar Ferretería" para consultar precios</td></tr>
-            </tbody>
-          </table>
-        </div>
-        <div id="dimarsaResumen" style="margin-top:12px;display:none">
-          <div style="display:flex;gap:12px;flex-wrap:wrap">
-            <div style="padding:8px 14px;background:#d1fae5;border-radius:6px;font-size:0.85rem">🟢 Se mantienen: <strong id="dimarsaMantiene">0</strong></div>
-            <div style="padding:8px 14px;background:#fee2e2;border-radius:6px;font-size:0.85rem">🔴 Subieron: <strong id="dimarsaSubio">0</strong></div>
-            <div style="padding:8px 14px;background:#fef3c7;border-radius:6px;font-size:0.85rem">🟡 Bajaron: <strong id="dimarsaBajo">0</strong></div>
-            <div style="padding:8px 14px;background:#e0e7ff;border-radius:6px;font-size:0.85rem">📦 Total: <strong id="dimarsaTotal">0</strong></div>
-          </div>
-          <p style="font-size:0.75rem;color:#888;margin-top:8px">Última consulta: <span id="dimarsaUltimaConsulta">—</span></p>
-        </div>
-
-        <!-- Resumen de cambios de hoy -->
-        <div id="dimarsaCambiosHoy" style="margin-top:16px;display:none">
-          <div style="margin-bottom:12px">
-            <h3 style="color:#c81e1e;font-size:0.95rem;margin-bottom:6px">🔴 Subieron hoy</h3>
-            <div id="dimarsaSubieronHoy" style="font-size:0.85rem;color:#444">—</div>
-          </div>
-          <div>
-            <h3 style="color:#065f46;font-size:0.95rem;margin-bottom:6px">🟢 Bajaron hoy</h3>
-            <div id="dimarsaBajaronHoy" style="font-size:0.85rem;color:#444">—</div>
-          </div>
         </div>
       </section>
     </div>

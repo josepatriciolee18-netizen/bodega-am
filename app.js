@@ -1,6 +1,6 @@
-// ── Estado ────────────────────────────────────────────────
+// â”€â”€ Estado â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-// ── Función de hash para contraseñas ──────────────────────
+// â”€â”€ FunciÃ³n de hash para contraseÃ±as â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function hashPasswordSync(password) {
   if (window.require) {
     try {
@@ -21,7 +21,7 @@ async function hashPassword(password) {
   return hashPasswordSync(password);
 }
 
-// ── Auto-Update listener ──────────────────────────────────
+// â”€â”€ Auto-Update listener â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function verificarInternet() {
   return new Promise((resolve) => {
     let resuelto = false;
@@ -37,7 +37,7 @@ function verificarInternet() {
         .then(() => resolver(true))
         .catch(() => {});
     });
-    // También verificar con navigator.onLine
+    // TambiÃ©n verificar con navigator.onLine
     if (navigator.onLine) {
       setTimeout(() => resolver(true), 2000);
     }
@@ -50,14 +50,14 @@ async function iniciarApp() {
   const hayInternet = await verificarInternet();
 
   if (!hayInternet) {
-    // Sin internet → mostrar pantalla de error
+    // Sin internet â†’ mostrar pantalla de error
     document.getElementById('updateScreen').style.display = 'none';
     document.getElementById('loginScreen').style.display = 'none';
     document.getElementById('noInternetScreen').style.display = 'flex';
     return;
   }
 
-  // Hay internet → continuar con verificación de updates
+  // Hay internet â†’ continuar con verificaciÃ³n de updates
   if (window.require) {
     const { ipcRenderer } = window.require('electron');
 
@@ -76,28 +76,28 @@ async function iniciarApp() {
       window._updateDescargando = false;
 
       if (data.status === 'checking') {
-        msg.textContent = '🔍 Buscando actualizaciones...';
+        msg.textContent = 'ðŸ” Buscando actualizaciones...';
         detail.textContent = 'Espera un momento';
       } else if (data.status === 'downloading') {
         window._updateDescargando = true;
-        msg.textContent = '⬇ Actualizando...';
+        msg.textContent = 'â¬‡ Actualizando...';
         progress.style.display = 'block';
         progressFill.style.width = data.percent + '%';
         detail.textContent = data.percent + '% descargado';
       } else if (data.status === 'ready') {
         window._updateDescargando = true;
-        msg.textContent = '✔ Actualización lista';
+        msg.textContent = 'âœ” ActualizaciÃ³n lista';
         progress.style.display = 'block';
         progressFill.style.width = '100%';
-        detail.textContent = 'Reiniciando aplicación...';
+        detail.textContent = 'Reiniciando aplicaciÃ³n...';
       } else if (data.status === 'no-update' || data.status === 'error') {
         updateScreen.style.display = 'none';
         loginScreen.style.display = 'flex';
       }
     });
 
-    // Si después de 30 segundos no hay respuesta del updater, mostrar login
-    // PERO si está descargando, NO mostrar login hasta que termine
+    // Si despuÃ©s de 30 segundos no hay respuesta del updater, mostrar login
+    // PERO si estÃ¡ descargando, NO mostrar login hasta que termine
     setTimeout(() => {
       const updateScreen = document.getElementById('updateScreen');
       if (updateScreen.style.display !== 'none' && !window._updateDescargando) {
@@ -111,11 +111,11 @@ async function iniciarApp() {
   }
 }
 
-// Botón reintentar
+// BotÃ³n reintentar
 document.getElementById('btnReintentar').addEventListener('click', () => {
   document.getElementById('noInternetScreen').style.display = 'none';
   document.getElementById('updateScreen').style.display = 'flex';
-  document.getElementById('updateMsg').textContent = '🔍 Verificando conexión...';
+  document.getElementById('updateMsg').textContent = 'ðŸ” Verificando conexiÃ³n...';
   iniciarApp();
 });
 
@@ -154,14 +154,14 @@ function winMaximizar() {
   }
 }
 function winCerrar() {
-  if (!confirm('¿Estás seguro de cerrar la aplicación?')) return;
+  if (!confirm('Â¿EstÃ¡s seguro de cerrar la aplicaciÃ³n?')) return;
   if (window.require) {
     const { ipcRenderer } = window.require('electron');
     ipcRenderer.send('ventana-cerrar');
   }
 }
 
-// ── Login ─────────────────────────────────────────────────
+// â”€â”€ Login â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Usuario admin por defecto si no existe
 if (!usuarios.some(u => u.login === 'admin')) {
   usuarios.push({ nombre: 'Administrador', login: 'admin', password: 'admin123', rol: 'Admin', activo: true });
@@ -169,7 +169,7 @@ if (!usuarios.some(u => u.login === 'admin')) {
 }
 
 function verificarSesion() {
-  // Recupera sesión temporal de localStorage (viene de limpiar/nueva orden)
+  // Recupera sesiÃ³n temporal de localStorage (viene de limpiar/nueva orden)
   const sesionTemp = localStorage.getItem('sesionTemp');
   if (sesionTemp) {
     localStorage.removeItem('sesionTemp');
@@ -178,7 +178,7 @@ function verificarSesion() {
   const sesion = localStorage.getItem('sesionActiva');
   if (sesion) {
     const sesionGuardada = JSON.parse(sesion);
-    // Si la lista de usuarios está vacía, usar la sesión guardada directamente (aún no cargó Firebase)
+    // Si la lista de usuarios estÃ¡ vacÃ­a, usar la sesiÃ³n guardada directamente (aÃºn no cargÃ³ Firebase)
     if (usuarios.length === 0) {
       usuarioActivo = sesionGuardada;
     } else {
@@ -188,12 +188,12 @@ function verificarSesion() {
         usuarioActivo = usuarioFresco;
         localStorage.setItem('sesionActiva', JSON.stringify(usuarioFresco));
       } else {
-        // Usuario no existe o fue desactivado — cerrar sesión
+        // Usuario no existe o fue desactivado â€” cerrar sesiÃ³n
         localStorage.removeItem('sesionActiva');
         return;
       }
     }
-    // Solo mostrar app si no estamos en pantalla de actualización
+    // Solo mostrar app si no estamos en pantalla de actualizaciÃ³n
     const updateScreen = document.getElementById('updateScreen');
     if (!updateScreen || updateScreen.style.display === 'none') {
       mostrarApp();
@@ -214,14 +214,14 @@ function mostrarApp() {
   document.getElementById('updateScreen').style.display = 'none';
   document.getElementById('noInternetScreen').style.display = 'none';
   document.getElementById('appMain').style.display = 'block';
-  document.getElementById('headerUsuario').textContent = `👤 ${usuarioActivo.nombre} (${usuarioActivo.rol})`;
+  document.getElementById('headerUsuario').textContent = `ðŸ‘¤ ${usuarioActivo.nombre} (${usuarioActivo.rol})`;
 
   // Mostrar fecha en formato "30 Abril 2026"
   const ahora = new Date();
   const opcFecha = { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'America/Santiago' };
-  document.getElementById('headerFecha').textContent = `📅 ${ahora.toLocaleDateString('es-CL', opcFecha)}`;
+  document.getElementById('headerFecha').textContent = `ðŸ“… ${ahora.toLocaleDateString('es-CL', opcFecha)}`;
 
-  // Actualizar número de salida desde Firebase
+  // Actualizar nÃºmero de salida desde Firebase
   if (window.fbListo) {
     fbCargar('config').then(datos => {
       const cfg = datos.find(c => c.valor !== undefined);
@@ -233,7 +233,7 @@ function mostrarApp() {
     });
   }
 
-  // Mostrar versión automáticamente
+  // Mostrar versiÃ³n automÃ¡ticamente
   try {
     if (window.require) {
       const { ipcRenderer } = window.require('electron');
@@ -248,16 +248,16 @@ function mostrarApp() {
   const esAdmin = usuarioActivo.rol === 'Admin';
   window._puedeEliminarReporte = esAdmin || p.eliminarReporte;
 
-  // Aplicar permisos y activar primera pestaña visible
+  // Aplicar permisos y activar primera pestaÃ±a visible
   aplicarPermisos();
 
-  // Sincronizar con Firebase después del login
+  // Sincronizar con Firebase despuÃ©s del login
   setTimeout(() => esperarFirebase(), 500);
   
   // Mostrar mensaje del admin si existe
   setTimeout(() => mostrarMensajeAdmin(), 3000);
   
-  // Verificador de sesión desactivado — no es necesario con usuarios diferentes por PC
+  // Verificador de sesiÃ³n desactivado â€” no es necesario con usuarios diferentes por PC
   // Si en el futuro necesitas reactivarlo, descomentar el bloque de abajo
   /*
   if (window._checkSesionInterval) clearInterval(window._checkSesionInterval);
@@ -272,7 +272,7 @@ function mostrarApp() {
       if (!encontrada) {
         const miUsuarioSesion = sesiones.find(s => s.sesionId && s.sesionId !== miSesion);
         if (!miUsuarioSesion) return;
-        showToast('Tu sesión fue cerrada porque otro dispositivo inició sesión con este usuario', true);
+        showToast('Tu sesiÃ³n fue cerrada porque otro dispositivo iniciÃ³ sesiÃ³n con este usuario', true);
         setTimeout(() => {
           localStorage.removeItem('sesionActiva');
           localStorage.removeItem('sesionId');
@@ -318,14 +318,14 @@ function hacerLogin() {
     });
     if (!usuario) {
       errEl.style.display = 'block';
-      errEl.textContent = 'Usuario o contraseña incorrectos';
+      errEl.textContent = 'Usuario o contraseÃ±a incorrectos';
       document.getElementById('loginClave').value = '';
       document.getElementById('btnLogin').textContent = 'Ingresar';
       document.getElementById('btnLogin').disabled = false;
       return;
     }
 
-    // Migrar contraseña a hash si aún está en texto plano
+    // Migrar contraseÃ±a a hash si aÃºn estÃ¡ en texto plano
     if (usuario.password === clave) {
       usuario.password = claveHash;
       localStorage.setItem('usuariosBodega', JSON.stringify(usuarios));
@@ -337,7 +337,7 @@ function hacerLogin() {
     diagInicioSesion = Date.now();
     localStorage.setItem('sesionActiva', JSON.stringify(usuario));
     
-    // Registrar sesión activa en Firebase
+    // Registrar sesiÃ³n activa en Firebase
     const sesionId = Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
     localStorage.setItem('sesionId', sesionId);
     if (window.fbListo) fbGuardar('sesiones', usuario.login, { sesionId, fecha: fechaHoraLocal() });
@@ -345,18 +345,18 @@ function hacerLogin() {
     document.getElementById('btnLogin').textContent = 'Ingresar';
     document.getElementById('btnLogin').disabled = false;
     mostrarApp();
-    registrarActividad('Inicio de sesión', `${usuario.nombre} (${usuario.rol})`);
+    registrarActividad('Inicio de sesiÃ³n', `${usuario.nombre} (${usuario.rol})`);
   } catch(e) {
     console.error('Error en login:', e);
-    showToast('Error al iniciar sesión: ' + e.message, true);
+    showToast('Error al iniciar sesiÃ³n: ' + e.message, true);
     document.getElementById('btnLogin').textContent = 'Ingresar';
     document.getElementById('btnLogin').disabled = false;
   }
 }
 
 document.getElementById('btnLogout').addEventListener('click', () => {
-  if (!confirm('¿Cerrar sesión?')) return;
-  registrarActividad('Cierre de sesión', `${usuarioActivo ? usuarioActivo.nombre : ''}`);
+  if (!confirm('Â¿Cerrar sesiÃ³n?')) return;
+  registrarActividad('Cierre de sesiÃ³n', `${usuarioActivo ? usuarioActivo.nombre : ''}`);
   localStorage.removeItem('sesionActiva');
   usuarioActivo = null;
   if (window.require) {
@@ -369,7 +369,7 @@ document.getElementById('btnLogout').addEventListener('click', () => {
 
 verificarSesion();
 
-// ── Elementos ─────────────────────────────────────────────
+// â”€â”€ Elementos â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const form        = document.getElementById('salidaForm');
 const tbodyProd   = document.getElementById('tbodyProductos');
 const nroSalidaEl = document.getElementById('nroSalida');
@@ -379,17 +379,20 @@ const sugerencias = document.getElementById('sugerencias');
 const solicitanteInput   = document.getElementById('solicitante');
 const sugerenciasCliente = document.getElementById('sugerenciasCliente');
 
-// ── Init ──────────────────────────────────────────────────
+// â”€â”€ Init â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 document.getElementById('fecha').value = fechaHoraLocal();
 nroSalidaEl.value = generarNro(contador);
 
-// Cargar datos desde Firebase si está disponible
+// Cargar datos desde Firebase si estÃ¡ disponible
 let _unsubscribers = [];
+let _cargandoDesdeFirebase = false;
 async function cargarDesdeFirebase() {
+  if (_cargandoDesdeFirebase) return; // Debounce: ignorar si ya estÃ¡ cargando
   if (!window.fbListo) {
     setTimeout(cargarDesdeFirebase, 500);
     return;
   }
+  _cargandoDesdeFirebase = true;
   // Limpiar listeners anteriores para evitar duplicados
   _unsubscribers.forEach(unsub => { try { unsub(); } catch(e) {} });
   _unsubscribers = [];
@@ -415,12 +418,12 @@ async function cargarDesdeFirebase() {
       renderUsuarios();
     }
 
-    showToast('✔ Conectado a la nube');
+    showToast('âœ” Conectado a la nube');
 
     // Cargar caja desde Firebase
     cargarCajaDesdeFirebase();
 
-    // Cargar desde Firebase SOLO si localStorage está vacío (ahorra miles de lecturas)
+    // Cargar desde Firebase SOLO si localStorage estÃ¡ vacÃ­o (ahorra miles de lecturas)
     // Si ya hay datos locales, los listeners en tiempo real se encargan de mantenerlos actualizados
     if (historial.length === 0) {
       const fbHistorial = await fbCargar('historial');
@@ -458,14 +461,14 @@ async function cargarDesdeFirebase() {
     _unsubscribers.push(fbEscuchar('historial', (datos) => {
       const nuevos = datos.sort((a,b) => b.nro.localeCompare(a.nro));
       
-      // Usar números de orden como clave para evitar duplicados
+      // Usar nÃºmeros de orden como clave para evitar duplicados
       const nrosNuevos = new Set(nuevos.map(n => n.nro));
       const nrosActuales = new Set(historial.map(h => h.nro));
       
-      // Verificar si hay cambios reales (nuevas órdenes, eliminadas, o editadas)
+      // Verificar si hay cambios reales (nuevas Ã³rdenes, eliminadas, o editadas)
       const hayNuevos = nuevos.some(n => !nrosActuales.has(n.nro));
       const hayEliminados = historial.some(h => !nrosNuevos.has(h.nro));
-      // Detectar ediciones: comparar contenido de órdenes existentes
+      // Detectar ediciones: comparar contenido de Ã³rdenes existentes
       const hayEditados = nuevos.some(n => {
         const actual = historial.find(h => h.nro === n.nro);
         if (!actual) return false;
@@ -473,15 +476,15 @@ async function cargarDesdeFirebase() {
       });
       
       if (hayNuevos || hayEliminados || hayEditados || nuevos.length !== historial.length) {
-        // Detectar órdenes nuevas para notificar (solo después de la carga inicial)
+        // Detectar Ã³rdenes nuevas para notificar (solo despuÃ©s de la carga inicial)
         if (historialCargadoInicial) {
           const ordenesNuevas = nuevos.filter(n => !nrosActuales.has(n.nro));
           const ahora = new Date();
           ordenesNuevas.forEach(orden => {
             const fechaOrden = new Date(orden.fecha ? orden.fecha.replace('T', ' ') : 0);
             if ((ahora - fechaOrden) < 5 * 60 * 1000) {
-              const quien = orden.rolCreador ? ` — Enviada por ${orden.rolCreador}` : '';
-              mostrarNotificacion('📦 Nueva Orden', `Orden ${orden.nro} — Cliente: ${orden.solicitante || 'Sin nombre'}${quien}`, orden.nro);
+              const quien = orden.rolCreador ? ` â€” Enviada por ${orden.rolCreador}` : '';
+              mostrarNotificacion('ðŸ“¦ Nueva Orden', `Orden ${orden.nro} â€” Cliente: ${orden.solicitante || 'Sin nombre'}${quien}`, orden.nro);
             }
           });
         }
@@ -510,14 +513,14 @@ async function cargarDesdeFirebase() {
           const recNuevas = nuevos.filter(n => !nrosActuales.has(n.nro) && !recepcionesNotificadas.has(n.nro));
           const ahora = new Date();
           recNuevas.forEach(rec => {
-            // Solo notificar recepciones de los últimos 5 minutos que no se hayan notificado antes
+            // Solo notificar recepciones de los Ãºltimos 5 minutos que no se hayan notificado antes
             const fechaRec = new Date(rec.fecha ? rec.fecha.replace('T', ' ') : 0);
             if ((ahora - fechaRec) < 5 * 60 * 1000) {
-              mostrarNotificacion('📥 Orden Recibida por Bodega', `${rec.nro} — Orden ${rec.nroOrden} recibida por ${rec.recibidoPor}`, rec.nroOrden);
+              mostrarNotificacion('ðŸ“¥ Orden Recibida por Bodega', `${rec.nro} â€” Orden ${rec.nroOrden} recibida por ${rec.recibidoPor}`, rec.nroOrden);
               recepcionesNotificadas.add(rec.nro);
             }
           });
-          // Guardar notificadas (mantener solo las últimas 100)
+          // Guardar notificadas (mantener solo las Ãºltimas 100)
           const arrNotif = [...recepcionesNotificadas].slice(-100);
           localStorage.setItem('recepcionesNotificadas', JSON.stringify(arrNotif));
         } else {
@@ -528,17 +531,11 @@ async function cargarDesdeFirebase() {
         // Firebase es la fuente de verdad
         recepciones = nuevos;
         localStorage.setItem('recepcionesBodega', JSON.stringify(recepciones));
-        // También recargar historial desde Firebase para mantener sincronizado
-        fbCargar('historial').then(fbHist => {
-          if (fbHist.length > 0) {
-            historial = fbHist.sort((a,b) => b.nro.localeCompare(a.nro));
-            localStorage.setItem('historialSalidas', JSON.stringify(historial));
-          }
-          renderRecepciones();
-          renderOrdenesEmitidas();
-          buscarOrdenAntigua();
-          renderReportes();
-        });
+        // Ya NO recargamos historial aquÃ­ â€” el listener de historial lo mantiene actualizado
+        renderRecepciones();
+        renderOrdenesEmitidas();
+        buscarOrdenAntigua();
+        renderReportes();
       }
       recepcionesCargadoInicial = true;
     }));
@@ -573,10 +570,10 @@ async function cargarDesdeFirebase() {
         const ultimoMsgVisto = localStorage.getItem('ultimoMsgAdmin') || '';
         if (msg.texto !== ultimoMsgVisto) {
           localStorage.setItem('ultimoMsgAdmin', msg.texto);
-          showToast('📢 Admin: ' + msg.texto);
+          showToast('ðŸ“¢ Admin: ' + msg.texto);
           if (window.require) {
             const { ipcRenderer } = window.require('electron');
-            ipcRenderer.send('mostrar-notificacion', { titulo: '📢 Mensaje del Admin', mensaje: msg.texto });
+            ipcRenderer.send('mostrar-notificacion', { titulo: 'ðŸ“¢ Mensaje del Admin', mensaje: msg.texto });
           }
         }
         const el = document.getElementById('mensajeAdminActual');
@@ -595,19 +592,19 @@ async function cargarDesdeFirebase() {
         localStorage.setItem('usuariosBodega', JSON.stringify(usuarios));
         renderUsuarios();
 
-        // Refrescar permisos del usuario activo si está logeado
+        // Refrescar permisos del usuario activo si estÃ¡ logeado
         if (usuarioActivo) {
           const usuarioFresco = usuarios.find(u => u.login === usuarioActivo.login && u.activo);
           if (usuarioFresco) {
             usuarioActivo = usuarioFresco;
             localStorage.setItem('sesionActiva', JSON.stringify(usuarioFresco));
-            // Reaplicar permisos en las pestañas
+            // Reaplicar permisos en las pestaÃ±as
             aplicarPermisos();
           } else if (usuarioActivo.login === 'admin' || usuarioActivo.rol === 'Admin') {
-            // Nunca cerrar sesión del admin
+            // Nunca cerrar sesiÃ³n del admin
             aplicarPermisos();
           } else {
-            // Usuario desactivado — cerrar sesión
+            // Usuario desactivado â€” cerrar sesiÃ³n
             localStorage.removeItem('sesionActiva');
             usuarioActivo = null;
             document.getElementById('appMain').style.display = 'none';
@@ -620,15 +617,17 @@ async function cargarDesdeFirebase() {
 
   } catch(e) {
     console.error('Error Firebase:', e);
+  } finally {
+    _cargandoDesdeFirebase = false;
   }
 }
 
-// Esperar a que Firebase esté listo con polling
+// Esperar a que Firebase estÃ© listo con polling
 function esperarFirebase() {
   if (window.fbListo) {
     cargarDesdeFirebase();
   } else {
-    setTimeout(esperarFirebase, 300);
+    setTimeout(esperarFirebase, 5000);
   }
 }
 
@@ -643,7 +642,7 @@ renderUsuarios();
 renderClientes();
 buscarOrdenAntigua();
 
-// ── Pestañas ──────────────────────────────────────────────
+// â”€â”€ PestaÃ±as â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 document.querySelectorAll('.tab').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -663,12 +662,12 @@ document.querySelectorAll('.tab').forEach(btn => {
   });
 });
 
-// ── Número de salida ──────────────────────────────────────
+// â”€â”€ NÃºmero de salida â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function generarNro(n) {
   return 'SAL-' + String(n).padStart(4, '0');
 }
 
-// Mostrar/ocultar N° documento según tipo
+// Mostrar/ocultar NÂ° documento segÃºn tipo
 document.getElementById('tipoDocumento').addEventListener('change', function () {
   const campo = document.getElementById('campoNroDoc');
   const input = document.getElementById('nroDocumento');
@@ -684,7 +683,7 @@ document.getElementById('tipoDocumento').addEventListener('change', function () 
 // Estado inicial oculto
 document.getElementById('campoNroDoc').style.display = 'none';
 
-// ── Buscador autocomplete ─────────────────────────────────
+// â”€â”€ Buscador autocomplete â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 let _buscarTimeout = null;
 inputBuscar.addEventListener('input', () => {
   if (_buscarTimeout) clearTimeout(_buscarTimeout);
@@ -701,7 +700,7 @@ inputBuscar.addEventListener('input', () => {
     if (filtrados.length === 0) { cerrarSugerencias(); return; }
     sugerencias.innerHTML = filtrados.map(p =>
       `<li onclick="seleccionarProducto(${catalogo.indexOf(p)})">
-        <strong>${p.nombre}</strong><span>${p.codigo} · ${p.unidad}</span>
+        <strong>${p.nombre}</strong><span>${p.codigo} Â· ${p.unidad}</span>
       </li>`
     ).join('');
     sugerencias.classList.add('visible');
@@ -715,10 +714,10 @@ inputBuscar.addEventListener('keydown', (e) => {
   if (!q) return;
 
   if (catalogo.length === 0) {
-    showToast('El catálogo de productos está vacío', true); return;
+    showToast('El catÃ¡logo de productos estÃ¡ vacÃ­o', true); return;
   }
 
-  // Normaliza código quitando espacios y guiones para comparación flexible
+  // Normaliza cÃ³digo quitando espacios y guiones para comparaciÃ³n flexible
   const norm = s => s.toLowerCase().replace(/[\s\-\.]/g, '');
 
   const encontrado = catalogo.find(p => norm(p.codigo) === norm(q))
@@ -727,21 +726,21 @@ inputBuscar.addEventListener('keydown', (e) => {
                   || catalogo.find(p => norm(p.nombre).includes(norm(q)));
 
   if (encontrado) seleccionarProducto(catalogo.indexOf(encontrado));
-  else showToast(`No se encontró "${inputBuscar.value}" en el catálogo`, true);
+  else showToast(`No se encontrÃ³ "${inputBuscar.value}" en el catÃ¡logo`, true);
 });
 
-// Botón lupa para buscar producto — abre modal de búsqueda
+// BotÃ³n lupa para buscar producto â€” abre modal de bÃºsqueda
 function buscarProductoEnOrden() {
   const q = inputBuscar.value.trim().toLowerCase();
-  if (!q) { showToast('Escribe un código o nombre para buscar', true); inputBuscar.focus(); return; }
-  if (catalogo.length === 0) { showToast('El catálogo de productos está vacío', true); return; }
+  if (!q) { showToast('Escribe un cÃ³digo o nombre para buscar', true); inputBuscar.focus(); return; }
+  if (catalogo.length === 0) { showToast('El catÃ¡logo de productos estÃ¡ vacÃ­o', true); return; }
   const norm = s => s.toLowerCase().replace(/[\s\-\.]/g, '');
   const encontrado = catalogo.find(p => norm(p.codigo) === norm(q))
                   || catalogo.find(p => norm(p.nombre)  === norm(q))
                   || catalogo.find(p => norm(p.codigo).includes(norm(q)))
                   || catalogo.find(p => norm(p.nombre).includes(norm(q)));
   if (encontrado) seleccionarProducto(catalogo.indexOf(encontrado));
-  else showToast(`No se encontró "${inputBuscar.value}" en el catálogo`, true);
+  else showToast(`No se encontrÃ³ "${inputBuscar.value}" en el catÃ¡logo`, true);
 }
 
 document.getElementById('inputCantidad').addEventListener('input', (e) => {
@@ -768,11 +767,11 @@ function seleccionarProducto(i) {
   document.getElementById('inputCantidad').focus();
 }
 
-// ── Modal buscar producto ─────────────────────────────────
+// â”€â”€ Modal buscar producto â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 document.getElementById('btnAbrirBuscador').addEventListener('click', () => {
   document.getElementById('modalBuscarProducto').style.display = 'flex';
   document.getElementById('buscadorProductoInput').value = '';
-  document.getElementById('tbodyBuscadorProducto').innerHTML = '<tr><td colspan="4" class="empty-msg">Ingresa un código o nombre para buscar</td></tr>';
+  document.getElementById('tbodyBuscadorProducto').innerHTML = '<tr><td colspan="4" class="empty-msg">Ingresa un cÃ³digo o nombre para buscar</td></tr>';
   setTimeout(() => document.getElementById('buscadorProductoInput').focus(), 200);
 });
 
@@ -792,7 +791,7 @@ function ejecutarBusquedaProducto() {
     return;
   }
   if (catalogo.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="4" class="empty-msg">El catálogo está vacío</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="4" class="empty-msg">El catÃ¡logo estÃ¡ vacÃ­o</td></tr>';
     return;
   }
   const resultados = [];
@@ -834,15 +833,15 @@ document.addEventListener('click', (e) => {
   if (!e.target.closest('.add-product-row')) cerrarSugerencias();
 });
 
-// ── Agregar producto a la salida ──────────────────────────
+// â”€â”€ Agregar producto a la salida â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 document.getElementById('btnAgregar').addEventListener('click', () => {
-  // Validar que los datos generales estén llenos antes de agregar productos
+  // Validar que los datos generales estÃ©n llenos antes de agregar productos
   const tipoDoc = document.getElementById('tipoDocumento').value;
   const cliente = document.getElementById('solicitante').value.trim();
   if (!tipoDoc) { showToast('Primero selecciona el Tipo de Documento', true); document.getElementById('tipoDocumento').focus(); return; }
   const campoNroVisible = document.getElementById('campoNroDoc').style.display !== 'none';
   const nroDoc = document.getElementById('nroDocumento').value.trim();
-  if (campoNroVisible && !nroDoc) { showToast('Primero ingresa el N° de Documento', true); document.getElementById('nroDocumento').focus(); return; }
+  if (campoNroVisible && !nroDoc) { showToast('Primero ingresa el NÂ° de Documento', true); document.getElementById('nroDocumento').focus(); return; }
   if (!cliente) { showToast('Primero ingresa el nombre del Cliente', true); document.getElementById('solicitante').focus(); return; }
 
   const codigo      = document.getElementById('inputCodigo').value.trim();
@@ -851,8 +850,8 @@ document.getElementById('btnAgregar').addEventListener('click', () => {
   const cantidad    = parseFloat(document.getElementById('inputCantidad').value);
   const cantPalabras = document.getElementById('inputCantidadPalabras').value;
 
-  if (!descripcion) { showToast('Ingresa la descripción del producto', true); return; }
-  if (!cantidad || cantidad <= 0) { showToast('Ingresa una cantidad válida', true); return; }
+  if (!descripcion) { showToast('Ingresa la descripciÃ³n del producto', true); return; }
+  if (!cantidad || cantidad <= 0) { showToast('Ingresa una cantidad vÃ¡lida', true); return; }
 
   productos.push({ codigo, descripcion, unidad, cantidad, cantPalabras });
   renderTabla();
@@ -872,7 +871,7 @@ function renderTabla() {
       <td>${p.unidad}</td>
       <td>${p.cantidad}</td>
       <td>${p.cantPalabras || '-'}</td>
-      <td><button class="btn-delete" onclick="eliminarProducto(${i})" title="Eliminar">✕</button></td>
+      <td><button class="btn-delete" onclick="eliminarProducto(${i})" title="Eliminar">âœ•</button></td>
     </tr>`).join('');
 }
 
@@ -888,7 +887,7 @@ function limpiarInputsProducto() {
   document.getElementById('inputUnidad').value = 'unidad';
 }
 
-// ── Submit salida ─────────────────────────────────────────
+// â”€â”€ Submit salida â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 let registrando = false;
 form.addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -897,37 +896,37 @@ form.addEventListener('submit', async (e) => {
   if (registrando) return;
   registrando = true;
   document.getElementById('btnRegistrar').disabled = true;
-  document.getElementById('btnRegistrar').textContent = '⏳ Registrando...';
+  document.getElementById('btnRegistrar').textContent = 'â³ Registrando...';
 
   const tipoDocumento = document.getElementById('tipoDocumento').value;
   const solicitante   = document.getElementById('solicitante').value.trim();
 
-  if (!tipoDocumento) { showToast('Selecciona el Tipo de Documento', true); document.getElementById('tipoDocumento').focus(); registrando = false; document.getElementById('btnRegistrar').disabled = false; document.getElementById('btnRegistrar').textContent = '✔ Registrar Salida'; return; }
+  if (!tipoDocumento) { showToast('Selecciona el Tipo de Documento', true); document.getElementById('tipoDocumento').focus(); registrando = false; document.getElementById('btnRegistrar').disabled = false; document.getElementById('btnRegistrar').textContent = 'âœ” Registrar Salida'; return; }
 
   const nroDocumento = document.getElementById('nroDocumento').value.trim();
   const campoNroVisible = document.getElementById('campoNroDoc').style.display !== 'none';
   if (campoNroVisible && !nroDocumento) {
-    showToast('Ingresa el N° de Documento', true);
+    showToast('Ingresa el NÂ° de Documento', true);
     document.getElementById('nroDocumento').focus();
-    registrando = false; document.getElementById('btnRegistrar').disabled = false; document.getElementById('btnRegistrar').textContent = '✔ Registrar Salida'; return;
+    registrando = false; document.getElementById('btnRegistrar').disabled = false; document.getElementById('btnRegistrar').textContent = 'âœ” Registrar Salida'; return;
   }
-  if (!solicitante) { showToast('Ingresa el nombre del Cliente', true); document.getElementById('solicitante').focus(); registrando = false; document.getElementById('btnRegistrar').disabled = false; document.getElementById('btnRegistrar').textContent = '✔ Registrar Salida'; return; }
-  if (productos.length === 0) { showToast('Agrega al menos un producto', true); registrando = false; document.getElementById('btnRegistrar').disabled = false; document.getElementById('btnRegistrar').textContent = '✔ Registrar Salida'; return; }
+  if (!solicitante) { showToast('Ingresa el nombre del Cliente', true); document.getElementById('solicitante').focus(); registrando = false; document.getElementById('btnRegistrar').disabled = false; document.getElementById('btnRegistrar').textContent = 'âœ” Registrar Salida'; return; }
+  if (productos.length === 0) { showToast('Agrega al menos un producto', true); registrando = false; document.getElementById('btnRegistrar').disabled = false; document.getElementById('btnRegistrar').textContent = 'âœ” Registrar Salida'; return; }
 
-  // ── Vista previa antes de confirmar ──
+  // â”€â”€ Vista previa antes de confirmar â”€â”€
   const previewConfirmado = await mostrarVistaPrevia(tipoDocumento, nroDocumento, solicitante, productos, window._editandoOrden);
   if (!previewConfirmado) {
     registrando = false;
     document.getElementById('btnRegistrar').disabled = false;
-    document.getElementById('btnRegistrar').textContent = window._editandoOrden ? '✔ Guardar Cambios' : '✔ Registrar Salida';
+    document.getElementById('btnRegistrar').textContent = window._editandoOrden ? 'âœ” Guardar Cambios' : 'âœ” Registrar Salida';
     return;
   }
 
-  // ── Si estamos editando una orden existente ──
+  // â”€â”€ Si estamos editando una orden existente â”€â”€
   if (window._editandoOrden) {
     const nroEdit = window._editandoOrden;
     const idx = historial.findIndex(o => o.nro === nroEdit);
-    if (idx === -1) { showToast('Orden no encontrada', true); registrando = false; document.getElementById('btnRegistrar').disabled = false; document.getElementById('btnRegistrar').textContent = '✔ Registrar Salida'; return; }
+    if (idx === -1) { showToast('Orden no encontrada', true); registrando = false; document.getElementById('btnRegistrar').disabled = false; document.getElementById('btnRegistrar').textContent = 'âœ” Registrar Salida'; return; }
 
     // Actualizar la orden
     historial[idx].fecha         = document.getElementById('fecha').value;
@@ -943,8 +942,8 @@ form.addEventListener('submit', async (e) => {
     localStorage.setItem('historialSalidas', JSON.stringify(historial));
     if (window.fbListo) fbGuardar('historial', nroEdit, historial[idx]);
 
-    showToast(`✔ Orden ${nroEdit} actualizada correctamente`);
-    registrarActividad('Orden editada', `${nroEdit} — Cliente: ${solicitante}`);
+    showToast(`âœ” Orden ${nroEdit} actualizada correctamente`);
+    registrarActividad('Orden editada', `${nroEdit} â€” Cliente: ${solicitante}`);
     window._editandoOrden = null;
     bloquearFormulario();
     buscarOrdenAntigua();
@@ -954,9 +953,9 @@ form.addEventListener('submit', async (e) => {
     return;
   }
 
-  // Obtener siguiente número de orden (transacción atómica - nunca se duplica)
+  // Obtener siguiente nÃºmero de orden (transacciÃ³n atÃ³mica - nunca se duplica)
   let nroOrden;
-  document.getElementById('btnRegistrar').textContent = '⏳ Registrando...';
+  document.getElementById('btnRegistrar').textContent = 'â³ Registrando...';
   if (window.fbListo && window.fbObtenerSiguienteNumero) {
     try {
       const nroDesdeFirebase = await fbObtenerSiguienteNumero();
@@ -965,8 +964,8 @@ form.addEventListener('submit', async (e) => {
         contador = nroDesdeFirebase + 1;
         localStorage.setItem('contadorSalidas', contador);
       } else {
-        // Firebase falló — reintentar una vez
-        showToast('Reintentando conexión...', true);
+        // Firebase fallÃ³ â€” reintentar una vez
+        showToast('Reintentando conexiÃ³n...', true);
         await new Promise(r => setTimeout(r, 1000));
         const reintento = await fbObtenerSiguienteNumero();
         if (reintento !== null) {
@@ -974,26 +973,26 @@ form.addEventListener('submit', async (e) => {
           contador = reintento + 1;
           localStorage.setItem('contadorSalidas', contador);
         } else {
-          showToast('Error de conexión. Intenta de nuevo.', true);
+          showToast('Error de conexiÃ³n. Intenta de nuevo.', true);
           registrando = false;
           document.getElementById('btnRegistrar').disabled = false;
-          document.getElementById('btnRegistrar').textContent = '✔ Registrar Salida';
+          document.getElementById('btnRegistrar').textContent = 'âœ” Registrar Salida';
           return;
         }
       }
     } catch(e) {
-      console.error('Error obteniendo número:', e);
-      showToast('Error de conexión. Intenta de nuevo.', true);
+      console.error('Error obteniendo nÃºmero:', e);
+      showToast('Error de conexiÃ³n. Intenta de nuevo.', true);
       registrando = false;
       document.getElementById('btnRegistrar').disabled = false;
-      document.getElementById('btnRegistrar').textContent = '✔ Registrar Salida';
+      document.getElementById('btnRegistrar').textContent = 'âœ” Registrar Salida';
       return;
     }
   } else {
-    showToast('Sin conexión a Firebase. Intenta de nuevo.', true);
+    showToast('Sin conexiÃ³n a Firebase. Intenta de nuevo.', true);
     registrando = false;
     document.getElementById('btnRegistrar').disabled = false;
-    document.getElementById('btnRegistrar').textContent = '✔ Registrar Salida';
+    document.getElementById('btnRegistrar').textContent = 'âœ” Registrar Salida';
     return;
   }
 
@@ -1022,8 +1021,8 @@ form.addEventListener('submit', async (e) => {
     fbGuardar('historial', salida.nro, salida);
   }
 
-  showToast(`✔ Salida ${salida.nro} registrada correctamente`);
-  registrarActividad('Orden creada', `${salida.nro} — Cliente: ${salida.solicitante} — ${salida.total} producto(s)`);
+  showToast(`âœ” Salida ${salida.nro} registrada correctamente`);
+  registrarActividad('Orden creada', `${salida.nro} â€” Cliente: ${salida.solicitante} â€” ${salida.total} producto(s)`);
   bloquearFormulario();
   buscarOrdenAntigua();
   registrando = false;
@@ -1061,7 +1060,7 @@ function resetForm() {
   document.getElementById('btnAgregar').disabled  = false;
   document.getElementById('btnRegistrar').disabled = false;
   document.getElementById('btnRegistrar').style.display = '';
-  document.getElementById('btnRegistrar').textContent = '✔ Registrar Salida';
+  document.getElementById('btnRegistrar').textContent = 'âœ” Registrar Salida';
   registrando = false;
   document.getElementById('btnImprimir').style.display = 'none';
   document.getElementById('btnNuevaOrden').style.display = 'none';
@@ -1072,7 +1071,7 @@ function resetForm() {
   nroSalidaEl.value = generarNro(contador);
 }
 
-// ── Reportes ──────────────────────────────────────────────
+// â”€â”€ Reportes â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function renderReportes(filtro = null) {
   const datos = filtro !== null ? filtro : historial.slice(0, 10);
   const hoy   = new Date().toISOString().slice(0, 10);
@@ -1109,7 +1108,7 @@ function renderReportes(filtro = null) {
 
   const tbody = document.getElementById('tbodyReportes');
   if (datos.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="7" class="empty-msg">No hay órdenes que coincidan</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" class="empty-msg">No hay Ã³rdenes que coincidan</td></tr>';
     return;
   }
   tbody.innerHTML = datos.map((s, i) => `
@@ -1125,7 +1124,7 @@ function renderReportes(filtro = null) {
     </tr>`).join('');
 }
 
-// ── Exportar reportes a Excel (CSV) ──────────────────────────
+// â”€â”€ Exportar reportes a Excel (CSV) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 document.getElementById('btnExportarExcel').addEventListener('click', () => {
   try {
     const conteo = {};
@@ -1137,14 +1136,14 @@ document.getElementById('btnExportarExcel').addEventListener('click', () => {
       });
     });
 
-    // CSV de órdenes
+    // CSV de Ã³rdenes
     let csv = '\uFEFF'; // BOM para Excel
-    csv += 'N° Salida;Fecha;Tipo Doc.;N° Documento;Cliente;Creada por;Rol;Estado;Productos\n';
+    csv += 'NÂ° Salida;Fecha;Tipo Doc.;NÂ° Documento;Cliente;Creada por;Rol;Estado;Productos\n';
     historial.forEach(s => {
       csv += `${s.nro};${formatFecha(s.fecha)};${s.tipoDocumento||'-'};${s.nroDocumento||'-'};${s.solicitante||'-'};${s.creadoPor||'-'};${s.rolCreador||'-'};${s.anulada?'Anulada':'Activa'};${s.total}\n`;
     });
     csv += '\n\nTop Productos Despachados\n';
-    csv += '#;Código;Producto;Unidad;Total Despachado\n';
+    csv += '#;CÃ³digo;Producto;Unidad;Total Despachado\n';
     const topProductos = Object.values(conteo).sort((a,b) => b.total - a.total);
     topProductos.forEach((p, i) => {
       csv += `${i+1};${p.codigo};${p.descripcion};${p.unidad};${p.total}\n`;
@@ -1158,15 +1157,15 @@ document.getElementById('btnExportarExcel').addEventListener('click', () => {
     a.download = `Reporte_BodegaAM_${hoy}.csv`;
     a.click();
     URL.revokeObjectURL(url);
-    showToast('✔ Reporte exportado a Excel (CSV)');
-    registrarActividad('Exportar Excel', 'Reporte de órdenes exportado');
+    showToast('âœ” Reporte exportado a Excel (CSV)');
+    registrarActividad('Exportar Excel', 'Reporte de Ã³rdenes exportado');
   } catch(e) {
     console.error('Error exportando:', e);
     showToast('Error al exportar: ' + e.message, true);
   }
 });
 
-// ── Exportar reportes a PDF ───────────────────────────────
+// â”€â”€ Exportar reportes a PDF â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 document.getElementById('btnExportarPDF').addEventListener('click', () => {
   const hoy = new Date().toLocaleDateString('es-CL');
 
@@ -1210,23 +1209,23 @@ document.getElementById('btnExportarPDF').addEventListener('click', () => {
       tbody tr:nth-child(even) { background:#f5f5f5; }
     </style></head>
     <body>
-      <h1>Bodega A&M — Reporte de Órdenes</h1>
+      <h1>Bodega A&M â€” Reporte de Ã“rdenes</h1>
       <p class="fecha">Generado el ${hoy}</p>
       <div class="stats">
-        <div class="stat"><div class="stat-num">${historial.length}</div><div class="stat-label">Total Órdenes</div></div>
-        <div class="stat"><div class="stat-num">${historial.filter(s=>s.fecha&&s.fecha.slice(0,10)===new Date().toISOString().slice(0,10)).length}</div><div class="stat-label">Órdenes Hoy</div></div>
-        <div class="stat"><div class="stat-num">${historial.reduce((a,s)=>a+s.total,0)}</div><div class="stat-label">Ítems Despachados</div></div>
-        <div class="stat"><div class="stat-num">${historial.filter(s=>s.fecha&&s.fecha.slice(0,7)===new Date().toISOString().slice(0,7)).length}</div><div class="stat-label">Órdenes este Mes</div></div>
+        <div class="stat"><div class="stat-num">${historial.length}</div><div class="stat-label">Total Ã“rdenes</div></div>
+        <div class="stat"><div class="stat-num">${historial.filter(s=>s.fecha&&s.fecha.slice(0,10)===new Date().toISOString().slice(0,10)).length}</div><div class="stat-label">Ã“rdenes Hoy</div></div>
+        <div class="stat"><div class="stat-num">${historial.reduce((a,s)=>a+s.total,0)}</div><div class="stat-label">Ãtems Despachados</div></div>
+        <div class="stat"><div class="stat-num">${historial.filter(s=>s.fecha&&s.fecha.slice(0,7)===new Date().toISOString().slice(0,7)).length}</div><div class="stat-label">Ã“rdenes este Mes</div></div>
       </div>
-      <h2>Top 10 Productos Más Despachados</h2>
+      <h2>Top 10 Productos MÃ¡s Despachados</h2>
       <table>
-        <thead><tr><th>#</th><th>Código</th><th>Producto</th><th>Unidad</th><th>Total</th></tr></thead>
+        <thead><tr><th>#</th><th>CÃ³digo</th><th>Producto</th><th>Unidad</th><th>Total</th></tr></thead>
         <tbody>${filasTop || '<tr><td colspan="5" style="text-align:center">Sin datos</td></tr>'}</tbody>
       </table>
-      <h2>Historial de Órdenes</h2>
+      <h2>Historial de Ã“rdenes</h2>
       <table>
-        <thead><tr><th>N° Salida</th><th>Tipo Doc.</th><th>Fecha</th><th>Cliente</th><th>Creada por</th><th>Estado</th></tr></thead>
-        <tbody>${filasOrdenes || '<tr><td colspan="6" style="text-align:center">Sin órdenes</td></tr>'}</tbody>
+        <thead><tr><th>NÂ° Salida</th><th>Tipo Doc.</th><th>Fecha</th><th>Cliente</th><th>Creada por</th><th>Estado</th></tr></thead>
+        <tbody>${filasOrdenes || '<tr><td colspan="6" style="text-align:center">Sin Ã³rdenes</td></tr>'}</tbody>
       </table>
     </body></html>`;
 
@@ -1234,7 +1233,7 @@ document.getElementById('btnExportarPDF').addEventListener('click', () => {
     const { ipcRenderer } = window.require('electron');
     ipcRenderer.send('vistaPreviewPDF', html);
   }
-  registrarActividad('Exportar PDF', 'Reporte de órdenes exportado');
+  registrarActividad('Exportar PDF', 'Reporte de Ã³rdenes exportado');
 });
 
 document.getElementById('btnBuscarProductoFecha').addEventListener('click', buscarProductoFecha);
@@ -1244,7 +1243,7 @@ document.getElementById('buscarProductoFecha').addEventListener('keydown', e => 
 // Exportar Producto Fecha a Excel
 document.getElementById('btnExcelProductoFecha').addEventListener('click', () => {
   if (!window._productoFechaData) return;
-  let csv = '\uFEFFFecha;N° Orden;Código;Producto;Unid.;Cant.;Cliente\n';
+  let csv = '\uFEFFFecha;NÂ° Orden;CÃ³digo;Producto;Unid.;Cant.;Cliente\n';
   window._productoFechaData.forEach(r => {
     csv += `${formatFecha(r.fecha)};${r.nro};${r.codigo};${r.descripcion};${r.unidad};${r.cantidad};${r.cliente||'-'}\n`;
   });
@@ -1255,7 +1254,7 @@ document.getElementById('btnExcelProductoFecha').addEventListener('click', () =>
   a.download = `BusquedaProducto_${fechaHoraLocal().slice(0,10)}.csv`;
   a.click();
   URL.revokeObjectURL(url);
-  showToast('✔ Excel exportado');
+  showToast('âœ” Excel exportado');
 });
 
 // Exportar Producto Fecha a PDF
@@ -1268,8 +1267,8 @@ document.getElementById('btnPdfProductoFecha').addEventListener('click', () => {
     table{width:100%;border-collapse:collapse}thead th{background:#333;color:#fff;padding:5px 8px;text-align:left}
     tbody td{padding:4px 8px;border-bottom:1px solid #ddd}tbody tr:nth-child(even){background:#f5f5f5}
   </style></head><body>
-    <h1>Bodega A&M — Búsqueda de Salidas por Producto</h1>
-    <table><thead><tr><th>Fecha</th><th>N° Orden</th><th>Código</th><th>Producto</th><th>Unid.</th><th>Cant.</th><th>Cliente</th></tr></thead>
+    <h1>Bodega A&M â€” BÃºsqueda de Salidas por Producto</h1>
+    <table><thead><tr><th>Fecha</th><th>NÂ° Orden</th><th>CÃ³digo</th><th>Producto</th><th>Unid.</th><th>Cant.</th><th>Cliente</th></tr></thead>
     <tbody>${filas}</tbody></table></body></html>`;
   if (window.require) {
     const { ipcRenderer } = window.require('electron');
@@ -1337,18 +1336,18 @@ function buscarProductoFecha() {
   window._productoFechaData = resultados;
 }
 
-// Filtros órdenes
+// Filtros Ã³rdenes
 document.getElementById('btnFiltrar').addEventListener('click', aplicarFiltro);
 
-// Filtro ítems despachados por fecha
+// Filtro Ã­tems despachados por fecha
 document.getElementById('btnFiltroItems').addEventListener('click', () => {
   const fecha = document.getElementById('filtroItemsFecha').value;
   if (!fecha) { showToast('Selecciona una fecha', true); return; }
   const items = historial.filter(s => s.fecha && s.fecha.slice(0,10) === fecha).reduce((a, s) => a + s.total, 0);
-  document.getElementById('statItemsFecha').textContent = items + ' ítems el ' + fecha.split('-').reverse().join('/');
+  document.getElementById('statItemsFecha').textContent = items + ' Ã­tems el ' + fecha.split('-').reverse().join('/');
 });
 
-// ── Resumen Ejecutivo del Mes ─────────────────────────────
+// â”€â”€ Resumen Ejecutivo del Mes â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 document.getElementById('btnResumenMes').addEventListener('click', () => {
   const mes = document.getElementById('filtroResumenMes').value;
   if (!mes) { showToast('Selecciona un mes', true); return; }
@@ -1365,29 +1364,29 @@ function renderResumenEjecutivo(mes) {
   const [anio, mesNum] = mes.split('-').map(Number);
   const mesAnterior = mesNum === 1 ? `${anio-1}-12` : `${anio}-${String(mesNum-1).padStart(2,'0')}`;
   const totalMesAnterior = historial.filter(s => s.fecha && s.fecha.slice(0,7) === mesAnterior).length;
-  let comparacion = '—';
+  let comparacion = 'â€”';
   if (totalMesAnterior > 0) {
     const diff = Math.round(((totalMes - totalMesAnterior) / totalMesAnterior) * 100);
     comparacion = (diff >= 0 ? '+' : '') + diff + '%';
   }
 
-  // Promedio por día
+  // Promedio por dÃ­a
   const diasEnMes = new Date(anio, mesNum, 0).getDate();
   const promedio = totalMes > 0 ? (totalMes / diasEnMes).toFixed(1) : '0';
 
-  // Día más activo
+  // DÃ­a mÃ¡s activo
   const conteosDia = {};
   ordenesMes.forEach(s => {
     const dia = s.fecha.slice(0,10);
     conteosDia[dia] = (conteosDia[dia] || 0) + 1;
   });
-  let diaMasActivo = '—';
+  let diaMasActivo = 'â€”';
   let maxDia = 0;
   Object.entries(conteosDia).forEach(([dia, count]) => {
     if (count > maxDia) { maxDia = count; diaMasActivo = dia.split('-').reverse().join('/') + ' (' + count + ')'; }
   });
 
-  // Ítems despachados
+  // Ãtems despachados
   const itemsMes = ordenesMes.reduce((a, s) => a + (s.total || 0), 0);
 
   // Hora pico
@@ -1398,10 +1397,10 @@ function renderResumenEjecutivo(mes) {
       conteosHora[hora] = (conteosHora[hora] || 0) + 1;
     }
   });
-  let horaPico = '—';
+  let horaPico = 'â€”';
   let maxHora = 0;
   Object.entries(conteosHora).forEach(([hora, count]) => {
-    if (count > maxHora) { maxHora = count; horaPico = hora + ':00 (' + count + ' órdenes)'; }
+    if (count > maxHora) { maxHora = count; horaPico = hora + ':00 (' + count + ' Ã³rdenes)'; }
   });
 
   // Recepciones del mes
@@ -1410,7 +1409,7 @@ function renderResumenEjecutivo(mes) {
   // Anuladas
   const anuladasMes = ordenesMes.filter(s => s.anulada).length;
 
-  // Pendientes de recepción
+  // Pendientes de recepciÃ³n
   const pendientes = ordenesMes.filter(s => !s.anulada && !recepciones.some(r => r.nroOrden === s.nro)).length;
 
   // Top 3 productos
@@ -1442,7 +1441,7 @@ function renderResumenEjecutivo(mes) {
   document.getElementById('reAnuladas').textContent = anuladasMes;
   document.getElementById('rePendientes').textContent = pendientes;
 
-  // Semana más activa
+  // Semana mÃ¡s activa
   const semanas = { 'Semana 1': 0, 'Semana 2': 0, 'Semana 3': 0, 'Semana 4': 0, 'Semana 5': 0 };
   ordenesMes.forEach(s => {
     if (s.fecha) {
@@ -1454,7 +1453,7 @@ function renderResumenEjecutivo(mes) {
       else semanas['Semana 5']++;
     }
   });
-  let semanaActiva = '—';
+  let semanaActiva = 'â€”';
   let maxSemana = 0;
   Object.entries(semanas).forEach(([sem, count]) => {
     if (count > maxSemana) { maxSemana = count; semanaActiva = sem + ' (' + count + ')'; }
@@ -1462,13 +1461,13 @@ function renderResumenEjecutivo(mes) {
   document.getElementById('reSemanaActiva').textContent = semanaActiva;
 
   document.getElementById('reTopProductos').innerHTML = topProds.length > 0
-    ? topProds.map((p, i) => `${i+1}. <strong>${p[0]}</strong> — ${p[1]} unid.`).join('<br>')
+    ? topProds.map((p, i) => `${i+1}. <strong>${p[0]}</strong> â€” ${p[1]} unid.`).join('<br>')
     : 'Sin datos';
   document.getElementById('reTopClientes').innerHTML = topClientes.length > 0
-    ? topClientes.map((c, i) => `${i+1}. <strong>${c[0]}</strong> — ${c[1]} órdenes`).join('<br>')
+    ? topClientes.map((c, i) => `${i+1}. <strong>${c[0]}</strong> â€” ${c[1]} Ã³rdenes`).join('<br>')
     : 'Sin datos';
 
-  // Récord histórico
+  // RÃ©cord histÃ³rico
   const conteoMeses = {};
   historial.forEach(s => {
     if (s.fecha) {
@@ -1476,17 +1475,17 @@ function renderResumenEjecutivo(mes) {
       conteoMeses[m] = (conteoMeses[m] || 0) + 1;
     }
   });
-  let mejorMes = '—';
+  let mejorMes = 'â€”';
   let maxMes = 0;
   const meses = ['','Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
   Object.entries(conteoMeses).forEach(([m, count]) => {
     if (count > maxMes) {
       maxMes = count;
       const [a, mn] = m.split('-');
-      mejorMes = meses[parseInt(mn)] + ' ' + a + ' (' + count + ' órdenes)';
+      mejorMes = meses[parseInt(mn)] + ' ' + a + ' (' + count + ' Ã³rdenes)';
     }
   });
-  document.getElementById('reRecord').textContent = '🏆 ' + mejorMes;
+  document.getElementById('reRecord').textContent = 'ðŸ† ' + mejorMes;
 }
 
 // Exportar Resumen Ejecutivo a PDF
@@ -1506,22 +1505,22 @@ document.getElementById('btnResumenPDF').addEventListener('click', () => {
     .section{margin-top:16px}
     .section h3{font-size:0.95rem;margin-bottom:6px}
   </style></head><body>
-    <h1>Resumen Ejecutivo — ${titulo}</h1>
+    <h1>Resumen Ejecutivo â€” ${titulo}</h1>
     <div class="grid">
-      <div class="card"><div class="num">${document.getElementById('reTotal').textContent}</div><div class="label">Total Órdenes</div></div>
+      <div class="card"><div class="num">${document.getElementById('reTotal').textContent}</div><div class="label">Total Ã“rdenes</div></div>
       <div class="card"><div class="num">${document.getElementById('reComparacion').textContent}</div><div class="label">vs Mes Anterior</div></div>
-      <div class="card"><div class="num">${document.getElementById('rePromedioDia').textContent}</div><div class="label">Promedio/Día</div></div>
-      <div class="card"><div class="num">${document.getElementById('reDiaMasActivo').textContent}</div><div class="label">Día Más Activo</div></div>
-      <div class="card"><div class="num">${document.getElementById('reItemsMes').textContent}</div><div class="label">Ítems Despachados</div></div>
+      <div class="card"><div class="num">${document.getElementById('rePromedioDia').textContent}</div><div class="label">Promedio/DÃ­a</div></div>
+      <div class="card"><div class="num">${document.getElementById('reDiaMasActivo').textContent}</div><div class="label">DÃ­a MÃ¡s Activo</div></div>
+      <div class="card"><div class="num">${document.getElementById('reItemsMes').textContent}</div><div class="label">Ãtems Despachados</div></div>
       <div class="card"><div class="num">${document.getElementById('reHoraPico').textContent}</div><div class="label">Hora Pico</div></div>
       <div class="card"><div class="num">${document.getElementById('reRecepciones').textContent}</div><div class="label">Recepciones</div></div>
       <div class="card"><div class="num">${document.getElementById('reAnuladas').textContent}</div><div class="label">Anuladas</div></div>
-      <div class="card"><div class="num">${document.getElementById('reSemanaActiva').textContent}</div><div class="label">Semana Más Activa</div></div>
+      <div class="card"><div class="num">${document.getElementById('reSemanaActiva').textContent}</div><div class="label">Semana MÃ¡s Activa</div></div>
     </div>
-    <div class="section"><h3>🏆 Top 3 Productos</h3><p>${document.getElementById('reTopProductos').innerHTML}</p></div>
-    <div class="section"><h3>⭐ Top 3 Clientes</h3><p>${document.getElementById('reTopClientes').innerHTML}</p></div>
-    <div class="section"><h3>🏅 Récord Histórico</h3><p>${document.getElementById('reRecord').textContent}</p></div>
-    <p style="text-align:center;margin-top:30px;font-size:0.8rem;color:#888">Bodega A&M — Generado el ${new Date().toLocaleDateString('es-CL')}</p>
+    <div class="section"><h3>ðŸ† Top 3 Productos</h3><p>${document.getElementById('reTopProductos').innerHTML}</p></div>
+    <div class="section"><h3>â­ Top 3 Clientes</h3><p>${document.getElementById('reTopClientes').innerHTML}</p></div>
+    <div class="section"><h3>ðŸ… RÃ©cord HistÃ³rico</h3><p>${document.getElementById('reRecord').textContent}</p></div>
+    <p style="text-align:center;margin-top:30px;font-size:0.8rem;color:#888">Bodega A&M â€” Generado el ${new Date().toLocaleDateString('es-CL')}</p>
   </body></html>`;
   if (window.require) {
     const { ipcRenderer } = window.require('electron');
@@ -1536,16 +1535,16 @@ document.getElementById('btnResumenExcel').addEventListener('click', () => {
   let csv = '\uFEFF';
   csv += 'Resumen Ejecutivo - ' + mes + '\n\n';
   csv += 'Indicador;Valor\n';
-  csv += 'Total Órdenes;' + document.getElementById('reTotal').textContent + '\n';
+  csv += 'Total Ã“rdenes;' + document.getElementById('reTotal').textContent + '\n';
   csv += 'vs Mes Anterior;' + document.getElementById('reComparacion').textContent + '\n';
-  csv += 'Promedio/Día;' + document.getElementById('rePromedioDia').textContent + '\n';
-  csv += 'Día Más Activo;' + document.getElementById('reDiaMasActivo').textContent + '\n';
-  csv += 'Ítems Despachados;' + document.getElementById('reItemsMes').textContent + '\n';
+  csv += 'Promedio/DÃ­a;' + document.getElementById('rePromedioDia').textContent + '\n';
+  csv += 'DÃ­a MÃ¡s Activo;' + document.getElementById('reDiaMasActivo').textContent + '\n';
+  csv += 'Ãtems Despachados;' + document.getElementById('reItemsMes').textContent + '\n';
   csv += 'Hora Pico;' + document.getElementById('reHoraPico').textContent + '\n';
   csv += 'Recepciones;' + document.getElementById('reRecepciones').textContent + '\n';
   csv += 'Anuladas;' + document.getElementById('reAnuladas').textContent + '\n';
-  csv += 'Semana Más Activa;' + document.getElementById('reSemanaActiva').textContent + '\n';
-  csv += 'Récord Histórico;' + document.getElementById('reRecord').textContent + '\n';
+  csv += 'Semana MÃ¡s Activa;' + document.getElementById('reSemanaActiva').textContent + '\n';
+  csv += 'RÃ©cord HistÃ³rico;' + document.getElementById('reRecord').textContent + '\n';
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -1553,7 +1552,7 @@ document.getElementById('btnResumenExcel').addEventListener('click', () => {
   a.download = `Resumen_Ejecutivo_${mes}.csv`;
   a.click();
   URL.revokeObjectURL(url);
-  showToast('✔ Excel descargado');
+  showToast('âœ” Excel descargado');
 });
 
 document.getElementById('btnFiltroMes').addEventListener('click', () => {
@@ -1561,7 +1560,7 @@ document.getElementById('btnFiltroMes').addEventListener('click', () => {
   renderTopMes(mes);
 });
 
-// ── Comparar 2 Meses ─────────────────────────────────────
+// â”€â”€ Comparar 2 Meses â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 document.getElementById('btnCompararMeses').addEventListener('click', () => {
   const mes1 = document.getElementById('compararMes1').value;
   const mes2 = document.getElementById('compararMes2').value;
@@ -1587,16 +1586,16 @@ function compararMeses(mes1, mes2) {
   document.getElementById('compTitulo2').textContent = nombre2;
 
   function diff(a, b) {
-    if (a === 0 && b === 0) return '—';
+    if (a === 0 && b === 0) return 'â€”';
     const d = b - a;
-    const pct = a > 0 ? Math.round((d / a) * 100) : '∞';
+    const pct = a > 0 ? Math.round((d / a) * 100) : 'âˆž';
     const color = d > 0 ? '#065f46' : d < 0 ? '#c81e1e' : '#333';
     return `<span style="color:${color};font-weight:bold">${d >= 0 ? '+' : ''}${d} (${pct}%)</span>`;
   }
 
   document.getElementById('tbodyComparacion').innerHTML = `
-    <tr><td>Total Órdenes</td><td>${ordenes1.length}</td><td>${ordenes2.length}</td><td>${diff(ordenes1.length, ordenes2.length)}</td></tr>
-    <tr><td>Ítems Despachados</td><td>${items1}</td><td>${items2}</td><td>${diff(items1, items2)}</td></tr>
+    <tr><td>Total Ã“rdenes</td><td>${ordenes1.length}</td><td>${ordenes2.length}</td><td>${diff(ordenes1.length, ordenes2.length)}</td></tr>
+    <tr><td>Ãtems Despachados</td><td>${items1}</td><td>${items2}</td><td>${diff(items1, items2)}</td></tr>
     <tr><td>Recepciones</td><td>${rec1}</td><td>${rec2}</td><td>${diff(rec1, rec2)}</td></tr>
     <tr><td>Anuladas</td><td>${anuladas1}</td><td>${anuladas2}</td><td>${diff(anuladas1, anuladas2)}</td></tr>
   `;
@@ -1606,7 +1605,7 @@ function compararMeses(mes1, mes2) {
 // Exportar Top Mes a Excel
 document.getElementById('btnExcelTopMes').addEventListener('click', () => {
   if (!window._topMesData) return;
-  let csv = '\uFEFF#;Código;Producto;Unidad;Total Despachado\n';
+  let csv = '\uFEFF#;CÃ³digo;Producto;Unidad;Total Despachado\n';
   window._topMesData.forEach((p, i) => {
     csv += `${i+1};${p.codigo};${p.descripcion};${p.unidad};${p.total}\n`;
   });
@@ -1617,7 +1616,7 @@ document.getElementById('btnExcelTopMes').addEventListener('click', () => {
   a.download = `TopProductos_${window._topMesTitulo}.csv`;
   a.click();
   URL.revokeObjectURL(url);
-  showToast('✔ Excel exportado');
+  showToast('âœ” Excel exportado');
 });
 
 // Exportar Top Mes a PDF
@@ -1630,8 +1629,8 @@ document.getElementById('btnPdfTopMes').addEventListener('click', () => {
     table{width:100%;border-collapse:collapse}thead th{background:#333;color:#fff;padding:5px 8px;text-align:left}
     tbody td{padding:4px 8px;border-bottom:1px solid #ddd}tbody tr:nth-child(even){background:#f5f5f5}
   </style></head><body>
-    <h1>Bodega A&M — Productos Más Despachados (${window._topMesTitulo})</h1>
-    <table><thead><tr><th>#</th><th>Código</th><th>Producto</th><th>Unidad</th><th>Total</th></tr></thead>
+    <h1>Bodega A&M â€” Productos MÃ¡s Despachados (${window._topMesTitulo})</h1>
+    <table><thead><tr><th>#</th><th>CÃ³digo</th><th>Producto</th><th>Unidad</th><th>Total</th></tr></thead>
     <tbody>${filas}</tbody></table></body></html>`;
   if (window.require) {
     const { ipcRenderer } = window.require('electron');
@@ -1651,7 +1650,7 @@ function renderTopMes(mes) {
   }
   const ordenesMes = historial.filter(s => s.fecha && s.fecha.slice(0, 7) === mes);
   if (ordenesMes.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="5" class="empty-msg">No hay órdenes en ese mes</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="5" class="empty-msg">No hay Ã³rdenes en ese mes</td></tr>';
     btnExcel.style.display = 'none';
     btnPdf.style.display = 'none';
     return;
@@ -1706,28 +1705,28 @@ function aplicarFiltro() {
 }
 
 function eliminarOrden(i) {
-  if (!confirm(`¿Eliminar la orden ${historial[i].nro}?`)) return;
+  if (!confirm(`Â¿Eliminar la orden ${historial[i].nro}?`)) return;
   historial.splice(i, 1);
   localStorage.setItem('historialSalidas', JSON.stringify(historial));
   renderReportes();
   showToast('Orden eliminada');
 }
 
-// ── Modal detalle ─────────────────────────────────────────
+// â”€â”€ Modal detalle â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function abrirModal(i) {
   const s = historial[i];
   ordenImpresion = s;
   document.getElementById('modalTitulo').textContent = `Orden ${s.nro}`;
   document.getElementById('modalBody').innerHTML = `
-    <div class="detail-row"><strong>N° Salida:</strong> ${s.nro}</div>
+    <div class="detail-row"><strong>NÂ° Salida:</strong> ${s.nro}</div>
     <div class="detail-row"><strong>Fecha:</strong> ${formatFecha(s.fecha)}</div>
     <div class="detail-row"><strong>Tipo Documento:</strong> ${s.tipoDocumento || '-'}</div>
-    <div class="detail-row"><strong>N° Documento:</strong> ${s.nroDocumento || '-'}</div>
+    <div class="detail-row"><strong>NÂ° Documento:</strong> ${s.nroDocumento || '-'}</div>
     <div class="detail-row"><strong>Cliente:</strong> ${s.solicitante}</div>
     ${s.creadoPor ? `<div class="detail-row"><strong>Creada por:</strong> ${s.creadoPor} (${s.rolCreador || '-'})</div>` : ''}
     ${s.observaciones ? `<div class="detail-row"><strong>Observaciones:</strong> ${s.observaciones}</div>` : ''}
     <table style="margin-top:14px">
-      <thead><tr><th>#</th><th>Código</th><th>Descripción</th><th>Unidad</th><th>Cantidad</th></tr></thead>
+      <thead><tr><th>#</th><th>CÃ³digo</th><th>DescripciÃ³n</th><th>Unidad</th><th>Cantidad</th></tr></thead>
       <tbody>
         ${s.productos.map((p, j) => `
           <tr>
@@ -1790,7 +1789,7 @@ async function imprimirPagina() {
         creadoPor = ordenImpresion.creadoPor;
         rolCreador = ordenImpresion.rolCreador || '';
       } else if (usuarioActivo) {
-        // Buscar la orden en el historial por número
+        // Buscar la orden en el historial por nÃºmero
         const ordenEnHistorial = historial.find(s => s.nro === nro);
         if (ordenEnHistorial && ordenEnHistorial.creadoPor) {
           creadoPor = ordenEnHistorial.creadoPor;
@@ -1848,24 +1847,24 @@ async function imprimirPagina() {
       const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
         <style>${estiloTermico}</style></head><body>
         <div class="header">
-          <h1>Salida de Mercadería</h1>
+          <h1>Salida de MercaderÃ­a</h1>
           <p>Bodega A&M</p>
         </div>
-        <div class="row"><label>N° Salida:</label><span>${nro}</span></div>
+        <div class="row"><label>NÂ° Salida:</label><span>${nro}</span></div>
         <div class="row"><label>Fecha:</label><span>${fecha}</span></div>
         <div class="row"><label>Tipo Doc.:</label><span>${tipodoc||'-'}</span></div>
-        ${nrodoc ? `<div class="row"><label>N° Documento:</label><span>${nrodoc}</span></div>` : ''}
+        ${nrodoc ? `<div class="row"><label>NÂ° Documento:</label><span>${nrodoc}</span></div>` : ''}
         <div class="row"><label>Cliente:</label><span>${cliente||'-'}</span></div>
         ${obs ? `<div class="row"><label>Observaciones:</label><span>${obs}</span></div>` : ''}
         ${creadoPor ? `<div class="row"><label>Creada por:</label><span>${creadoPor} (${rolCreador})</span></div>` : ''}
         <table>
-          <thead><tr><th>#</th><th>Código</th><th>Descripción</th><th>Unid.</th><th>Cant.</th><th style="padding-left:6px">En Palabras</th></tr></thead>
+          <thead><tr><th>#</th><th>CÃ³digo</th><th>DescripciÃ³n</th><th>Unid.</th><th>Cant.</th><th style="padding-left:6px">En Palabras</th></tr></thead>
           <tbody>${filasProductos}</tbody>
         </table>
         <div class="footer">
           <p style="font-weight:bold">Entregar comprobante a bodeguero</p>
-          <p style="margin-top:8px">¡Gracias por su compra!</p>
-          <p style="margin-top:10px;font-size:9px">Bodega A&M — Documento interno</p>
+          <p style="margin-top:8px">Â¡Gracias por su compra!</p>
+          <p style="margin-top:10px;font-size:9px">Bodega A&M â€” Documento interno</p>
         </div>
         ${qrHtml}
         <script>window.onload=function(){setTimeout(function(){window.print();},300);};<\/script>
@@ -1881,7 +1880,7 @@ async function imprimirPagina() {
   }
 }
 
-// ── Catálogo de productos ─────────────────────────────────
+// â”€â”€ CatÃ¡logo de productos â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 document.getElementById('btnGuardarProducto').addEventListener('click', () => {
   const codigo = document.getElementById('catCodigo').value.trim();
   const nombre = document.getElementById('catNombre').value.trim();
@@ -1889,7 +1888,7 @@ document.getElementById('btnGuardarProducto').addEventListener('click', () => {
 
   if (!nombre) { showToast('Ingresa el nombre del producto', true); return; }
   if (codigo && catalogo.some(p => p.codigo === codigo)) {
-    showToast('Ya existe un producto con ese código', true); return;
+    showToast('Ya existe un producto con ese cÃ³digo', true); return;
   }
 
   catalogo.push({ codigo, nombre, unidad });
@@ -1899,12 +1898,12 @@ document.getElementById('btnGuardarProducto').addEventListener('click', () => {
   document.getElementById('catCodigo').value = '';
   document.getElementById('catNombre').value = '';
   document.getElementById('catUnidad').value = 'unidad';
-  showToast('Producto guardado en catálogo');
+  showToast('Producto guardado en catÃ¡logo');
 });
 
 function renderCatalogo(filtro = '') {
   if (catalogo.length === 0) {
-    tbodyCat.innerHTML = '<tr><td colspan="5" class="empty-msg">No hay productos en el catálogo</td></tr>';
+    tbodyCat.innerHTML = '<tr><td colspan="5" class="empty-msg">No hay productos en el catÃ¡logo</td></tr>';
     return;
   }
   const datos = filtro
@@ -1921,15 +1920,15 @@ function renderCatalogo(filtro = '') {
       <td>${p.nombre}</td>
       <td>${p.unidad}</td>
       <td>
-        <button class="btn-add" style="padding:3px 8px;font-size:0.78rem;margin-right:4px" onclick="editarProductoCatalogo(${idx})">✏</button>
-        <button class="btn-delete" onclick="eliminarDelCatalogo(${idx})" title="Eliminar">✕</button>
+        <button class="btn-add" style="padding:3px 8px;font-size:0.78rem;margin-right:4px" onclick="editarProductoCatalogo(${idx})">âœ</button>
+        <button class="btn-delete" onclick="eliminarDelCatalogo(${idx})" title="Eliminar">âœ•</button>
       </td>
     </tr>`;
   }).join('');
 
   if (!filtro && catalogo.length > 50) {
     tbodyCat.innerHTML += `<tr><td colspan="5" style="text-align:center;color:#888;font-style:italic;padding:10px">
-      Mostrando 50 de ${catalogo.length} productos. Usa el buscador para ver más.
+      Mostrando 50 de ${catalogo.length} productos. Usa el buscador para ver mÃ¡s.
     </td></tr>`;
   }
 }
@@ -1941,9 +1940,9 @@ function editarProductoCatalogo(i) {
   overlay.style.display = 'flex';
   overlay.innerHTML = `
     <div class="modal" style="max-width:400px">
-      <div class="modal-header"><h3>✏ Editar Producto</h3><button class="modal-close" onclick="this.closest('.modal-overlay').remove()">✕</button></div>
+      <div class="modal-header"><h3>âœ Editar Producto</h3><button class="modal-close" onclick="this.closest('.modal-overlay').remove()">âœ•</button></div>
       <div class="modal-body" style="padding:16px">
-        <div class="field"><label>Código</label><input type="text" id="editProdCodigo" value="${p.codigo || ''}" /></div>
+        <div class="field"><label>CÃ³digo</label><input type="text" id="editProdCodigo" value="${p.codigo || ''}" /></div>
         <div class="field" style="margin-top:10px"><label>Nombre</label><input type="text" id="editProdNombre" value="${p.nombre || ''}" /></div>
         <div class="field" style="margin-top:10px"><label>Unidad</label>
           <select id="editProdUnidad">
@@ -1957,7 +1956,7 @@ function editarProductoCatalogo(i) {
       </div>
       <div class="modal-footer">
         <button class="btn-secondary" onclick="this.closest('.modal-overlay').remove()">Cancelar</button>
-        <button class="btn-primary" id="btnGuardarEditProd">✔ Guardar</button>
+        <button class="btn-primary" id="btnGuardarEditProd">âœ” Guardar</button>
       </div>
     </div>`;
   document.body.appendChild(overlay);
@@ -1974,14 +1973,14 @@ function editarProductoCatalogo(i) {
     if (window.fbListo) fbGuardar('catalogo', catalogo[i].codigo || catalogo[i].nombre, catalogo[i]);
     overlay.remove();
     renderCatalogo();
-    showToast('✔ Producto actualizado');
+    showToast('âœ” Producto actualizado');
   });
 }
 
 function eliminarMasivoCatalogo() {
   const checks = document.querySelectorAll('.chk-catalogo:checked');
   if (checks.length === 0) { showToast('Selecciona al menos un producto', true); return; }
-  if (!confirm(`¿Eliminar ${checks.length} producto(s) seleccionado(s)?`)) return;
+  if (!confirm(`Â¿Eliminar ${checks.length} producto(s) seleccionado(s)?`)) return;
   const indices = Array.from(checks).map(c => parseInt(c.dataset.idx)).sort((a,b) => b - a);
   indices.forEach(i => {
     const p = catalogo[i];
@@ -1990,11 +1989,11 @@ function eliminarMasivoCatalogo() {
   });
   localStorage.setItem('catalogoProductos', JSON.stringify(catalogo));
   renderCatalogo();
-  showToast(`✔ ${indices.length} producto(s) eliminado(s)`);
+  showToast(`âœ” ${indices.length} producto(s) eliminado(s)`);
 }
 
 function eliminarDelCatalogo(i) {
-  if (!confirm(`¿Eliminar "${catalogo[i].nombre}" del catálogo?`)) return;
+  if (!confirm(`Â¿Eliminar "${catalogo[i].nombre}" del catÃ¡logo?`)) return;
   const producto = catalogo[i];
   if (window.fbListo) fbEliminar('catalogo', producto.codigo || producto.nombre);
   catalogo.splice(i, 1);
@@ -2047,7 +2046,7 @@ document.getElementById('btnImportarProductos').addEventListener('click', () => 
 
       let agregados = 0, duplicados = 0, errores = 0;
       rows.forEach(row => {
-        const codigo = String(row['Código'] || row['Codigo'] || row['codigo'] || row['CÓDIGO'] || '').trim();
+        const codigo = String(row['CÃ³digo'] || row['Codigo'] || row['codigo'] || row['CÃ“DIGO'] || '').trim();
         const nombre = String(row['Nombre'] || row['nombre'] || row['NOMBRE'] || '').trim();
         const unidad = String(row['Unidad'] || row['unidad'] || row['UNIDAD'] || 'unidad').trim().toLowerCase() || 'unidad';
 
@@ -2061,9 +2060,9 @@ document.getElementById('btnImportarProductos').addEventListener('click', () => 
       if (window.fbListo) catalogo.forEach(p => fbGuardar('catalogo', p.codigo || p.nombre, p));
       renderCatalogo();
       document.getElementById('inputExcelProductos').value = '';
-      resultEl.innerHTML = `<span style="color:#03543f">✔ ${agregados} producto(s) importado(s)</span>` +
-        (duplicados ? ` · <span style="color:#92400e">${duplicados} duplicado(s) omitido(s)</span>` : '') +
-        (errores    ? ` · <span style="color:#e53e3e">${errores} fila(s) sin nombre ignorada(s)</span>` : '');
+      resultEl.innerHTML = `<span style="color:#03543f">âœ” ${agregados} producto(s) importado(s)</span>` +
+        (duplicados ? ` Â· <span style="color:#92400e">${duplicados} duplicado(s) omitido(s)</span>` : '') +
+        (errores    ? ` Â· <span style="color:#e53e3e">${errores} fila(s) sin nombre ignorada(s)</span>` : '');
     } catch (err) {
       console.error(err);
       resultEl.innerHTML = '<span style="color:#e53e3e">Error al leer el archivo. Verifica el formato.</span>';
@@ -2075,7 +2074,7 @@ document.getElementById('btnImportarProductos').addEventListener('click', () => 
 // Descargar plantilla productos
 document.getElementById('btnDescargarPlantillaProductos').addEventListener('click', (e) => {
   e.preventDefault();
-  const csv = 'Código;Nombre;Unidad\n001;Producto Ejemplo;unidad\n002;Otro Producto;kg\n';
+  const csv = 'CÃ³digo;Nombre;Unidad\n001;Producto Ejemplo;unidad\n002;Otro Producto;kg\n';
   const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
   const url  = URL.createObjectURL(blob);
   const a    = document.createElement('a');
@@ -2084,9 +2083,9 @@ document.getElementById('btnDescargarPlantillaProductos').addEventListener('clic
   URL.revokeObjectURL(url);
 });
 
-// ── Botones formulario ────────────────────────────────────
+// â”€â”€ Botones formulario â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 document.getElementById('btnLimpiar').addEventListener('click', () => {
-  if (confirm('¿Limpiar el formulario?')) limpiarFormularioCompleto();
+  if (confirm('Â¿Limpiar el formulario?')) limpiarFormularioCompleto();
 });
 
 document.getElementById('btnNuevaOrden').addEventListener('click', () => {
@@ -2094,7 +2093,7 @@ document.getElementById('btnNuevaOrden').addEventListener('click', () => {
 });
 
 function limpiarFormularioCompleto() {
-  // Cancelar modo edición si estaba activo
+  // Cancelar modo ediciÃ³n si estaba activo
   window._editandoOrden = null;
 
   // Habilitar y limpiar todos los campos
@@ -2112,7 +2111,7 @@ function limpiarFormularioCompleto() {
   document.getElementById('btnAgregar').disabled = false;
   document.getElementById('btnRegistrar').disabled = false;
   document.getElementById('btnRegistrar').style.display = '';
-  document.getElementById('btnRegistrar').textContent = '✔ Registrar Salida';
+  document.getElementById('btnRegistrar').textContent = 'âœ” Registrar Salida';
   registrando = false;
   document.getElementById('btnImprimir').style.display = 'none';
   document.getElementById('btnNuevaOrden').style.display = 'none';
@@ -2128,7 +2127,7 @@ function limpiarFormularioCompleto() {
       ipcRenderer.send('forzarFoco');
     }
   }, 150);
-  // Reaplicar permisos de pestañas
+  // Reaplicar permisos de pestaÃ±as
   aplicarPermisos();
 }
 
@@ -2144,11 +2143,11 @@ function aplicarPermisos() {
   document.querySelector('[data-tab="recepciones"]').style.display = (esAdmin || p.recepciones)  ? '' : 'none';
   document.querySelector('[data-tab="usuarios"]').style.display    = (esAdmin || p.usuarios)     ? '' : 'none';
   document.querySelector('[data-tab="caja"]').style.display        = (esAdmin || p.caja)         ? '' : 'none';
-  document.querySelector('[data-tab="dimarsa"]').style.display     = (esAdmin || p.comparador)   ? '' : 'none';
+
   document.querySelector('[data-tab="papelera"]').style.display    = esAdmin ? '' : 'none';
   document.querySelector('[data-tab="diagnosticos"]').style.display = esAdmin ? '' : 'none';
 
-  // Activar la primera pestaña visible
+  // Activar la primera pestaÃ±a visible
   const tabs = document.querySelectorAll('.tab');
   const contents = document.querySelectorAll('.tab-content');
   let primeraVisible = null;
@@ -2167,7 +2166,7 @@ function aplicarPermisos() {
 
 document.getElementById('btnImprimir').addEventListener('click', () => imprimirPagina());
 
-// ── Buscar y reimprimir orden antigua ─────────────────────
+// â”€â”€ Buscar y reimprimir orden antigua â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 document.getElementById('btnBuscarOrden').addEventListener('click', buscarOrdenAntigua);
 document.getElementById('buscarOrdenAntigua').addEventListener('keydown', e => {
   if (e.key === 'Enter') buscarOrdenAntigua();
@@ -2189,7 +2188,7 @@ function buscarOrdenAntigua() {
   tabla.style.display = historial.length === 0 ? 'none' : 'table';
 
   if (datos.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="7" class="empty-msg">No se encontraron órdenes</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" class="empty-msg">No se encontraron Ã³rdenes</td></tr>';
     return;
   }
 
@@ -2210,10 +2209,10 @@ function buscarOrdenAntigua() {
       <td>${estado}</td>
       <td>
         <button class="btn-ver" onclick="verOrdenAntigua('${s.nro}')" style="margin-right:4px">Ver</button>
-        ${!anulada && !recibida ? `<button class="btn-secondary" style="padding:4px 10px;font-size:0.8rem;margin-right:4px" onclick="editarOrden('${s.nro}')">✏ Editar</button>` : ''}
-        ${!anulada && !recibida ? `<button class="btn-add" style="padding:4px 10px;font-size:0.8rem" onclick="reimprimirOrden(this)" data-nro="${s.nro}">🖨 Reimprimir</button>` : ''}
-        ${!anulada && !recibida ? `<button class="btn-delete" style="margin-left:4px" onclick="anularOrden(this)" data-nro="${s.nro}" title="Anular">🚫 Anular</button>` : ''}
-        ${recibida ? `<button class="btn-add" style="padding:4px 10px;font-size:0.8rem" onclick="reimprimirOrden(this)" data-nro="${s.nro}">🖨 Reimprimir</button>` : ''}
+        ${!anulada && !recibida ? `<button class="btn-secondary" style="padding:4px 10px;font-size:0.8rem;margin-right:4px" onclick="editarOrden('${s.nro}')">âœ Editar</button>` : ''}
+        ${!anulada && !recibida ? `<button class="btn-add" style="padding:4px 10px;font-size:0.8rem" onclick="reimprimirOrden(this)" data-nro="${s.nro}">ðŸ–¨ Reimprimir</button>` : ''}
+        ${!anulada && !recibida ? `<button class="btn-delete" style="margin-left:4px" onclick="anularOrden(this)" data-nro="${s.nro}" title="Anular">ðŸš« Anular</button>` : ''}
+        ${recibida ? `<button class="btn-add" style="padding:4px 10px;font-size:0.8rem" onclick="reimprimirOrden(this)" data-nro="${s.nro}">ðŸ–¨ Reimprimir</button>` : ''}
       </td>
     </tr>`;
   }).join('');
@@ -2232,17 +2231,17 @@ function anularOrden(btn) {
   if (recepciones.some(r => r.nroOrden === nro)) {
     showToast('No se puede anular una orden ya recibida', true); return;
   }
-  if (!confirm(`¿Está seguro de anular la orden ${nro}? Esta acción no se puede deshacer.`)) return;
+  if (!confirm(`Â¿EstÃ¡ seguro de anular la orden ${nro}? Esta acciÃ³n no se puede deshacer.`)) return;
   historial[idx].anulada = true;
   localStorage.setItem('historialSalidas', JSON.stringify(historial));
-  // Sincronizar anulación con Firebase
+  // Sincronizar anulaciÃ³n con Firebase
   if (window.fbListo) fbGuardar('historial', nro, historial[idx]);
   showToast(`Orden ${nro} anulada`);
   registrarActividad('Orden anulada', `${nro}`);
   buscarOrdenAntigua();
 }
 
-// ── Editar orden existente (solo si no fue recibida ni anulada) ──
+// â”€â”€ Editar orden existente (solo si no fue recibida ni anulada) â”€â”€
 function editarOrden(nro) {
   const idx = historial.findIndex(o => o.nro === nro);
   if (idx === -1) { showToast('Orden no encontrada', true); return; }
@@ -2250,7 +2249,7 @@ function editarOrden(nro) {
   if (s.anulada) { showToast('No se puede editar una orden anulada', true); return; }
   if (recepciones.some(r => r.nroOrden === nro)) { showToast('No se puede editar una orden ya recibida', true); return; }
 
-  if (!confirm(`¿Deseas editar la orden ${nro}? Se cargará en el formulario para modificarla.`)) return;
+  if (!confirm(`Â¿Deseas editar la orden ${nro}? Se cargarÃ¡ en el formulario para modificarla.`)) return;
 
   // Cargar datos en el formulario
   resetForm();
@@ -2267,8 +2266,8 @@ function editarOrden(nro) {
   // Marcar que estamos editando (no crear nueva orden)
   window._editandoOrden = nro;
 
-  // Cambiar texto del botón
-  document.getElementById('btnRegistrar').textContent = '✔ Guardar Cambios';
+  // Cambiar texto del botÃ³n
+  document.getElementById('btnRegistrar').textContent = 'âœ” Guardar Cambios';
 
   // Scroll al formulario
   document.getElementById('tab-formulario').scrollTo({ top: 0, behavior: 'smooth' });
@@ -2294,7 +2293,7 @@ function reimprimirOrden(btn) {
   setTimeout(() => { imprimirPagina(); resetForm(); }, 300);
 }
 
-// ── Autocomplete clientes en campo solicitante ────────────
+// â”€â”€ Autocomplete clientes en campo solicitante â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function buscarClienteAutoComplete() {
   const input = document.getElementById('solicitante');
@@ -2325,7 +2324,7 @@ document.addEventListener('click', (e) => {
     sugerenciasCliente.classList.remove('visible');
 });
 
-// ── Clientes ──────────────────────────────────────────────
+// â”€â”€ Clientes â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 document.getElementById('btnGuardarCliente').addEventListener('click', () => {
   const rut       = document.getElementById('cliRut').value.trim();
   const nombre    = document.getElementById('cliNombre').value.trim();
@@ -2369,15 +2368,15 @@ function renderClientes(filtro = '') {
       <td>${c.telefono || '-'}</td>
       <td>${c.direccion || '-'}</td>
       <td>
-        <button class="btn-add" style="padding:3px 8px;font-size:0.78rem;margin-right:4px" onclick="editarCliente(${idx})">✏</button>
-        <button class="btn-delete" onclick="eliminarCliente(${idx})" title="Eliminar">✕</button>
+        <button class="btn-add" style="padding:3px 8px;font-size:0.78rem;margin-right:4px" onclick="editarCliente(${idx})">âœ</button>
+        <button class="btn-delete" onclick="eliminarCliente(${idx})" title="Eliminar">âœ•</button>
       </td>
     </tr>`;
   }).join('');
 
   if (!filtro && clientes.length > 50) {
     tbody.innerHTML += `<tr><td colspan="6" style="text-align:center;color:#888;font-style:italic;padding:10px">
-      Mostrando 50 de ${clientes.length} clientes. Usa el buscador para ver más.
+      Mostrando 50 de ${clientes.length} clientes. Usa el buscador para ver mÃ¡s.
     </td></tr>`;
   }
 }
@@ -2389,16 +2388,16 @@ function editarCliente(i) {
   overlay.style.display = 'flex';
   overlay.innerHTML = `
     <div class="modal" style="max-width:450px">
-      <div class="modal-header"><h3>✏ Editar Cliente</h3><button class="modal-close" onclick="this.closest('.modal-overlay').remove()">✕</button></div>
+      <div class="modal-header"><h3>âœ Editar Cliente</h3><button class="modal-close" onclick="this.closest('.modal-overlay').remove()">âœ•</button></div>
       <div class="modal-body" style="padding:16px">
         <div class="field"><label>RUT</label><input type="text" id="editCliRut" value="${c.rut || ''}" /></div>
-        <div class="field" style="margin-top:10px"><label>Nombre / Razón Social</label><input type="text" id="editCliNombre" value="${c.nombre || ''}" /></div>
-        <div class="field" style="margin-top:10px"><label>Teléfono</label><input type="text" id="editCliTelefono" value="${c.telefono || ''}" /></div>
-        <div class="field" style="margin-top:10px"><label>Dirección</label><input type="text" id="editCliDireccion" value="${c.direccion || ''}" /></div>
+        <div class="field" style="margin-top:10px"><label>Nombre / RazÃ³n Social</label><input type="text" id="editCliNombre" value="${c.nombre || ''}" /></div>
+        <div class="field" style="margin-top:10px"><label>TelÃ©fono</label><input type="text" id="editCliTelefono" value="${c.telefono || ''}" /></div>
+        <div class="field" style="margin-top:10px"><label>DirecciÃ³n</label><input type="text" id="editCliDireccion" value="${c.direccion || ''}" /></div>
       </div>
       <div class="modal-footer">
         <button class="btn-secondary" onclick="this.closest('.modal-overlay').remove()">Cancelar</button>
-        <button class="btn-primary" id="btnGuardarEditCli">✔ Guardar</button>
+        <button class="btn-primary" id="btnGuardarEditCli">âœ” Guardar</button>
       </div>
     </div>`;
   document.body.appendChild(overlay);
@@ -2416,14 +2415,14 @@ function editarCliente(i) {
     if (window.fbListo) fbGuardar('clientes', clientes[i].rut || clientes[i].nombre, clientes[i]);
     overlay.remove();
     renderClientes();
-    showToast('✔ Cliente actualizado');
+    showToast('âœ” Cliente actualizado');
   });
 }
 
 function eliminarMasivoClientes() {
   const checks = document.querySelectorAll('.chk-cliente:checked');
   if (checks.length === 0) { showToast('Selecciona al menos un cliente', true); return; }
-  if (!confirm(`¿Eliminar ${checks.length} cliente(s) seleccionado(s)?`)) return;
+  if (!confirm(`Â¿Eliminar ${checks.length} cliente(s) seleccionado(s)?`)) return;
   const indices = Array.from(checks).map(c => parseInt(c.dataset.idx)).sort((a,b) => b - a);
   indices.forEach(i => {
     const c = clientes[i];
@@ -2432,11 +2431,11 @@ function eliminarMasivoClientes() {
   });
   localStorage.setItem('clientesBodega', JSON.stringify(clientes));
   renderClientes();
-  showToast(`✔ ${indices.length} cliente(s) eliminado(s)`);
+  showToast(`âœ” ${indices.length} cliente(s) eliminado(s)`);
 }
 
 function eliminarCliente(i) {
-  if (!confirm(`¿Eliminar al cliente "${clientes[i].nombre}"?`)) return;
+  if (!confirm(`Â¿Eliminar al cliente "${clientes[i].nombre}"?`)) return;
   const cliente = clientes[i];
   if (window.fbListo) fbEliminar('clientes', cliente.rut || cliente.nombre);
   clientes.splice(i, 1);
@@ -2489,8 +2488,8 @@ document.getElementById('btnImportarClientes').addEventListener('click', () => {
       rows.forEach(row => {
         const rut       = String(row['RUT'] || row['rut'] || '').trim();
         const nombre    = String(row['Nombre'] || row['nombre'] || row['NOMBRE'] || '').trim();
-        const telefono  = String(row['Teléfono'] || row['Telefono'] || row['telefono'] || '').trim();
-        const direccion = String(row['Dirección'] || row['Direccion'] || row['direccion'] || '').trim();
+        const telefono  = String(row['TelÃ©fono'] || row['Telefono'] || row['telefono'] || '').trim();
+        const direccion = String(row['DirecciÃ³n'] || row['Direccion'] || row['direccion'] || '').trim();
 
         if (!nombre) { errores++; return; }
         if (rut && clientes.some(c => c.rut === rut)) { duplicados++; return; }
@@ -2502,9 +2501,9 @@ document.getElementById('btnImportarClientes').addEventListener('click', () => {
       if (window.fbListo) clientes.forEach(c => fbGuardar('clientes', c.rut || c.nombre, c));
       renderClientes();
       document.getElementById('inputExcelClientes').value = '';
-      resultEl.innerHTML = `<span style="color:#03543f">✔ ${agregados} cliente(s) importado(s)</span>` +
-        (duplicados ? ` · <span style="color:#92400e">${duplicados} duplicado(s) omitido(s)</span>` : '') +
-        (errores    ? ` · <span style="color:#e53e3e">${errores} fila(s) sin nombre ignorada(s)</span>` : '');
+      resultEl.innerHTML = `<span style="color:#03543f">âœ” ${agregados} cliente(s) importado(s)</span>` +
+        (duplicados ? ` Â· <span style="color:#92400e">${duplicados} duplicado(s) omitido(s)</span>` : '') +
+        (errores    ? ` Â· <span style="color:#e53e3e">${errores} fila(s) sin nombre ignorada(s)</span>` : '');
     } catch (err) {
       console.error(err);
       resultEl.innerHTML = '<span style="color:#e53e3e">Error al leer el archivo. Verifica el formato.</span>';
@@ -2516,7 +2515,7 @@ document.getElementById('btnImportarClientes').addEventListener('click', () => {
 // Descargar plantilla CSV
 document.getElementById('btnDescargarPlantilla').addEventListener('click', (e) => {
   e.preventDefault();
-  const csv = 'RUT;Nombre;Teléfono;Dirección\n12.345.678-9;Ejemplo Cliente;+56912345678;Av. Ejemplo 123\n';
+  const csv = 'RUT;Nombre;TelÃ©fono;DirecciÃ³n\n12.345.678-9;Ejemplo Cliente;+56912345678;Av. Ejemplo 123\n';
   const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
   const url  = URL.createObjectURL(blob);
   const a    = document.createElement('a');
@@ -2525,7 +2524,7 @@ document.getElementById('btnDescargarPlantilla').addEventListener('click', (e) =
   URL.revokeObjectURL(url);
 });
 
-// ── Usuarios ──────────────────────────────────────────────
+// â”€â”€ Usuarios â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 let editandoUsuarioIdx = null;
 
 document.getElementById('btnGuardarUsuario').addEventListener('click', async () => {
@@ -2536,7 +2535,7 @@ document.getElementById('btnGuardarUsuario').addEventListener('click', async () 
 
   if (!nombre)   { showToast('Ingresa el nombre del usuario', true); return; }
   if (!login)    { showToast('Ingresa el nombre de usuario', true); return; }
-  if (!password && editandoUsuarioIdx === null) { showToast('Ingresa una contraseña', true); return; }
+  if (!password && editandoUsuarioIdx === null) { showToast('Ingresa una contraseÃ±a', true); return; }
 
   let passwordHash;
   if (password) {
@@ -2553,7 +2552,7 @@ document.getElementById('btnGuardarUsuario').addEventListener('click', async () 
     clientes:         document.getElementById('permClientes').checked,
     recepciones:      document.getElementById('permRecepciones').checked,
     caja:             document.getElementById('permCaja').checked,
-    comparador:       document.getElementById('permComparador') ? document.getElementById('permComparador').checked : false,
+
     usuarios:         document.getElementById('permUsuarios').checked,
   };
 
@@ -2564,7 +2563,7 @@ document.getElementById('btnGuardarUsuario').addEventListener('click', async () 
     localStorage.setItem('usuariosBodega', JSON.stringify(usuarios));
     if (window.fbListo) fbGuardar('usuarios', login, usuarios[editandoUsuarioIdx]);
     showToast(`Usuario "${login}" actualizado`);
-    registrarActividad('Usuario editado', `${nombre} (${login}) — Rol: ${rol}`);
+    registrarActividad('Usuario editado', `${nombre} (${login}) â€” Rol: ${rol}`);
     editandoUsuarioIdx = null;
     const btn = document.getElementById('btnGuardarUsuario');
     btn.textContent = '+ Agregar';
@@ -2579,14 +2578,14 @@ document.getElementById('btnGuardarUsuario').addEventListener('click', async () 
     };
     guardarUsuarioFb();
     showToast(`Usuario "${login}" creado correctamente`);
-    registrarActividad('Usuario creado', `${nombre} (${login}) — Rol: ${rol}`);
+    registrarActividad('Usuario creado', `${nombre} (${login}) â€” Rol: ${rol}`);
   }
 
   renderUsuarios();
   document.getElementById('usuNombre').value   = '';
   document.getElementById('usuLogin').value    = '';
   document.getElementById('usuPassword').value = '';
-  document.getElementById('usuPassword').placeholder = '••••••';
+  document.getElementById('usuPassword').placeholder = 'â€¢â€¢â€¢â€¢â€¢â€¢';
   document.getElementById('usuRol').value      = 'Bodeguero';
   document.getElementById('permCrearOrden').checked      = true;
   document.getElementById('permReportes').checked        = true;
@@ -2604,7 +2603,7 @@ function editarUsuario(i) {
   document.getElementById('usuNombre').value   = u.nombre;
   document.getElementById('usuLogin').value    = u.login;
   document.getElementById('usuPassword').value = '';
-  document.getElementById('usuPassword').placeholder = '(dejar vacío para mantener)';
+  document.getElementById('usuPassword').placeholder = '(dejar vacÃ­o para mantener)';
   document.getElementById('usuRol').value      = u.rol;
   const p = u.permisos || {};
   document.getElementById('permCrearOrden').checked      = p.crearOrden      ?? true;
@@ -2616,7 +2615,7 @@ function editarUsuario(i) {
   document.getElementById('permCaja').checked            = p.caja            ?? true;
   document.getElementById('permUsuarios').checked        = p.usuarios        ?? false;
   const btn = document.getElementById('btnGuardarUsuario');
-  btn.textContent = '✔ Actualizar';
+  btn.textContent = 'âœ” Actualizar';
   btn.style.background = '#16a34a';
   document.querySelector('#tab-usuarios .add-product-row').scrollIntoView({ behavior: 'smooth' });
 }
@@ -2652,7 +2651,7 @@ function renderUsuarios() {
       <td>
         <button class="btn-toggle" onclick="toggleUsuario(${i})">${u.activo ? 'Desactivar' : 'Activar'}</button>
         <button class="btn-ver" onclick="editarUsuario(${i})">Editar</button>
-        <button class="btn-delete" onclick="eliminarUsuario(${i})" title="Eliminar">✕</button>
+        <button class="btn-delete" onclick="eliminarUsuario(${i})" title="Eliminar">âœ•</button>
       </td>
     </tr>`;
   }).join('');
@@ -2661,7 +2660,7 @@ function renderUsuarios() {
 function toggleUsuario(i) {
   const u = usuarios[i];
   if (u.activo) {
-    if (!confirm(`¿Está seguro de desactivar al usuario "${u.nombre}"?`)) return;
+    if (!confirm(`Â¿EstÃ¡ seguro de desactivar al usuario "${u.nombre}"?`)) return;
   }
   usuarios[i].activo = !usuarios[i].activo;
   localStorage.setItem('usuariosBodega', JSON.stringify(usuarios));
@@ -2670,7 +2669,7 @@ function toggleUsuario(i) {
 }
 
 function eliminarUsuario(i) {
-  if (!confirm(`¿Eliminar al usuario "${usuarios[i].login}"?`)) return;
+  if (!confirm(`Â¿Eliminar al usuario "${usuarios[i].login}"?`)) return;
   const loginEliminado = usuarios[i].login;
   usuarios.splice(i, 1);
   localStorage.setItem('usuariosBodega', JSON.stringify(usuarios));
@@ -2679,12 +2678,12 @@ function eliminarUsuario(i) {
 }
 
 document.getElementById('btnEliminarHistorial').addEventListener('click', async () => {
-  if (!confirm('¿Eliminar TODO el historial de órdenes y recepciones? Esta acción no se puede deshacer.')) return;
-  if (!confirm('¿Está completamente seguro? Se perderán todos los registros.')) return;
+  if (!confirm('Â¿Eliminar TODO el historial de Ã³rdenes y recepciones? Esta acciÃ³n no se puede deshacer.')) return;
+  if (!confirm('Â¿EstÃ¡ completamente seguro? Se perderÃ¡n todos los registros.')) return;
 
   // Eliminar de Firebase
   if (window.fbListo) {
-    showToast('🔄 Eliminando de la nube...');
+    showToast('ðŸ”„ Eliminando de la nube...');
     const [fbHistorial, fbRecepciones, fbConfig] = await Promise.all([
       fbCargar('historial'),
       fbCargar('recepciones'),
@@ -2711,19 +2710,19 @@ document.getElementById('btnEliminarHistorial').addEventListener('click', async 
   renderOrdenesEmitidas();
   buscarOrdenAntigua();
   showToast('Historial eliminado y contador reiniciado');
-  registrarActividad('Historial eliminado', 'Se eliminaron todas las órdenes y recepciones');
+  registrarActividad('Historial eliminado', 'Se eliminaron todas las Ã³rdenes y recepciones');
 });
 
-// ── Recepciones ───────────────────────────────────────────
+// â”€â”€ Recepciones â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function generarNroRec(n) {
   return 'REC-' + String(n).padStart(4, '0');
 }
 
-// Render órdenes emitidas (pendientes y recibidas)
+// Render Ã³rdenes emitidas (pendientes y recibidas)
 function renderOrdenesEmitidas(filtro = '') {
   const tbody = document.getElementById('tbodyOrdenesEmitidas');
   let datos = historial.filter(s => !s.anulada && !recepciones.some(r => r.nroOrden === s.nro));
-  // Ordenar por fecha más reciente primero
+  // Ordenar por fecha mÃ¡s reciente primero
   datos.sort((a, b) => (b.fecha || '').localeCompare(a.fecha || ''));
   if (filtro) {
     const q = filtro.toLowerCase();
@@ -2735,7 +2734,7 @@ function renderOrdenesEmitidas(filtro = '') {
     datos = datos.slice(0, 20);
   }
   if (datos.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="6" class="empty-msg">No hay órdenes pendientes</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="6" class="empty-msg">No hay Ã³rdenes pendientes</td></tr>';
     return;
   }
   tbody.innerHTML = datos.map(s => {
@@ -2746,7 +2745,7 @@ function renderOrdenesEmitidas(filtro = '') {
       <td>${s.solicitante || s.Cliente || '-'}</td>
       <td><span class="badge badge-pendiente">Pendiente</span></td>
       <td>
-        <button class="btn-add" style="padding:4px 12px;font-size:0.8rem" onclick="abrirModalRec(this)" data-nro="${s.nro}">📥 Recibir</button>
+        <button class="btn-add" style="padding:4px 12px;font-size:0.8rem" onclick="abrirModalRec(this)" data-nro="${s.nro}">ðŸ“¥ Recibir</button>
         <button class="btn-ver" onclick="verOrdenEmitida(this)" data-nro="${s.nro}">Ver</button>
       </td>
     </tr>`;
@@ -2792,7 +2791,7 @@ function renderRecepciones(filtro = '') {
     </tr>`).join('');
 }
 
-// Abrir modal para confirmar recepción de una orden
+// Abrir modal para confirmar recepciÃ³n de una orden
 function verOrdenEmitida(btn) {
   const nroOrden = btn.dataset.nro;
   const s = historial.find(o => o.nro === nroOrden);
@@ -2800,15 +2799,15 @@ function verOrdenEmitida(btn) {
   ordenImpresion = s;
   document.getElementById('modalTitulo').textContent = `Orden ${s.nro}`;
   document.getElementById('modalBody').innerHTML = `
-    <div class="detail-row"><strong>N° Salida:</strong> ${s.nro}</div>
+    <div class="detail-row"><strong>NÂ° Salida:</strong> ${s.nro}</div>
     <div class="detail-row"><strong>Fecha:</strong> ${formatFecha(s.fecha)}</div>
     <div class="detail-row"><strong>Tipo Documento:</strong> ${s.tipoDocumento || '-'}</div>
-    <div class="detail-row"><strong>N° Documento:</strong> ${s.nroDocumento || '-'}</div>
+    <div class="detail-row"><strong>NÂ° Documento:</strong> ${s.nroDocumento || '-'}</div>
     <div class="detail-row"><strong>Cliente:</strong> ${s.solicitante || '-'}</div>
     ${s.creadoPor ? `<div class="detail-row"><strong>Creada por:</strong> ${s.creadoPor} (${s.rolCreador || '-'})</div>` : ''}
     ${s.observaciones ? `<div class="detail-row"><strong>Observaciones:</strong> ${s.observaciones}</div>` : ''}
     <table style="margin-top:14px">
-      <thead><tr><th>#</th><th>Código</th><th>Descripción</th><th>Unidad</th><th>Cantidad</th><th>En Palabras</th></tr></thead>
+      <thead><tr><th>#</th><th>CÃ³digo</th><th>DescripciÃ³n</th><th>Unidad</th><th>Cantidad</th><th>En Palabras</th></tr></thead>
       <tbody>
         ${s.productos.map((p, j) => `
           <tr>
@@ -2831,12 +2830,12 @@ function abrirModalRec(btn) {
   let opcionesUsuarios = '<option value="">-- Seleccionar --</option>';
   // Primero el usuario activo (preseleccionado arriba)
   opcionesUsuarios += `<option value="${usuarioActivo.nombre}">${usuarioActivo.nombre} (${usuarioActivo.rol})</option>`;
-  // Luego los demás usuarios activos
+  // Luego los demÃ¡s usuarios activos
   usuarios.filter(u => u.activo && u.login !== usuarioActivo.login).forEach(u => {
     opcionesUsuarios += `<option value="${u.nombre}">${u.nombre} (${u.rol})</option>`;
   });
-  // Opción para escribir otro nombre manualmente
-  opcionesUsuarios += `<option value="__otro__">✏ Otra persona...</option>`;
+  // OpciÃ³n para escribir otro nombre manualmente
+  opcionesUsuarios += `<option value="__otro__">âœ Otra persona...</option>`;
   selectRec.innerHTML = opcionesUsuarios;
   selectRec.value = '';
   // Crear/mostrar input para nombre manual
@@ -2861,14 +2860,14 @@ function abrirModalRec(btn) {
     }
   };
   document.getElementById('modalRecBody').innerHTML = `
-    <div class="detail-row"><strong>N° Orden:</strong> ${orden.nro}</div>
-    <div class="detail-row"><strong>Fecha Emisión:</strong> ${formatFecha(orden.fecha)}</div>
+    <div class="detail-row"><strong>NÂ° Orden:</strong> ${orden.nro}</div>
+    <div class="detail-row"><strong>Fecha EmisiÃ³n:</strong> ${formatFecha(orden.fecha)}</div>
     <div class="detail-row"><strong>Tipo Documento:</strong> ${orden.tipoDocumento || '-'}</div>
-    <div class="detail-row"><strong>N° Documento:</strong> ${orden.nroDocumento || '-'}</div>
+    <div class="detail-row"><strong>NÂ° Documento:</strong> ${orden.nroDocumento || '-'}</div>
     <div class="detail-row"><strong>Cliente:</strong> ${orden.solicitante}</div>
     ${orden.creadoPor ? `<div class="detail-row"><strong>Creada por:</strong> ${orden.creadoPor} (${orden.rolCreador || '-'})</div>` : ''}
     <table style="margin-top:14px">
-      <thead><tr><th>#</th><th>Código</th><th>Descripción</th><th>Unidad</th><th>Cantidad</th></tr></thead>
+      <thead><tr><th>#</th><th>CÃ³digo</th><th>DescripciÃ³n</th><th>Unidad</th><th>Cantidad</th></tr></thead>
       <tbody>
         ${orden.productos.map((p, j) => `
           <tr>
@@ -2887,14 +2886,14 @@ function cerrarModalRec() {
 
 async function confirmarRecepcion() {
   let recibidoPor = document.getElementById('recibidoPor').value.trim();
-  // Si eligió "Otra persona", usar el input de texto
+  // Si eligiÃ³ "Otra persona", usar el input de texto
   if (recibidoPor === '__otro__') {
     const inputOtro = document.getElementById('inputRecOtroNombre');
     recibidoPor = inputOtro ? inputOtro.value.trim() : '';
   }
-  if (!recibidoPor) { showToast('Ingresa quién recibe la orden', true); return; }
+  if (!recibidoPor) { showToast('Ingresa quiÃ©n recibe la orden', true); return; }
 
-  // Verificar que no esté ya recibida (en local y en Firebase)
+  // Verificar que no estÃ© ya recibida (en local y en Firebase)
   if (recepciones.some(r => r.nroOrden === ordenEnRecepcion.nro)) {
     showToast('Esta orden ya fue recibida', true);
     cerrarModalRec();
@@ -2914,7 +2913,7 @@ async function confirmarRecepcion() {
     }
   }
 
-  // Verificar que no esté ya recibida
+  // Verificar que no estÃ© ya recibida
   if (recepciones.some(r => r.nroOrden === ordenEnRecepcion.nro)) {
     showToast('Esta orden ya fue recibida', true);
     cerrarModalRec();
@@ -2922,7 +2921,7 @@ async function confirmarRecepcion() {
     return;
   }
 
-  // Obtener siguiente número de recepción desde Firebase
+  // Obtener siguiente nÃºmero de recepciÃ³n desde Firebase
   let nroRec;
   if (window.fbListo) {
     try {
@@ -2958,12 +2957,12 @@ async function confirmarRecepcion() {
     total:       ordenEnRecepcion.total
   };
 
-  // Guardar en Firebase primero y esperar confirmación
+  // Guardar en Firebase primero y esperar confirmaciÃ³n
   if (window.fbListo) {
     try {
       await fbGuardar('recepciones', recepcion.nro, recepcion);
     } catch(e) {
-      showToast('Error al guardar recepción. Intenta de nuevo.', true);
+      showToast('Error al guardar recepciÃ³n. Intenta de nuevo.', true);
       return;
     }
   }
@@ -2977,13 +2976,13 @@ async function confirmarRecepcion() {
   renderOrdenesEmitidas();
   renderRecepciones();
   buscarOrdenAntigua();
-  showToast(`✔ Recepción ${recepcion.nro} confirmada`);
-  registrarActividad('Recepción confirmada', `${recepcion.nro} — Orden ${recepcion.nroOrden} — Recibido por: ${recepcion.recibidoPor}`);
+  showToast(`âœ” RecepciÃ³n ${recepcion.nro} confirmada`);
+  registrarActividad('RecepciÃ³n confirmada', `${recepcion.nro} â€” Orden ${recepcion.nroOrden} â€” Recibido por: ${recepcion.recibidoPor}`);
 }
 
 function verRecepcion(i) {
   const r = recepciones[i];
-  // Setear ordenImpresion con los datos de la recepción para poder imprimir
+  // Setear ordenImpresion con los datos de la recepciÃ³n para poder imprimir
   ordenImpresion = {
     nro: r.nroOrden,
     fecha: r.fecha,
@@ -3004,19 +3003,19 @@ function verRecepcion(i) {
     ordenImpresion.solicitante = ordenOriginal.solicitante || r.solicitante || '';
     ordenImpresion.observaciones = ordenOriginal.observaciones || '';
   }
-  document.getElementById('modalTitulo').textContent = `Recepción ${r.nro}`;
+  document.getElementById('modalTitulo').textContent = `RecepciÃ³n ${r.nro}`;
   document.getElementById('modalBody').innerHTML = `
-    <div class="detail-row"><strong>N° Recepción:</strong> ${r.nro}</div>
-    <div class="detail-row"><strong>N° Orden:</strong> ${r.nroOrden}</div>
-    <div class="detail-row"><strong>Fecha Recepción:</strong> ${formatFecha(r.fecha)}</div>
+    <div class="detail-row"><strong>NÂ° RecepciÃ³n:</strong> ${r.nro}</div>
+    <div class="detail-row"><strong>NÂ° Orden:</strong> ${r.nroOrden}</div>
+    <div class="detail-row"><strong>Fecha RecepciÃ³n:</strong> ${formatFecha(r.fecha)}</div>
     <div class="detail-row"><strong>Tipo Documento:</strong> ${ordenOriginal ? ordenOriginal.tipoDocumento || '-' : '-'}</div>
-    <div class="detail-row"><strong>N° Documento:</strong> ${ordenOriginal ? ordenOriginal.nroDocumento || '-' : '-'}</div>
+    <div class="detail-row"><strong>NÂ° Documento:</strong> ${ordenOriginal ? ordenOriginal.nroDocumento || '-' : '-'}</div>
     <div class="detail-row"><strong>Cliente:</strong> ${r.solicitante || r.Cliente || '-'}</div>
     <div class="detail-row"><strong>Recibido por:</strong> ${r.recibidoPor}</div>
     ${ordenOriginal && ordenOriginal.creadoPor ? `<div class="detail-row"><strong>Orden creada por:</strong> ${ordenOriginal.creadoPor} (${ordenOriginal.rolCreador || '-'})</div>` : ''}
     ${r.observaciones ? `<div class="detail-row"><strong>Observaciones:</strong> ${r.observaciones}</div>` : ''}
     <table style="margin-top:14px">
-      <thead><tr><th>#</th><th>Código</th><th>Descripción</th><th>Unidad</th><th>Cantidad</th></tr></thead>
+      <thead><tr><th>#</th><th>CÃ³digo</th><th>DescripciÃ³n</th><th>Unidad</th><th>Cantidad</th></tr></thead>
       <tbody>
         ${r.productos.map((p, j) => `
           <tr>
@@ -3029,12 +3028,12 @@ function verRecepcion(i) {
 }
 
 function eliminarRecepcion(i) {
-  if (!confirm(`¿Eliminar la recepción ${recepciones[i].nro}?`)) return;
+  if (!confirm(`Â¿Eliminar la recepciÃ³n ${recepciones[i].nro}?`)) return;
   recepciones.splice(i, 1);
   localStorage.setItem('recepcionesBodega', JSON.stringify(recepciones));
   renderRecepciones();
   renderOrdenesEmitidas();
-  showToast('Recepción eliminada');
+  showToast('RecepciÃ³n eliminada');
 }
 
 // Filtros recepciones
@@ -3060,30 +3059,30 @@ document.getElementById('buscarRecepcion').addEventListener('keydown', e => {
   if (e.key === 'Enter') renderRecepciones(document.getElementById('buscarRecepcion').value.trim());
 });
 
-// Cerrar modal recepción al click fuera
+// Cerrar modal recepciÃ³n al click fuera
 document.getElementById('modalRecepcion').addEventListener('click', (e) => {
   if (e.target === document.getElementById('modalRecepcion')) cerrarModalRec();
 });
 
-// ── Número a palabras (español) ───────────────────────────
+// â”€â”€ NÃºmero a palabras (espaÃ±ol) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function numeroAPalabras(n) {
   if (n === 0) return 'cero';
   if (n < 0) return 'menos ' + numeroAPalabras(-n);
 
-  // Manejar decimales: "1.5" → "uno punto cinco"
+  // Manejar decimales: "1.5" â†’ "uno punto cinco"
   if (n !== Math.floor(n)) {
     const partes = n.toString().split('.');
     const entera = parseInt(partes[0]);
     const decimalStr = partes[1];
-    // Convertir cada dígito decimal individualmente
+    // Convertir cada dÃ­gito decimal individualmente
     const digitosDecimal = ['cero','uno','dos','tres','cuatro','cinco','seis','siete','ocho','nueve'];
     let decimalPalabras;
     const decimalNum = parseInt(decimalStr);
     if (decimalStr.length <= 2 && decimalNum > 0 && decimalNum < 100) {
-      // Intentar convertir como número completo (ej: 25 → "veinticinco")
+      // Intentar convertir como nÃºmero completo (ej: 25 â†’ "veinticinco")
       decimalPalabras = numeroAPalabras(decimalNum);
     } else {
-      // Dígito por dígito para decimales largos
+      // DÃ­gito por dÃ­gito para decimales largos
       decimalPalabras = decimalStr.split('').map(d => digitosDecimal[parseInt(d)]).join(' ');
     }
     const enteraPalabras = entera === 0 ? 'cero' : numeroAPalabras(entera);
@@ -3093,7 +3092,7 @@ function numeroAPalabras(n) {
   n = Math.floor(n);
 
   const unidades  = ['','uno','dos','tres','cuatro','cinco','seis','siete','ocho','nueve',
-                     'diez','once','doce','trece','catorce','quince','dieciséis','diecisiete',
+                     'diez','once','doce','trece','catorce','quince','diecisÃ©is','diecisiete',
                      'dieciocho','diecinueve'];
   const decenas   = ['','','veinte','treinta','cuarenta','cincuenta','sesenta','setenta','ochenta','noventa'];
   const centenas  = ['','ciento','doscientos','trescientos','cuatrocientos','quinientos',
@@ -3117,7 +3116,7 @@ function numeroAPalabras(n) {
   return n.toString();
 }
 
-// ── Utilidades ────────────────────────────────────────────
+// â”€â”€ Utilidades â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function fechaHoraLocal() {
   const now = new Date();
   const opciones = { timeZone: 'America/Santiago', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false };
@@ -3138,18 +3137,18 @@ function formatFecha(f) {
   return `${d}/${m}/${y}`;
 }
 
-// ── Log de Actividad ──────────────────────────────────────
+// â”€â”€ Log de Actividad â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-// ── Log de Actividad (desactivado) ────────────────────────
+// â”€â”€ Log de Actividad (desactivado) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function registrarActividad() {}
 
-// ── Papelera de Reciclaje ─────────────────────────────────
+// â”€â”€ Papelera de Reciclaje â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function renderPapelera() {
   const tbody = document.getElementById('tbodyPapelera');
   if (!tbody) return;
   const anuladas = historial.filter(s => s.anulada === true);
   if (anuladas.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="6" class="empty-msg">No hay órdenes en la papelera</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="6" class="empty-msg">No hay Ã³rdenes en la papelera</td></tr>';
     return;
   }
   tbody.innerHTML = anuladas.map(s => {
@@ -3162,20 +3161,20 @@ function renderPapelera() {
       <td>${s.creadoPor ? `${s.creadoPor} (${s.rolCreador || '-'})` : '-'}</td>
       <td>
         <button class="btn-ver" onclick="verOrdenAntigua('${s.nro}')">Ver</button>
-        <button class="btn-add" style="padding:4px 10px;font-size:0.8rem;background:#16a34a" onclick="restaurarOrden(${idx})">♻ Restaurar</button>
-        <button class="btn-delete" style="margin-left:4px" onclick="eliminarDefinitivo(${idx})" title="Eliminar definitivamente">✕ Eliminar</button>
+        <button class="btn-add" style="padding:4px 10px;font-size:0.8rem;background:#16a34a" onclick="restaurarOrden(${idx})">â™» Restaurar</button>
+        <button class="btn-delete" style="margin-left:4px" onclick="eliminarDefinitivo(${idx})" title="Eliminar definitivamente">âœ• Eliminar</button>
       </td>
     </tr>`;
   }).join('');
 }
 
 function restaurarOrden(i) {
-  if (!confirm(`¿Restaurar la orden ${historial[i].nro}? Volverá a aparecer como orden activa.`)) return;
+  if (!confirm(`Â¿Restaurar la orden ${historial[i].nro}? VolverÃ¡ a aparecer como orden activa.`)) return;
   historial[i].anulada = false;
   localStorage.setItem('historialSalidas', JSON.stringify(historial));
   if (window.fbListo) fbGuardar('historial', historial[i].nro, historial[i]);
   registrarActividad('Orden restaurada', `${historial[i].nro}`);
-  showToast(`✔ Orden ${historial[i].nro} restaurada`);
+  showToast(`âœ” Orden ${historial[i].nro} restaurada`);
   renderPapelera();
   renderReportes();
   buscarOrdenAntigua();
@@ -3183,8 +3182,8 @@ function restaurarOrden(i) {
 }
 
 function eliminarDefinitivo(i) {
-  if (!confirm(`¿Eliminar DEFINITIVAMENTE la orden ${historial[i].nro}? Esta acción no se puede deshacer.`)) return;
-  if (!confirm('¿Estás completamente seguro?')) return;
+  if (!confirm(`Â¿Eliminar DEFINITIVAMENTE la orden ${historial[i].nro}? Esta acciÃ³n no se puede deshacer.`)) return;
+  if (!confirm('Â¿EstÃ¡s completamente seguro?')) return;
   const nro = historial[i].nro;
   historial.splice(i, 1);
   localStorage.setItem('historialSalidas', JSON.stringify(historial));
@@ -3203,13 +3202,13 @@ function showToast(msg, error = false) {
   setTimeout(() => { t.className = 'toast'; }, 3000);
 }
 
-// ── Mensaje del Admin ──────────────────────────────────────
+// â”€â”€ Mensaje del Admin â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function guardarMensajeAdmin() {
   const msg = document.getElementById('inputMensajeAdmin').value.trim();
   if (!msg) { showToast('Escribe un mensaje', true); return; }
   if (window.fbListo) {
     fbGuardar('config', 'mensajeAdmin', { texto: msg, fecha: fechaHoraLocal() });
-    showToast('✔ Mensaje enviado a todos los usuarios');
+    showToast('âœ” Mensaje enviado a todos los usuarios');
     document.getElementById('mensajeAdminActual').textContent = 'Mensaje actual: "' + msg + '"';
     document.getElementById('inputMensajeAdmin').value = '';
   }
@@ -3231,7 +3230,7 @@ function mostrarMensajeAdmin() {
     if (msg && msg.texto) {
       // Mostrar como alerta al usuario
       setTimeout(() => {
-        showToast('📢 Admin: ' + msg.texto);
+        showToast('ðŸ“¢ Admin: ' + msg.texto);
       }, 2000);
       // Mostrar en el campo si es admin
       const el = document.getElementById('mensajeAdminActual');
@@ -3240,24 +3239,24 @@ function mostrarMensajeAdmin() {
   });
 }
 
-// ── Notificaciones de escritorio ──────────────────────────
+// â”€â”€ Notificaciones de escritorio â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function mostrarNotificacion(titulo, mensaje, nroOrden) {
-  // Enviar al proceso principal para notificación persistente
+  // Enviar al proceso principal para notificaciÃ³n persistente
   if (window.require) {
     const { ipcRenderer } = window.require('electron');
     ipcRenderer.send('mostrar-notificacion', { titulo, mensaje, nroOrden });
   }
-  // También mostrar toast en la app
+  // TambiÃ©n mostrar toast en la app
   showToast(`${titulo}: ${mensaje}`);
 }
 
-// Listener para abrir orden desde notificación
+// Listener para abrir orden desde notificaciÃ³n
 if (window.require) {
   const { ipcRenderer } = window.require('electron');
   ipcRenderer.on('abrir-orden', (event, nroOrden) => {
     const idx = historial.findIndex(s => s.nro === nroOrden);
     if (idx !== -1) {
-      // Ir a la pestaña de reportes y abrir el modal
+      // Ir a la pestaÃ±a de reportes y abrir el modal
       document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
       document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
       document.querySelector('[data-tab="reportes"]').classList.add('active');
@@ -3267,9 +3266,9 @@ if (window.require) {
   });
 }
 
-// ══════════════════════════════════════════════════════════════
-// ── CAJA / VENTAS DEL DÍA ─────────────────────────────────────
-// ══════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// â”€â”€ CAJA / VENTAS DEL DÃA â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 let ventasCaja = JSON.parse(localStorage.getItem('ventasCaja') || '[]');
 let retirosCaja = JSON.parse(localStorage.getItem('retirosCaja') || '[]');
@@ -3287,8 +3286,8 @@ document.getElementById('btnRegistrarVenta').addEventListener('click', () => {
   const metodo = document.getElementById('cajaMetodo').value;
   const tipoDoc = document.getElementById('cajaTipoDoc').value;
   const fechaInput = document.getElementById('cajaFechaRegistro').value;
-  if (!monto || monto <= 0) { showToast('Ingresa un monto válido', true); return; }
-  if (!metodo) { showToast('Selecciona un método de pago', true); return; }
+  if (!monto || monto <= 0) { showToast('Ingresa un monto vÃ¡lido', true); return; }
+  if (!metodo) { showToast('Selecciona un mÃ©todo de pago', true); return; }
   if (!tipoDoc) { showToast('Selecciona el tipo de documento', true); return; }
 
   const fechaVenta = fechaInput || obtenerFechaLocalChile();
@@ -3314,7 +3313,7 @@ document.getElementById('btnRegistrarVenta').addEventListener('click', () => {
 renderRetiros();
 renderMovimientos();
 actualizarSaldoCaja();
-  showToast('✔ Venta registrada');
+  showToast('âœ” Venta registrada');
 });
 
 document.getElementById('btnCajaFiltrar').addEventListener('click', () => {
@@ -3342,19 +3341,19 @@ function renderCaja() {
         <td>${i + 1}</td>
         <td>${v.hora}</td>
         <td>$${v.monto.toLocaleString()}</td>
-        <td><span class="badge" style="background:${v.metodo==='Efectivo'?'#d1fae5':v.metodo==='Débito'?'#dbeafe':v.metodo==='Crédito'?'#fef3c7':'#e0e7ff'};color:#333;padding:3px 8px;border-radius:4px;font-size:0.8rem">${v.metodo}</span></td>
+        <td><span class="badge" style="background:${v.metodo==='Efectivo'?'#d1fae5':v.metodo==='DÃ©bito'?'#dbeafe':v.metodo==='CrÃ©dito'?'#fef3c7':'#e0e7ff'};color:#333;padding:3px 8px;border-radius:4px;font-size:0.8rem">${v.metodo}</span></td>
         <td style="font-size:0.8rem">${v.tipoDoc || '-'}</td>
-        <td><button class="btn-add" style="padding:2px 6px;font-size:0.75rem;margin-right:4px" onclick="editarVentaCaja('${v.id}')">✏</button><button class="btn-delete" onclick="eliminarVentaCaja('${v.id}')">✕</button></td>
+        <td><button class="btn-add" style="padding:2px 6px;font-size:0.75rem;margin-right:4px" onclick="editarVentaCaja('${v.id}')">âœ</button><button class="btn-delete" onclick="eliminarVentaCaja('${v.id}')">âœ•</button></td>
       </tr>`).join('');
   }
 
-  // Estadísticas
+  // EstadÃ­sticas
   const efectivo = ventasDia.filter(v => v.metodo === 'Efectivo').reduce((a, v) => a + v.monto, 0);
-  const debito = ventasDia.filter(v => v.metodo === 'Débito').reduce((a, v) => a + v.monto, 0);
-  const credito = ventasDia.filter(v => v.metodo === 'Crédito').reduce((a, v) => a + v.monto, 0);  const total = efectivo + debito + credito;
+  const debito = ventasDia.filter(v => v.metodo === 'DÃ©bito').reduce((a, v) => a + v.monto, 0);
+  const credito = ventasDia.filter(v => v.metodo === 'CrÃ©dito').reduce((a, v) => a + v.monto, 0);  const total = efectivo + debito + credito;
   const cEfectivo = ventasDia.filter(v => v.metodo === 'Efectivo').length;
-  const cDebito = ventasDia.filter(v => v.metodo === 'Débito').length;
-  const cCredito = ventasDia.filter(v => v.metodo === 'Crédito').length;
+  const cDebito = ventasDia.filter(v => v.metodo === 'DÃ©bito').length;
+  const cCredito = ventasDia.filter(v => v.metodo === 'CrÃ©dito').length;
   document.getElementById('cajaEfectivo').innerHTML = '$' + efectivo.toLocaleString() + `<br><span style="font-size:0.7rem;opacity:0.7">${cEfectivo} venta${cEfectivo!==1?'s':''}</span>`;
   document.getElementById('cajaDebito').innerHTML = '$' + debito.toLocaleString() + `<br><span style="font-size:0.7rem;opacity:0.7">${cDebito} venta${cDebito!==1?'s':''}</span>`;
   document.getElementById('cajaCredito').innerHTML = '$' + credito.toLocaleString() + `<br><span style="font-size:0.7rem;opacity:0.7">${cCredito} venta${cCredito!==1?'s':''}</span>`;
@@ -3362,14 +3361,14 @@ function renderCaja() {
 }
 
 function eliminarVentaCaja(id) {
-  if (!confirm('¿Eliminar esta venta?')) return;
+  if (!confirm('Â¿Eliminar esta venta?')) return;
   const idx = ventasCaja.findIndex(v => v.id === id);
   if (idx !== -1) {
     ventasCaja.splice(idx, 1);
     localStorage.setItem('ventasCaja', JSON.stringify(ventasCaja));
     if (window.fbListo) fbEliminar('caja', id);
     renderCaja();
-    showToast('✔ Venta eliminada');
+    showToast('âœ” Venta eliminada');
   }
 }
 
@@ -3382,14 +3381,14 @@ function editarVentaCaja(id) {
   overlay.style.display = 'flex';
   overlay.innerHTML = `
     <div class="modal" style="max-width:380px">
-      <div class="modal-header"><h3>✏ Editar Venta</h3><button class="modal-close" onclick="this.closest('.modal-overlay').remove()">✕</button></div>
+      <div class="modal-header"><h3>âœ Editar Venta</h3><button class="modal-close" onclick="this.closest('.modal-overlay').remove()">âœ•</button></div>
       <div class="modal-body" style="padding:16px">
         <div class="field"><label>Monto ($)</label><input type="number" id="editVentaMonto" value="${v.monto}" min="1" /></div>
-        <div class="field" style="margin-top:10px"><label>Método de Pago</label>
+        <div class="field" style="margin-top:10px"><label>MÃ©todo de Pago</label>
           <select id="editVentaMetodo">
             <option value="Efectivo" ${v.metodo==='Efectivo'?'selected':''}>Efectivo</option>
-            <option value="Débito" ${v.metodo==='Débito'?'selected':''}>Débito</option>
-            <option value="Crédito" ${v.metodo==='Crédito'?'selected':''}>Crédito</option>
+            <option value="DÃ©bito" ${v.metodo==='DÃ©bito'?'selected':''}>DÃ©bito</option>
+            <option value="CrÃ©dito" ${v.metodo==='CrÃ©dito'?'selected':''}>CrÃ©dito</option>
             <option value="Transferencia" ${v.metodo==='Transferencia'?'selected':''}>Transferencia</option>
           </select>
         </div>
@@ -3404,7 +3403,7 @@ function editarVentaCaja(id) {
       </div>
       <div class="modal-footer">
         <button class="btn-secondary" onclick="this.closest('.modal-overlay').remove()">Cancelar</button>
-        <button class="btn-primary" id="btnGuardarEditVenta">✔ Guardar</button>
+        <button class="btn-primary" id="btnGuardarEditVenta">âœ” Guardar</button>
       </div>
     </div>`;
   document.body.appendChild(overlay);
@@ -3413,7 +3412,7 @@ function editarVentaCaja(id) {
     const nuevoMetodo = document.getElementById('editVentaMetodo').value;
     const nuevoTipoDoc = document.getElementById('editVentaTipoDoc').value;
     const nuevaFecha = document.getElementById('editVentaFecha').value;
-    if (!nuevoMonto || nuevoMonto <= 0) { showToast('Monto inválido', true); return; }
+    if (!nuevoMonto || nuevoMonto <= 0) { showToast('Monto invÃ¡lido', true); return; }
     ventasCaja[idx].monto = nuevoMonto;
     ventasCaja[idx].metodo = nuevoMetodo;
     ventasCaja[idx].tipoDoc = nuevoTipoDoc;
@@ -3422,14 +3421,14 @@ function editarVentaCaja(id) {
     if (window.fbListo) fbGuardar('caja', v.id, ventasCaja[idx]);
     overlay.remove();
     renderCaja();
-    showToast('✔ Venta actualizada');
+    showToast('âœ” Venta actualizada');
   });
 }
 
-// ── Retiros de Caja ──────────────────────────────────────────
+// â”€â”€ Retiros de Caja â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function generarPDFRetiro(retiro) {
-  // Generar número correlativo basado en total histórico de retiros
+  // Generar nÃºmero correlativo basado en total histÃ³rico de retiros
   const nroComprobante = String(retirosCaja.length).padStart(4, '0');
 
   const montoEnPalabras = convertirMontoAPalabras(retiro.monto);
@@ -3471,7 +3470,7 @@ function generarPDFRetiro(retiro) {
     </div>
 
     <div class="nro-comprobante">
-      N° Comprobante: <span>${nroComprobante}</span>
+      NÂ° Comprobante: <span>${nroComprobante}</span>
     </div>
 
     <div class="fecha-lugar">
@@ -3493,7 +3492,7 @@ function generarPDFRetiro(retiro) {
     </div>
 
     <div class="declaracion">
-      Declaro haber recibido de parte de <strong>${retiro.quienRetira || 'Jose Lee'}</strong>, en representación de Bodega A&amp;M, la suma de <strong>$ ${retiro.monto.toLocaleString()}.-</strong> (${montoEnPalabras}), correspondiente a: <strong>${retiro.nota || 'retiro de caja'}</strong>. El presente comprobante se extiende como constancia de la entrega y recepción conforme del monto indicado.
+      Declaro haber recibido de parte de <strong>${retiro.quienRetira || 'Jose Lee'}</strong>, en representaciÃ³n de Bodega A&amp;M, la suma de <strong>$ ${retiro.monto.toLocaleString()}.-</strong> (${montoEnPalabras}), correspondiente a: <strong>${retiro.nota || 'retiro de caja'}</strong>. El presente comprobante se extiende como constancia de la entrega y recepciÃ³n conforme del monto indicado.
     </div>
 
     <div class="firmas">
@@ -3512,7 +3511,7 @@ function generarPDFRetiro(retiro) {
     </div>
 
     <div class="pie">
-      Documento interno — Bodega A&amp;M — Comprobante generado el ${new Date().toLocaleDateString('es-CL')} a las ${new Date().toTimeString().slice(0,5)}<br>
+      Documento interno â€” Bodega A&amp;M â€” Comprobante generado el ${new Date().toLocaleDateString('es-CL')} a las ${new Date().toTimeString().slice(0,5)}<br>
       Este documento no tiene valor tributario. Solo para control interno.
     </div>
 
@@ -3528,7 +3527,7 @@ function generarPDFRetiro(retiro) {
 function convertirMontoAPalabras(monto) {
   const unidades = ['', 'un', 'dos', 'tres', 'cuatro', 'cinco', 'seis', 'siete', 'ocho', 'nueve'];
   const decenas = ['', 'diez', 'veinte', 'treinta', 'cuarenta', 'cincuenta', 'sesenta', 'setenta', 'ochenta', 'noventa'];
-  const especiales = ['diez', 'once', 'doce', 'trece', 'catorce', 'quince', 'dieciséis', 'diecisiete', 'dieciocho', 'diecinueve'];
+  const especiales = ['diez', 'once', 'doce', 'trece', 'catorce', 'quince', 'diecisÃ©is', 'diecisiete', 'dieciocho', 'diecinueve'];
   const centenas = ['', 'ciento', 'doscientos', 'trescientos', 'cuatrocientos', 'quinientos', 'seiscientos', 'setecientos', 'ochocientos', 'novecientos'];
 
   if (monto === 0) return 'cero pesos';
@@ -3538,7 +3537,7 @@ function convertirMontoAPalabras(monto) {
 
   if (monto >= 1000000) {
     const millones = Math.floor(monto / 1000000);
-    resultado += (millones === 1 ? 'un millón ' : convertirGrupo(millones, unidades, decenas, especiales, centenas) + ' millones ');
+    resultado += (millones === 1 ? 'un millÃ³n ' : convertirGrupo(millones, unidades, decenas, especiales, centenas) + ' millones ');
     monto %= 1000000;
   }
 
@@ -3575,8 +3574,8 @@ function registrarRetiro() {
   const destinatario = document.getElementById('retiroDestinatario').value;
   const nota = document.getElementById('retiroNota').value.trim();
 
-  if (!monto || monto <= 0) { showToast('Ingresa un monto válido', true); return; }
-  if (!destinatario) { showToast('Selecciona a quién se entrega', true); return; }
+  if (!monto || monto <= 0) { showToast('Ingresa un monto vÃ¡lido', true); return; }
+  if (!destinatario) { showToast('Selecciona a quiÃ©n se entrega', true); return; }
 
   const ahora = new Date();
   const retiro = {
@@ -3604,13 +3603,13 @@ function registrarRetiro() {
 
   renderRetiros();
   actualizarSaldoCaja();
-  showToast('✔ Retiro de $' + monto.toLocaleString() + ' registrado');
+  showToast('âœ” Retiro de $' + monto.toLocaleString() + ' registrado');
   generarPDFRetiro(retiro);
   registrarActividad('Retiro de Caja', 'Retiro de $' + monto.toLocaleString() + ' a ' + destinatario);
 }
 
 function eliminarRetiro(id) {
-  if (!confirm('¿Eliminar este retiro?')) return;
+  if (!confirm('Â¿Eliminar este retiro?')) return;
   retirosCaja = retirosCaja.filter(r => r.id !== id);
   localStorage.setItem('retirosCaja', JSON.stringify(retirosCaja));
   if (window.fbEliminar) fbEliminar('retirosCaja', id).catch(() => {});
@@ -3626,7 +3625,7 @@ function editarRetiro(id) {
   const modalHtml = `
     <div id="modalEditRetiro" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:9999">
       <div style="background:white;border-radius:12px;padding:24px;width:400px;max-width:90%">
-        <h3 style="margin-bottom:16px">✏️ Editar Retiro</h3>
+        <h3 style="margin-bottom:16px">âœï¸ Editar Retiro</h3>
         <div class="field"><label>Monto ($)</label><input type="number" id="editRetiroMonto" value="${r.monto}" min="1" /></div>
         <div class="field" style="margin-top:10px"><label>Fecha</label><input type="date" id="editRetiroFecha" value="${r.fecha}" /></div>
         <div class="field" style="margin-top:10px"><label>Hora</label><input type="time" id="editRetiroHora" value="${r.hora}" /></div>
@@ -3660,7 +3659,7 @@ function guardarEdicionRetiro(id) {
   const fecha = document.getElementById('editRetiroFecha').value;
   const hora = document.getElementById('editRetiroHora').value;
 
-  if (!monto || monto <= 0) { showToast('Monto inválido', true); return; }
+  if (!monto || monto <= 0) { showToast('Monto invÃ¡lido', true); return; }
   if (!destinatario) { showToast('Selecciona destinatario', true); return; }
 
   const idx = retirosCaja.findIndex(r => r.id === id);
@@ -3680,7 +3679,7 @@ function guardarEdicionRetiro(id) {
   renderRetiros();
   renderHistRetiros('todos');
   actualizarSaldoCaja();
-  showToast('✔ Retiro actualizado');
+  showToast('âœ” Retiro actualizado');
 }
 
 function renderRetiros() {
@@ -3702,7 +3701,7 @@ function renderRetiros() {
     <td>${r.destinatario}</td>
     <td>${r.operador}</td>
     <td>${r.nota || '-'}</td>
-    <td><button class="btn-add" style="padding:2px 8px;font-size:0.75rem;margin-right:4px" onclick="generarPDFRetiro(retirosCaja.find(x=>x.id==='${r.id}'))">🖨</button><button class="btn-secondary" style="padding:2px 8px;font-size:0.75rem;margin-right:4px" onclick="editarRetiro('${r.id}')">✏</button><button class="btn-delete" onclick="eliminarRetiro('${r.id}')" title="Eliminar">🗑</button></td>
+    <td><button class="btn-add" style="padding:2px 8px;font-size:0.75rem;margin-right:4px" onclick="generarPDFRetiro(retirosCaja.find(x=>x.id==='${r.id}'))">ðŸ–¨</button><button class="btn-secondary" style="padding:2px 8px;font-size:0.75rem;margin-right:4px" onclick="editarRetiro('${r.id}')">âœ</button><button class="btn-delete" onclick="eliminarRetiro('${r.id}')" title="Eliminar">ðŸ—‘</button></td>
   </tr>`).join('');
 }
 
@@ -3734,12 +3733,12 @@ document.getElementById('btnRegistrarRetiro').addEventListener('click', registra
 document.getElementById('btnCajaExcel').addEventListener('click', () => {
   const ventasDia = ventasCaja.filter(v => v.fecha === cajaFechaActual);
   if (ventasDia.length === 0) { showToast('No hay ventas para exportar', true); return; }
-  let csv = '\uFEFF#;Hora;Monto;Método\n';
+  let csv = '\uFEFF#;Hora;Monto;MÃ©todo\n';
   ventasDia.forEach((v, i) => { csv += `${i+1};${v.hora};${v.monto};${v.metodo}\n`; });
   const efectivo = ventasDia.filter(v => v.metodo === 'Efectivo').reduce((a, v) => a + v.monto, 0);
-  const debito = ventasDia.filter(v => v.metodo === 'Débito').reduce((a, v) => a + v.monto, 0);
-  const credito = ventasDia.filter(v => v.metodo === 'Crédito').reduce((a, v) => a + v.monto, 0);
-  csv += `\n;TOTALES;;\n;Efectivo;${efectivo};\n;Débito;${debito};\n;Crédito;${credito};\n;Transferencia;${transferencia};\n;TOTAL;${efectivo+debito+credito+transferencia};\n`;
+  const debito = ventasDia.filter(v => v.metodo === 'DÃ©bito').reduce((a, v) => a + v.monto, 0);
+  const credito = ventasDia.filter(v => v.metodo === 'CrÃ©dito').reduce((a, v) => a + v.monto, 0);
+  csv += `\n;TOTALES;;\n;Efectivo;${efectivo};\n;DÃ©bito;${debito};\n;CrÃ©dito;${credito};\n;Transferencia;${transferencia};\n;TOTAL;${efectivo+debito+credito+transferencia};\n`;
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -3747,7 +3746,7 @@ document.getElementById('btnCajaExcel').addEventListener('click', () => {
   a.download = `Caja_${cajaFechaActual}.csv`;
   a.click();
   URL.revokeObjectURL(url);
-  showToast('✔ Excel descargado');
+  showToast('âœ” Excel descargado');
 });
 
 // Exportar Caja a PDF
@@ -3755,8 +3754,8 @@ document.getElementById('btnCajaPDF').addEventListener('click', () => {
   const ventasDia = ventasCaja.filter(v => v.fecha === cajaFechaActual);
   if (ventasDia.length === 0) { showToast('No hay ventas para exportar', true); return; }
   const efectivo = ventasDia.filter(v => v.metodo === 'Efectivo').reduce((a, v) => a + v.monto, 0);
-  const debito = ventasDia.filter(v => v.metodo === 'Débito').reduce((a, v) => a + v.monto, 0);
-  const credito = ventasDia.filter(v => v.metodo === 'Crédito').reduce((a, v) => a + v.monto, 0);
+  const debito = ventasDia.filter(v => v.metodo === 'DÃ©bito').reduce((a, v) => a + v.monto, 0);
+  const credito = ventasDia.filter(v => v.metodo === 'CrÃ©dito').reduce((a, v) => a + v.monto, 0);
   const total = efectivo + debito + credito ;
   const filas = ventasDia.map((v, i) => `<tr><td>${i+1}</td><td>${v.hora}</td><td>$${v.monto.toLocaleString()}</td><td>${v.metodo}</td></tr>`).join('');
   const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>
@@ -3769,15 +3768,15 @@ document.getElementById('btnCajaPDF').addEventListener('click', () => {
     .totales div{margin:4px 0}
     .total-final{font-size:1.3rem;font-weight:bold;color:#1a56db;margin-top:12px}
   </style></head><body>
-    <h1>💰 Caja — ${cajaFechaActual.split('-').reverse().join('/')}</h1>
-    <table><thead><tr><th>#</th><th>Hora</th><th>Monto</th><th>Método</th></tr></thead><tbody>${filas}</tbody></table>
+    <h1>ðŸ’° Caja â€” ${cajaFechaActual.split('-').reverse().join('/')}</h1>
+    <table><thead><tr><th>#</th><th>Hora</th><th>Monto</th><th>MÃ©todo</th></tr></thead><tbody>${filas}</tbody></table>
     <div class="totales">
       <div>Efectivo: $${efectivo.toLocaleString()}</div>
-      <div>Débito: $${debito.toLocaleString()}</div>
-      <div>Crédito: $${credito.toLocaleString()}</div>
+      <div>DÃ©bito: $${debito.toLocaleString()}</div>
+      <div>CrÃ©dito: $${credito.toLocaleString()}</div>
       <div class="total-final">TOTAL: $${total.toLocaleString()}</div>
     </div>
-    <p style="text-align:center;margin-top:30px;font-size:0.8rem;color:#888">Bodega A&M — ${new Date().toLocaleDateString('es-CL')}</p>
+    <p style="text-align:center;margin-top:30px;font-size:0.8rem;color:#888">Bodega A&M â€” ${new Date().toLocaleDateString('es-CL')}</p>
   </body></html>`;
   if (window.require) {
     const { ipcRenderer } = window.require('electron');
@@ -3795,12 +3794,12 @@ document.getElementById('btnCajaMes').addEventListener('click', () => {
 function renderCajaMes(mes) {
   const ventasMes = ventasCaja.filter(v => v.fecha && v.fecha.slice(0, 7) === mes);
   const efectivo = ventasMes.filter(v => v.metodo === 'Efectivo').reduce((a, v) => a + v.monto, 0);
-  const debito = ventasMes.filter(v => v.metodo === 'Débito').reduce((a, v) => a + v.monto, 0);
-  const credito = ventasMes.filter(v => v.metodo === 'Crédito').reduce((a, v) => a + v.monto, 0);
+  const debito = ventasMes.filter(v => v.metodo === 'DÃ©bito').reduce((a, v) => a + v.monto, 0);
+  const credito = ventasMes.filter(v => v.metodo === 'CrÃ©dito').reduce((a, v) => a + v.monto, 0);
   const total = efectivo + debito + credito ;
   const cEfectivo = ventasMes.filter(v => v.metodo === 'Efectivo').length;
-  const cDebito = ventasMes.filter(v => v.metodo === 'Débito').length;
-  const cCredito = ventasMes.filter(v => v.metodo === 'Crédito').length;
+  const cDebito = ventasMes.filter(v => v.metodo === 'DÃ©bito').length;
+  const cCredito = ventasMes.filter(v => v.metodo === 'CrÃ©dito').length;
   const totalVentas = ventasMes.length;
   const pctEfectivo = totalVentas > 0 ? Math.round((cEfectivo / totalVentas) * 100) : 0;
   const pctDebito = totalVentas > 0 ? Math.round((cDebito / totalVentas) * 100) : 0;
@@ -3811,15 +3810,15 @@ function renderCajaMes(mes) {
   document.getElementById('cajaMesCredito').innerHTML = '$' + credito.toLocaleString() + `<br><span style="font-size:0.7rem;opacity:0.7">${cCredito} venta${cCredito!==1?'s':''} (${pctCredito}%)</span>`;
   document.getElementById('cajaMesTotal').innerHTML = '$' + total.toLocaleString() + `<br><span style="font-size:0.7rem;opacity:0.7">${totalVentas} venta${totalVentas!==1?'s':''} total</span>`;
 
-  // Estadísticas extra
-  // Venta más alta
+  // EstadÃ­sticas extra
+  // Venta mÃ¡s alta
   const ventaAlta = ventasMes.length > 0 ? Math.max(...ventasMes.map(v => v.monto)) : 0;
   document.getElementById('cajaMesVentaAlta').textContent = '$' + ventaAlta.toLocaleString();
 
-  // Mejor día (más ingresos)
+  // Mejor dÃ­a (mÃ¡s ingresos)
   const porDia = {};
   ventasMes.forEach(v => { porDia[v.fecha] = (porDia[v.fecha] || 0) + v.monto; });
-  let mejorDia = '—';
+  let mejorDia = 'â€”';
   let maxDia = 0;
   Object.entries(porDia).forEach(([dia, monto]) => {
     if (monto > maxDia) { maxDia = monto; mejorDia = dia.slice(8,10) + '/' + dia.slice(5,7) + ' ($' + monto.toLocaleString() + ')'; }
@@ -3831,12 +3830,12 @@ function renderCajaMes(mes) {
   const promDiario = diasConVentas > 0 ? Math.round(total / diasConVentas) : 0;
   document.getElementById('cajaMesPromDiario').textContent = '$' + promDiario.toLocaleString();
 
-  // Días trabajados
-  document.getElementById('cajaMesDiasTrabajados').textContent = diasConVentas + ' días';
+  // DÃ­as trabajados
+  document.getElementById('cajaMesDiasTrabajados').textContent = diasConVentas + ' dÃ­as';
 
-  // Método más usado
-  const metodos = { Efectivo: cEfectivo, 'Débito': cDebito, 'Crédito': cCredito };
-  let metodoTop = '—';
+  // MÃ©todo mÃ¡s usado
+  const metodos = { Efectivo: cEfectivo, 'DÃ©bito': cDebito, 'CrÃ©dito': cCredito };
+  let metodoTop = 'â€”';
   let maxMetodo = 0;
   Object.entries(metodos).forEach(([m, c]) => {
     if (c > maxMetodo) { maxMetodo = c; metodoTop = m + ' (' + (totalVentas > 0 ? Math.round((c/totalVentas)*100) : 0) + '%)'; }
@@ -3858,7 +3857,7 @@ function cargarCajaDesdeFirebase() {
 
 renderCaja();
 
-// ── Historial de Retiros ──────────────────────────────────────────
+// â”€â”€ Historial de Retiros â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function renderHistRetiros(filtro) {
   let datos = retirosCaja;
   if (filtro === 'mes') {
@@ -3877,7 +3876,7 @@ function renderHistRetiros(filtro) {
   document.getElementById('histRetirosCant').textContent = datos.length;
 
   if (datos.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="8" class="empty-msg">No hay retiros en este período</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="8" class="empty-msg">No hay retiros en este perÃ­odo</td></tr>';
     return;
   }
 
@@ -3889,7 +3888,7 @@ function renderHistRetiros(filtro) {
     <td>${r.destinatario}</td>
     <td>${r.quienRetira || '-'}</td>
     <td>${r.nota || '-'}</td>
-    <td><button class="btn-secondary" style="padding:2px 8px;font-size:0.75rem;margin-right:4px" onclick="editarRetiro('${r.id}')">✏</button><button class="btn-add" style="padding:2px 8px;font-size:0.75rem" onclick="generarPDFRetiro(retirosCaja.find(x=>x.id==='${r.id}'))">🖨</button></td>
+    <td><button class="btn-secondary" style="padding:2px 8px;font-size:0.75rem;margin-right:4px" onclick="editarRetiro('${r.id}')">âœ</button><button class="btn-add" style="padding:2px 8px;font-size:0.75rem" onclick="generarPDFRetiro(retirosCaja.find(x=>x.id==='${r.id}'))">ðŸ–¨</button></td>
   </tr>`).join('');
 }
 
@@ -3902,7 +3901,7 @@ document.getElementById('btnHistRetirosTodos').addEventListener('click', () => r
   if (el) el.value = new Date().toISOString().slice(0, 7);
 })();
 
-// ── Ingresos y Egresos ──────────────────────────────────────────
+// â”€â”€ Ingresos y Egresos â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function registrarMovimiento() {
   const tipo = document.getElementById('movTipo').value;
   const monto = parseInt(document.getElementById('movMonto').value);
@@ -3910,9 +3909,9 @@ function registrarMovimiento() {
   const quien = document.getElementById('movQuien').value.trim();
   const fechaInput = document.getElementById('movFecha').value;
 
-  if (!monto || monto <= 0) { showToast('Ingresa un monto válido', true); return; }
+  if (!monto || monto <= 0) { showToast('Ingresa un monto vÃ¡lido', true); return; }
   if (!motivo) { showToast('Ingresa un motivo', true); return; }
-  if (!quien) { showToast('Ingresa quién realiza el movimiento', true); return; }
+  if (!quien) { showToast('Ingresa quiÃ©n realiza el movimiento', true); return; }
 
   const ahora = new Date();
   const mov = {
@@ -3934,12 +3933,12 @@ function registrarMovimiento() {
   document.getElementById('movQuien').value = '';
 
   renderMovimientos();
-  showToast('✔ ' + tipo + ' de $' + monto.toLocaleString() + ' registrado');
+  showToast('âœ” ' + tipo + ' de $' + monto.toLocaleString() + ' registrado');
   registrarActividad(tipo + ' de Caja', tipo + ' de $' + monto.toLocaleString() + ' - ' + motivo);
 }
 
 function eliminarMovimiento(id) {
-  if (!confirm('¿Eliminar este movimiento?')) return;
+  if (!confirm('Â¿Eliminar este movimiento?')) return;
   movimientosCaja = movimientosCaja.filter(m => m.id !== id);
   localStorage.setItem('movimientosCaja', JSON.stringify(movimientosCaja));
   if (window.fbEliminar) fbEliminar('movimientosCaja', id).catch(() => {});
@@ -3963,7 +3962,7 @@ function renderMovimientos() {
       <td style="font-weight:bold;color:${m.tipo==='Ingreso'?'#065f46':'#c81e1e'}">${m.tipo==='Ingreso'?'+':'-'}$${m.monto.toLocaleString()}</td>
       <td>${m.motivo}</td>
       <td>${m.quien}</td>
-      <td><button class="btn-delete" onclick="eliminarMovimiento('${m.id}')" title="Eliminar">🗑</button></td>
+      <td><button class="btn-delete" onclick="eliminarMovimiento('${m.id}')" title="Eliminar">ðŸ—‘</button></td>
     </tr>`).join('');
   }
 
@@ -4016,7 +4015,7 @@ document.getElementById('btnCompararSemanas').addEventListener('click', () => {
 
   function diff(a, b) {
     const d = b - a;
-    const pct = a > 0 ? Math.round((d / a) * 100) : (b > 0 ? '∞' : 0);
+    const pct = a > 0 ? Math.round((d / a) * 100) : (b > 0 ? 'âˆž' : 0);
     const color = d > 0 ? '#065f46' : d < 0 ? '#c81e1e' : '#333';
     return `<span style="color:${color};font-weight:bold">${d >= 0 ? '+' : ''}${typeof d === 'number' && d > 999 ? '$'+d.toLocaleString() : d} (${pct}%)</span>`;
   }
@@ -4025,14 +4024,14 @@ document.getElementById('btnCompararSemanas').addEventListener('click', () => {
     <tr><td>Total Ventas</td><td>$${totalAnt.toLocaleString()}</td><td>$${totalEsta.toLocaleString()}</td><td>${diff(totalAnt, totalEsta)}</td></tr>
     <tr><td>Cantidad</td><td>${cantAnt}</td><td>${cantEsta}</td><td>${diff(cantAnt, cantEsta)}</td></tr>
     <tr><td>Efectivo</td><td>$${ventasAnt.filter(v=>v.metodo==='Efectivo').reduce((a,v)=>a+v.monto,0).toLocaleString()}</td><td>$${ventasEsta.filter(v=>v.metodo==='Efectivo').reduce((a,v)=>a+v.monto,0).toLocaleString()}</td><td></td></tr>
-    <tr><td>Débito</td><td>$${ventasAnt.filter(v=>v.metodo==='Débito').reduce((a,v)=>a+v.monto,0).toLocaleString()}</td><td>$${ventasEsta.filter(v=>v.metodo==='Débito').reduce((a,v)=>a+v.monto,0).toLocaleString()}</td><td></td></tr>
-    <tr><td>Crédito</td><td>$${ventasAnt.filter(v=>v.metodo==='Crédito').reduce((a,v)=>a+v.monto,0).toLocaleString()}</td><td>$${ventasEsta.filter(v=>v.metodo==='Crédito').reduce((a,v)=>a+v.monto,0).toLocaleString()}</td><td></td></tr>
+    <tr><td>DÃ©bito</td><td>$${ventasAnt.filter(v=>v.metodo==='DÃ©bito').reduce((a,v)=>a+v.monto,0).toLocaleString()}</td><td>$${ventasEsta.filter(v=>v.metodo==='DÃ©bito').reduce((a,v)=>a+v.monto,0).toLocaleString()}</td><td></td></tr>
+    <tr><td>CrÃ©dito</td><td>$${ventasAnt.filter(v=>v.metodo==='CrÃ©dito').reduce((a,v)=>a+v.monto,0).toLocaleString()}</td><td>$${ventasEsta.filter(v=>v.metodo==='CrÃ©dito').reduce((a,v)=>a+v.monto,0).toLocaleString()}</td><td></td></tr>
     
   `;
   document.getElementById('comparacionSemanas').style.display = '';
 });
 
-// Gráficos de Caja
+// GrÃ¡ficos de Caja
 document.getElementById('btnCajaGraficos').addEventListener('click', () => {
   const mes = document.getElementById('cajaGraficosMes').value;
   if (!mes) { showToast('Selecciona un mes', true); return; }
@@ -4046,14 +4045,14 @@ function renderCajaGraficos(mes) {
     return;
   }
 
-  // 1. Barras horizontales por día
+  // 1. Barras horizontales por dÃ­a
   const porDia = {};
   ventas.forEach(v => {
     const dia = parseInt(v.fecha.slice(8, 10));
     porDia[dia] = (porDia[dia] || 0) + v.monto;
   });
   const maxDia = Math.max(...Object.values(porDia));
-  let barrasH = '<h3 style="margin-bottom:8px">📊 Ventas por Día (Barras Horizontales)</h3>';
+  let barrasH = '<h3 style="margin-bottom:8px">ðŸ“Š Ventas por DÃ­a (Barras Horizontales)</h3>';
   const diasOrdenados = Object.keys(porDia).map(Number).sort((a, b) => a - b);
   diasOrdenados.forEach(dia => {
     const monto = porDia[dia];
@@ -4061,8 +4060,8 @@ function renderCajaGraficos(mes) {
     barrasH += '<div class="chart-bar-h"><span class="label">' + dia + '</span><div class="bar" style="width:' + pct + '%"></div><span class="amount">$' + monto.toLocaleString() + '</span></div>';
   });
 
-  // 2. Torta por método de pago
-  const colores = { Efectivo: '#10b981', 'Débito': '#3b82f6', 'Crédito': '#f59e0b', Transferencia: '#8b5cf6' };
+  // 2. Torta por mÃ©todo de pago
+  const colores = { Efectivo: '#10b981', 'DÃ©bito': '#3b82f6', 'CrÃ©dito': '#f59e0b', Transferencia: '#8b5cf6' };
   const porMetodo = {};
   ventas.forEach(v => {
     porMetodo[v.metodo] = (porMetodo[v.metodo] || 0) + v.monto;
@@ -4078,7 +4077,7 @@ function renderCajaGraficos(mes) {
     }
   });
   const gradiente = gradParts.length > 0 ? gradParts.join(', ') : '#e5e7eb 0% 100%';
-  let torta = '<h3 style="margin:20px 0 8px">🥧 Distribución por Método de Pago</h3>';
+  let torta = '<h3 style="margin:20px 0 8px">ðŸ¥§ DistribuciÃ³n por MÃ©todo de Pago</h3>';
   torta += '<div class="chart-torta" style="background:conic-gradient(' + gradiente + ')"></div>';
   torta += '<div class="chart-legend">';
   Object.keys(colores).forEach(m => {
@@ -4097,7 +4096,7 @@ function renderCajaGraficos(mes) {
     semanas[semIdx] += v.monto;
   });
   const maxSem = Math.max(...semanas);
-  let barrasV = '<h3 style="margin:20px 0 8px">📈 Total por Semana (Barras Verticales)</h3>';
+  let barrasV = '<h3 style="margin:20px 0 8px">ðŸ“ˆ Total por Semana (Barras Verticales)</h3>';
   barrasV += '<div class="chart-vertical">';
   semanas.forEach((total, i) => {
     const pctH = maxSem > 0 ? (total / maxSem) * 100 : 0;
@@ -4106,7 +4105,7 @@ function renderCajaGraficos(mes) {
   barrasV += '</div>';
 
   // 4. Barra de progreso apilada
-  let apilada = '<h3 style="margin:20px 0 8px">🔋 Barra Apilada por Método</h3>';
+  let apilada = '<h3 style="margin:20px 0 8px">ðŸ”‹ Barra Apilada por MÃ©todo</h3>';
   apilada += '<div class="chart-stacked">';
   Object.keys(colores).forEach(m => {
     if (porMetodo[m]) {
@@ -4123,8 +4122,8 @@ function renderCajaGraficos(mes) {
   });
   apilada += '</div>';
 
-  // 5. Barras por día de la semana
-  const diasSemana = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+  // 5. Barras por dÃ­a de la semana
+  const diasSemana = ['Lun', 'Mar', 'MiÃ©', 'Jue', 'Vie', 'SÃ¡b', 'Dom'];
   const porDiaSemana = [0, 0, 0, 0, 0, 0, 0];
   ventas.forEach(v => {
     const d = new Date(v.fecha + 'T12:00:00');
@@ -4132,7 +4131,7 @@ function renderCajaGraficos(mes) {
     porDiaSemana[dia === 0 ? 6 : dia - 1] += v.monto;
   });
   const maxDS = Math.max(...porDiaSemana);
-  let barrasDiaSemana = '<h3 style="margin:20px 0 8px">📅 Ventas por Día de la Semana</h3>';
+  let barrasDiaSemana = '<h3 style="margin:20px 0 8px">ðŸ“… Ventas por DÃ­a de la Semana</h3>';
   barrasDiaSemana += '<div class="chart-vertical" style="height:130px">';
   diasSemana.forEach((nombre, i) => {
     const pctH = maxDS > 0 ? (porDiaSemana[i] / maxDS) * 100 : 0;
@@ -4141,7 +4140,7 @@ function renderCajaGraficos(mes) {
   });
   barrasDiaSemana += '</div>';
 
-  // 6. Mini sparkline últimos 7 días
+  // 6. Mini sparkline Ãºltimos 7 dÃ­as
   const hoy = obtenerFechaLocalChile();
   const ultimos7 = [];
   for (let i = 6; i >= 0; i--) {
@@ -4152,7 +4151,7 @@ function renderCajaGraficos(mes) {
     ultimos7.push({ fecha: fecha.slice(8, 10) + '/' + fecha.slice(5, 7), total });
   }
   const maxSpk = Math.max(...ultimos7.map(d => d.total), 1);
-  let sparkline = '<h3 style="margin:20px 0 8px">📈 Tendencia Últimos 7 Días</h3>';
+  let sparkline = '<h3 style="margin:20px 0 8px">ðŸ“ˆ Tendencia Ãšltimos 7 DÃ­as</h3>';
   sparkline += '<div style="display:flex;align-items:flex-end;height:80px;gap:4px;border-bottom:1px solid #e5e7eb;padding-bottom:4px">';
   ultimos7.forEach(d => {
     const pct = (d.total / maxSpk) * 100;
@@ -4182,13 +4181,13 @@ document.getElementById('btnCajaCompararMeses').addEventListener('click', () => 
   document.getElementById('cajaCmpTit2').textContent = mesesNombres[parseInt(mes2.split('-')[1])] + ' ' + mes2.split('-')[0];
   function diff(a, b) {
     const d = b - a;
-    const pct = a > 0 ? Math.round((d/a)*100) : (b > 0 ? '∞' : 0);
+    const pct = a > 0 ? Math.round((d/a)*100) : (b > 0 ? 'âˆž' : 0);
     const color = d > 0 ? '#065f46' : d < 0 ? '#c81e1e' : '#333';
     return `<span style="color:${color};font-weight:bold">${d>=0?'+':''}$${d.toLocaleString()} (${pct}%)</span>`;
   }
   function diffN(a, b) {
     const d = b - a;
-    const pct = a > 0 ? Math.round((d/a)*100) : (b > 0 ? '∞' : 0);
+    const pct = a > 0 ? Math.round((d/a)*100) : (b > 0 ? 'âˆž' : 0);
     const color = d > 0 ? '#065f46' : d < 0 ? '#c81e1e' : '#333';
     return `<span style="color:${color};font-weight:bold">${d>=0?'+':''}${d} (${pct}%)</span>`;
   }
@@ -4196,14 +4195,14 @@ document.getElementById('btnCajaCompararMeses').addEventListener('click', () => 
     <tr><td>Total</td><td>$${t1.toLocaleString()}</td><td>$${t2.toLocaleString()}</td><td>${diff(t1,t2)}</td></tr>
     <tr><td>Cantidad ventas</td><td>${v1.length}</td><td>${v2.length}</td><td>${diffN(v1.length,v2.length)}</td></tr>
     <tr><td>Efectivo</td><td>$${v1.filter(v=>v.metodo==='Efectivo').reduce((a,v)=>a+v.monto,0).toLocaleString()}</td><td>$${v2.filter(v=>v.metodo==='Efectivo').reduce((a,v)=>a+v.monto,0).toLocaleString()}</td><td></td></tr>
-    <tr><td>Débito</td><td>$${v1.filter(v=>v.metodo==='Débito').reduce((a,v)=>a+v.monto,0).toLocaleString()}</td><td>$${v2.filter(v=>v.metodo==='Débito').reduce((a,v)=>a+v.monto,0).toLocaleString()}</td><td></td></tr>
-    <tr><td>Crédito</td><td>$${v1.filter(v=>v.metodo==='Crédito').reduce((a,v)=>a+v.monto,0).toLocaleString()}</td><td>$${v2.filter(v=>v.metodo==='Crédito').reduce((a,v)=>a+v.monto,0).toLocaleString()}</td><td></td></tr>
+    <tr><td>DÃ©bito</td><td>$${v1.filter(v=>v.metodo==='DÃ©bito').reduce((a,v)=>a+v.monto,0).toLocaleString()}</td><td>$${v2.filter(v=>v.metodo==='DÃ©bito').reduce((a,v)=>a+v.monto,0).toLocaleString()}</td><td></td></tr>
+    <tr><td>CrÃ©dito</td><td>$${v1.filter(v=>v.metodo==='CrÃ©dito').reduce((a,v)=>a+v.monto,0).toLocaleString()}</td><td>$${v2.filter(v=>v.metodo==='CrÃ©dito').reduce((a,v)=>a+v.monto,0).toLocaleString()}</td><td></td></tr>
     
   `;
   document.getElementById('cajaCompMeses').style.display = '';
 });
 
-// Día más lento
+// DÃ­a mÃ¡s lento
 document.getElementById('btnCajaDiaLento').addEventListener('click', () => {
   const mes = document.getElementById('cajaDiaLentoMes').value;
   if (!mes) { showToast('Selecciona un mes', true); return; }
@@ -4216,15 +4215,15 @@ document.getElementById('btnCajaDiaLento').addEventListener('click', () => {
   Object.entries(porDia).forEach(([dia, monto]) => {
     if (monto < minMonto) { minMonto = monto; peorDia = dia; }
   });
-  document.getElementById('cajaDiaLentoResult').textContent = '📉 ' + peorDia.split('-').reverse().join('/') + ' — $' + minMonto.toLocaleString() + ' (día más lento)';
+  document.getElementById('cajaDiaLentoResult').textContent = 'ðŸ“‰ ' + peorDia.split('-').reverse().join('/') + ' â€” $' + minMonto.toLocaleString() + ' (dÃ­a mÃ¡s lento)';
 });
 
-// ── Informe Mensual Completo PDF ──────────────────────────────
-// ── Estacionalidad Anual ──────────────────────────────────────────
+// â”€â”€ Informe Mensual Completo PDF â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// â”€â”€ Estacionalidad Anual â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 document.getElementById('cajaEstacionalidadAnio').value = new Date().getFullYear();
 document.getElementById('btnCajaEstacionalidad').addEventListener('click', () => {
   const anio = document.getElementById('cajaEstacionalidadAnio').value;
-  if (!anio) { showToast('Ingresa un año', true); return; }
+  if (!anio) { showToast('Ingresa un aÃ±o', true); return; }
 
   const mesesNombres = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
   const datos = [];
@@ -4244,7 +4243,7 @@ document.getElementById('btnCajaEstacionalidad').addEventListener('click', () =>
 
   // Find best and worst months (with data)
   const conDatos = datos.filter(d => d.total > 0);
-  let mejorMes = '—', peorMes = '—';
+  let mejorMes = 'â€”', peorMes = 'â€”';
   if (conDatos.length > 0) {
     const mejor = conDatos.reduce((a, b) => a.total > b.total ? a : b);
     const peor = conDatos.reduce((a, b) => a.total < b.total ? a : b);
@@ -4278,7 +4277,7 @@ document.getElementById('btnCajaEstacionalidad').addEventListener('click', () =>
       <tbody>${datos.map(d => {
         const diff = promMensual > 0 ? Math.round(((d.total - promMensual) / promMensual) * 100) : 0;
         const color = d.total >= promMensual ? '#065f46' : '#c81e1e';
-        return '<tr><td>' + d.mes + '</td><td>$' + d.total.toLocaleString() + '</td><td>' + d.cantidad + '</td><td style="color:' + color + ';font-weight:bold">' + (d.total > 0 ? (diff >= 0 ? '+' : '') + diff + '%' : '—') + '</td></tr>';
+        return '<tr><td>' + d.mes + '</td><td>$' + d.total.toLocaleString() + '</td><td>' + d.cantidad + '</td><td style="color:' + color + ';font-weight:bold">' + (d.total > 0 ? (diff >= 0 ? '+' : '') + diff + '%' : 'â€”') + '</td></tr>';
       }).join('')}</tbody>
     </table>
   `;
@@ -4305,11 +4304,11 @@ function generarConclusionAleatoria(nombreMes, total, ventas, metodoTop, mejorDi
   const pctSinDoc = Math.round((0/ventas.length)*100);
   const diffMonto = (mejorMonto - peorMonto).toLocaleString();
   const maxSem = Math.max(...semanas).toLocaleString();
-  const tendencia = diffPct >= 0 ? 'se registró un crecimiento del ' + diffPct + '% en ingresos, indicando una tendencia positiva.' : 'se observó una disminución del ' + Math.abs(diffPct) + '% en ingresos. Se recomienda evaluar acciones correctivas.';
+  const tendencia = diffPct >= 0 ? 'se registrÃ³ un crecimiento del ' + diffPct + '% en ingresos, indicando una tendencia positiva.' : 'se observÃ³ una disminuciÃ³n del ' + Math.abs(diffPct) + '% en ingresos. Se recomienda evaluar acciones correctivas.';
   const conclusiones = [
-    '<p><strong>Resumen:</strong> El mes de ' + nombreMes + ' cerró con $' + total.toLocaleString() + ' en ' + ventas.length + ' ventas durante ' + diasConVentas + ' días. Promedio diario: $' + promDiario.toLocaleString() + '.</p><p><strong>Pagos:</strong> ' + metodoTop.n + ' fue el método principal con ' + metodoTop.c + ' operaciones (' + pctMetodo + '%).</p><p><strong>Documentos:</strong> ' + boletas.length + ' boletas (' + pctBoletas + '%), ' + facturas.length + ' facturas (' + pctFacturas + '%), ' + 0 + ' sin documento (' + pctSinDoc + '%).</p><p><strong>Rendimiento:</strong> Mejor día: ' + mejorDia.split("-").reverse().join("/") + ' ($' + mejorMonto.toLocaleString() + '). Peor día: ' + peorDia.split("-").reverse().join("/") + ' ($' + peorMonto.toLocaleString() + '). Diferencia: $' + diffMonto + '.</p><p><strong>Tendencia:</strong> ' + tendencia + '</p><p><strong>Patrones:</strong> ' + diaSemNombre + ' es el día más activo. Semana más fuerte: $' + maxSem + '.</p><p><strong>Recomendaciones:</strong></p><ul style="margin-left:20px;line-height:2"><li>Mantener registro consistente de todas las transacciones.</li><li>Incentivar pagos electrónicos para mayor seguridad.</li><li>Implementar promociones en días de baja actividad.</li><li>Establecer metas mensuales basadas en datos históricos.</li><li>Realizar seguimiento semanal de indicadores clave.</li><li>Capacitar personal para días de alta demanda.</li></ul><p><strong>Nota:</strong> Informe generado automáticamente por Bodega A&M.</p>',
-    '<p><strong>Análisis Final:</strong> Durante ' + nombreMes + ', se procesaron ' + ventas.length + ' ventas por $' + total.toLocaleString() + ' en ' + diasConVentas + ' días operativos. Promedio: $' + promDiario.toLocaleString() + '/día.</p><p><strong>Comportamiento:</strong> Los clientes prefirieron ' + metodoTop.n + ' (' + metodoTop.c + ' ops, ' + pctMetodo + '%). Esto es relevante para la gestión de caja.</p><p><strong>Variabilidad:</strong> La brecha entre mejor día (' + mejorDia.split("-").reverse().join("/") + ': $' + mejorMonto.toLocaleString() + ') y peor (' + peorDia.split("-").reverse().join("/") + ': $' + peorMonto.toLocaleString() + ') fue de $' + diffMonto + '.</p><p><strong>Evolución:</strong> ' + tendencia + '</p><p><strong>Distribución:</strong> ' + diaSemNombre + ' concentra mayor actividad. Semana top: $' + maxSem + '.</p><p><strong>Tributario:</strong> ' + boletas.length + ' boletas, ' + facturas.length + ' facturas, ' + 0 + ' sin documento. Meta: reducir operaciones sin respaldo.</p><p><strong>Plan de Acción:</strong></p><ul style="margin-left:20px;line-height:2"><li>Definir meta del próximo mes basada en promedio actual +10%.</li><li>Reducir ventas sin documento a menos del 5%.</li><li>Evaluar horarios según patrones de demanda.</li><li>Considerar alianzas con proveedores de medios de pago.</li><li>Implementar incentivos para personal en días peak.</li><li>Programar revisiones semanales de KPIs.</li></ul><p><strong>Cierre:</strong> Este informe es base sólida para decisiones. Se recomienda revisión mensual sistemática.</p>',
-    '<p><strong>Conclusiones:</strong> ' + nombreMes + ' registró ' + ventas.length + ' transacciones por $' + total.toLocaleString() + '. Operación en ' + diasConVentas + ' días con promedio de $' + promDiario.toLocaleString() + ' diarios.</p><p><strong>Perfil de Pagos:</strong> ' + metodoTop.n + ' lidera con ' + metodoTop.c + ' operaciones (' + pctMetodo + '%). Información valiosa para planificar flujo de caja.</p><p><strong>Días Destacados:</strong> Mejor: ' + mejorDia.split("-").reverse().join("/") + ' ($' + mejorMonto.toLocaleString() + '). Peor: ' + peorDia.split("-").reverse().join("/") + ' ($' + peorMonto.toLocaleString() + '). Brecha: $' + diffMonto + '.</p><p><strong>Histórico:</strong> ' + tendencia + '</p><p><strong>Ritmo:</strong> ' + diaSemNombre + ' es el día estrella. Semana más productiva: $' + maxSem + '. Estos patrones deben guiar la planificación operativa.</p><p><strong>Cumplimiento:</strong> ' + pctBoletas + '% boletas, ' + pctFacturas + '% facturas, ' + pctSinDoc + '% sin documento. Mejorar progresivamente la formalización.</p><p><strong>Líneas de Acción:</strong></p><ul style="margin-left:20px;line-height:2"><li>Fortalecer atención en días de mayor demanda.</li><li>Desarrollar estrategias de fidelización de clientes.</li><li>Explorar oportunidades de venta cruzada.</li><li>Automatizar generación de reportes para seguimiento ágil.</li><li>Establecer alertas tempranas para caídas en ventas.</li><li>Documentar mejores prácticas de días exitosos.</li></ul><p><strong>Observación:</strong> La consistencia en registro y análisis es base para crecimiento sostenido.</p>'
+    '<p><strong>Resumen:</strong> El mes de ' + nombreMes + ' cerrÃ³ con $' + total.toLocaleString() + ' en ' + ventas.length + ' ventas durante ' + diasConVentas + ' dÃ­as. Promedio diario: $' + promDiario.toLocaleString() + '.</p><p><strong>Pagos:</strong> ' + metodoTop.n + ' fue el mÃ©todo principal con ' + metodoTop.c + ' operaciones (' + pctMetodo + '%).</p><p><strong>Documentos:</strong> ' + boletas.length + ' boletas (' + pctBoletas + '%), ' + facturas.length + ' facturas (' + pctFacturas + '%), ' + 0 + ' sin documento (' + pctSinDoc + '%).</p><p><strong>Rendimiento:</strong> Mejor dÃ­a: ' + mejorDia.split("-").reverse().join("/") + ' ($' + mejorMonto.toLocaleString() + '). Peor dÃ­a: ' + peorDia.split("-").reverse().join("/") + ' ($' + peorMonto.toLocaleString() + '). Diferencia: $' + diffMonto + '.</p><p><strong>Tendencia:</strong> ' + tendencia + '</p><p><strong>Patrones:</strong> ' + diaSemNombre + ' es el dÃ­a mÃ¡s activo. Semana mÃ¡s fuerte: $' + maxSem + '.</p><p><strong>Recomendaciones:</strong></p><ul style="margin-left:20px;line-height:2"><li>Mantener registro consistente de todas las transacciones.</li><li>Incentivar pagos electrÃ³nicos para mayor seguridad.</li><li>Implementar promociones en dÃ­as de baja actividad.</li><li>Establecer metas mensuales basadas en datos histÃ³ricos.</li><li>Realizar seguimiento semanal de indicadores clave.</li><li>Capacitar personal para dÃ­as de alta demanda.</li></ul><p><strong>Nota:</strong> Informe generado automÃ¡ticamente por Bodega A&M.</p>',
+    '<p><strong>AnÃ¡lisis Final:</strong> Durante ' + nombreMes + ', se procesaron ' + ventas.length + ' ventas por $' + total.toLocaleString() + ' en ' + diasConVentas + ' dÃ­as operativos. Promedio: $' + promDiario.toLocaleString() + '/dÃ­a.</p><p><strong>Comportamiento:</strong> Los clientes prefirieron ' + metodoTop.n + ' (' + metodoTop.c + ' ops, ' + pctMetodo + '%). Esto es relevante para la gestiÃ³n de caja.</p><p><strong>Variabilidad:</strong> La brecha entre mejor dÃ­a (' + mejorDia.split("-").reverse().join("/") + ': $' + mejorMonto.toLocaleString() + ') y peor (' + peorDia.split("-").reverse().join("/") + ': $' + peorMonto.toLocaleString() + ') fue de $' + diffMonto + '.</p><p><strong>EvoluciÃ³n:</strong> ' + tendencia + '</p><p><strong>DistribuciÃ³n:</strong> ' + diaSemNombre + ' concentra mayor actividad. Semana top: $' + maxSem + '.</p><p><strong>Tributario:</strong> ' + boletas.length + ' boletas, ' + facturas.length + ' facturas, ' + 0 + ' sin documento. Meta: reducir operaciones sin respaldo.</p><p><strong>Plan de AcciÃ³n:</strong></p><ul style="margin-left:20px;line-height:2"><li>Definir meta del prÃ³ximo mes basada en promedio actual +10%.</li><li>Reducir ventas sin documento a menos del 5%.</li><li>Evaluar horarios segÃºn patrones de demanda.</li><li>Considerar alianzas con proveedores de medios de pago.</li><li>Implementar incentivos para personal en dÃ­as peak.</li><li>Programar revisiones semanales de KPIs.</li></ul><p><strong>Cierre:</strong> Este informe es base sÃ³lida para decisiones. Se recomienda revisiÃ³n mensual sistemÃ¡tica.</p>',
+    '<p><strong>Conclusiones:</strong> ' + nombreMes + ' registrÃ³ ' + ventas.length + ' transacciones por $' + total.toLocaleString() + '. OperaciÃ³n en ' + diasConVentas + ' dÃ­as con promedio de $' + promDiario.toLocaleString() + ' diarios.</p><p><strong>Perfil de Pagos:</strong> ' + metodoTop.n + ' lidera con ' + metodoTop.c + ' operaciones (' + pctMetodo + '%). InformaciÃ³n valiosa para planificar flujo de caja.</p><p><strong>DÃ­as Destacados:</strong> Mejor: ' + mejorDia.split("-").reverse().join("/") + ' ($' + mejorMonto.toLocaleString() + '). Peor: ' + peorDia.split("-").reverse().join("/") + ' ($' + peorMonto.toLocaleString() + '). Brecha: $' + diffMonto + '.</p><p><strong>HistÃ³rico:</strong> ' + tendencia + '</p><p><strong>Ritmo:</strong> ' + diaSemNombre + ' es el dÃ­a estrella. Semana mÃ¡s productiva: $' + maxSem + '. Estos patrones deben guiar la planificaciÃ³n operativa.</p><p><strong>Cumplimiento:</strong> ' + pctBoletas + '% boletas, ' + pctFacturas + '% facturas, ' + pctSinDoc + '% sin documento. Mejorar progresivamente la formalizaciÃ³n.</p><p><strong>LÃ­neas de AcciÃ³n:</strong></p><ul style="margin-left:20px;line-height:2"><li>Fortalecer atenciÃ³n en dÃ­as de mayor demanda.</li><li>Desarrollar estrategias de fidelizaciÃ³n de clientes.</li><li>Explorar oportunidades de venta cruzada.</li><li>Automatizar generaciÃ³n de reportes para seguimiento Ã¡gil.</li><li>Establecer alertas tempranas para caÃ­das en ventas.</li><li>Documentar mejores prÃ¡cticas de dÃ­as exitosos.</li></ul><p><strong>ObservaciÃ³n:</strong> La consistencia en registro y anÃ¡lisis es base para crecimiento sostenido.</p>'
   ];
   return conclusiones[Math.floor(Math.random() * conclusiones.length)];
 }
@@ -4322,15 +4321,15 @@ function generarInformeCaja(mes, mes2, guardarEnEscritorio) {
   const [anio, mesNum] = mes.split('-');
   const nombreMes = mesesNombres[parseInt(mesNum)] + ' ' + anio;
 
-  // Cálculos
+  // CÃ¡lculos
   const total = ventas.reduce((a,v) => a + v.monto, 0);
   const efectivo = ventas.filter(v => v.metodo==='Efectivo');
-  const debito = ventas.filter(v => v.metodo==='Débito');
-  const credito = ventas.filter(v => v.metodo==='Crédito');
+  const debito = ventas.filter(v => v.metodo==='DÃ©bito');
+  const credito = ventas.filter(v => v.metodo==='CrÃ©dito');
   const boletas = ventas.filter(v => v.tipoDoc==='Boleta');
   const facturas = ventas.filter(v => v.tipoDoc==='Factura');
   
-  // Por día
+  // Por dÃ­a
   const porDia = {};
   ventas.forEach(v => { porDia[v.fecha] = (porDia[v.fecha] || 0) + v.monto; });
   const diasOrdenados = Object.entries(porDia).sort((a,b) => a[0].localeCompare(b[0]));
@@ -4344,8 +4343,8 @@ function generarInformeCaja(mes, mes2, guardarEnEscritorio) {
   const semanas = [0,0,0,0];
   ventas.forEach(v => { const d = parseInt(v.fecha.slice(8,10)); semanas[Math.min(Math.floor((d-1)/7),3)] += v.monto; });
 
-  // Por día de semana
-  const diasSemNombres = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+  // Por dÃ­a de semana
+  const diasSemNombres = ['Domingo','Lunes','Martes','MiÃ©rcoles','Jueves','Viernes','SÃ¡bado'];
   const porDiaSem = [0,0,0,0,0,0,0];
   ventas.forEach(v => { const d = new Date(v.fecha+'T12:00:00').getDay(); porDiaSem[d] += v.monto; });
   let diaSemMax = 0, diaSemNombre = '';
@@ -4361,8 +4360,8 @@ function generarInformeCaja(mes, mes2, guardarEnEscritorio) {
   const diasConVentas = Object.keys(porDia).length;
   const promDiario = diasConVentas > 0 ? Math.round(total / diasConVentas) : 0;
 
-  // Método más usado
-  const metodos = [{n:'Efectivo',c:efectivo.length},{n:'Débito',c:debito.length},{n:'Crédito',c:credito.length}];
+  // MÃ©todo mÃ¡s usado
+  const metodos = [{n:'Efectivo',c:efectivo.length},{n:'DÃ©bito',c:debito.length},{n:'CrÃ©dito',c:credito.length}];
   metodos.sort((a,b) => b.c - a.c);
   const metodoTop = metodos[0];
 
@@ -4370,7 +4369,7 @@ function generarInformeCaja(mes, mes2, guardarEnEscritorio) {
   const retirosMes = retirosCaja.filter(r => r.fecha && r.fecha.slice(0,7) === mes);
   const totalRetirosMes = retirosMes.reduce((a, r) => a + r.monto, 0);
 
-  // Por hora del día
+  // Por hora del dÃ­a
   const porHora = Array(24).fill(0);
   const ventasPorHora = Array(24).fill(0);
   ventas.forEach(v => {
@@ -4385,7 +4384,7 @@ function generarInformeCaja(mes, mes2, guardarEnEscritorio) {
   const fechaGen = new Date().toLocaleDateString('es-CL');
 
   
-  // Comparación con mes2 (si se seleccionó)
+  // ComparaciÃ³n con mes2 (si se seleccionÃ³)
   let mes2Data = null;
   if (mes2) {
     const ventas2 = ventasCaja.filter(v => v.fecha && v.fecha.slice(0,7) === mes2);
@@ -4393,8 +4392,8 @@ function generarInformeCaja(mes, mes2, guardarEnEscritorio) {
     const nombreMes2 = mesesNombres[parseInt(mesNum2)] + ' ' + anio2;
     const total2 = ventas2.reduce((a,v) => a + v.monto, 0);
     const efectivo2 = ventas2.filter(v => v.metodo==='Efectivo');
-    const debito2 = ventas2.filter(v => v.metodo==='Débito');
-    const credito2 = ventas2.filter(v => v.metodo==='Crédito');
+    const debito2 = ventas2.filter(v => v.metodo==='DÃ©bito');
+    const credito2 = ventas2.filter(v => v.metodo==='CrÃ©dito');
     const boletas2 = ventas2.filter(v => v.tipoDoc==='Boleta');
     const facturas2 = ventas2.filter(v => v.tipoDoc==='Factura');
     const porDia2 = {};
@@ -4442,91 +4441,91 @@ const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>
 
   <!-- PORTADA -->
   <div class="portada">
-    <h1>📦 Bodega A&amp;M</h1>
+    <h1>ðŸ“¦ Bodega A&amp;M</h1>
     <h2>Informe Mensual de Caja</h2>
     <h2 style="color:#1a56db;font-weight:bold">${nombreMes}</h2>
     <p class="fecha">Generado el ${fechaGen}</p>
   </div>
 
-  <!-- ÍNDICE -->
+  <!-- ÃNDICE -->
   <div class="indice">
-    <h2>Índice</h2>
+    <h2>Ãndice</h2>
     <ul>
-      <li>1. Introducción</li>
+      <li>1. IntroducciÃ³n</li>
       <li>2. Resumen Ejecutivo</li>
-      <li>3. Desglose por Método de Pago</li>
+      <li>3. Desglose por MÃ©todo de Pago</li>
       <li>4. Desglose por Tipo de Documento</li>
-      <li>5. Análisis por Semana</li>
-      <li>6. Análisis por Día de la Semana</li>
-      <li>7. Mejor y Peor Día del Mes</li>
-      <li>8. Comparación con Mes Anterior</li>
+      <li>5. AnÃ¡lisis por Semana</li>
+      <li>6. AnÃ¡lisis por DÃ­a de la Semana</li>
+      <li>7. Mejor y Peor DÃ­a del Mes</li>
+      <li>8. ComparaciÃ³n con Mes Anterior</li>
       <li>9. Retiros de Caja</li>
       <li>10. Horarios Pico de Ventas</li>
-      <li>11. Gráfico de Tendencia Diaria</li>
+      <li>11. GrÃ¡fico de Tendencia Diaria</li>
       <li>12. Detalle Diario Resumido</li>
       <li>13. Detalle Completo de Ventas</li>
-      <li>14. Conclusión y Recomendaciones</li>
+      <li>14. ConclusiÃ³n y Recomendaciones</li>
     </ul>
   </div>
 
-  <!-- 1. INTRODUCCIÓN -->
+  <!-- 1. INTRODUCCIÃ“N -->
   <div class="seccion">
-    <h2>1. Introducción</h2>
-    <p>El presente informe tiene como objetivo proporcionar un análisis detallado y completo de las operaciones de caja realizadas durante el mes de <strong>${nombreMes}</strong> en Bodega A&M.</p>
-    <p>Este documento recopila toda la información financiera registrada en el sistema de caja, incluyendo los ingresos por ventas, los métodos de pago utilizados por los clientes, la distribución por tipo de documento tributario, y el comportamiento de las transacciones a lo largo del período analizado.</p>
-    <p>El análisis abarca múltiples dimensiones: desde el comportamiento diario y semanal de las ventas, hasta la comparación con períodos anteriores, permitiendo identificar tendencias, patrones de consumo y oportunidades de mejora en la gestión financiera del negocio.</p>
-    <p>La información contenida en este informe es de carácter interno y confidencial, destinada exclusivamente a facilitar la toma de decisiones estratégicas por parte de la administración de Bodega A&M.</p>
-    <p>Los datos presentados fueron extraídos directamente del sistema de registro de caja digital, garantizando la precisión y confiabilidad de las cifras reportadas. Cada transacción fue registrada en tiempo real durante las operaciones diarias del establecimiento, asegurando la integridad de la información.</p>
-    <p>Se recomienda utilizar este informe como herramienta de referencia para evaluar el desempeño financiero del mes, identificar los días y métodos de pago más relevantes, y planificar estrategias comerciales para los períodos siguientes.</p>
-    <p>El documento se estructura en secciones que van desde un resumen ejecutivo con los indicadores clave, pasando por análisis detallados por método de pago, tipo de documento, comportamiento semanal y diario, hasta llegar a una conclusión con recomendaciones concretas para la mejora continua del negocio.</p>
-    <p>Este informe fue generado de forma automática por el sistema de gestión de Bodega A&M el día ${fechaGen}, y corresponde al período comprendido entre el 1 y el último día del mes de ${nombreMes}.</p>
+    <h2>1. IntroducciÃ³n</h2>
+    <p>El presente informe tiene como objetivo proporcionar un anÃ¡lisis detallado y completo de las operaciones de caja realizadas durante el mes de <strong>${nombreMes}</strong> en Bodega A&M.</p>
+    <p>Este documento recopila toda la informaciÃ³n financiera registrada en el sistema de caja, incluyendo los ingresos por ventas, los mÃ©todos de pago utilizados por los clientes, la distribuciÃ³n por tipo de documento tributario, y el comportamiento de las transacciones a lo largo del perÃ­odo analizado.</p>
+    <p>El anÃ¡lisis abarca mÃºltiples dimensiones: desde el comportamiento diario y semanal de las ventas, hasta la comparaciÃ³n con perÃ­odos anteriores, permitiendo identificar tendencias, patrones de consumo y oportunidades de mejora en la gestiÃ³n financiera del negocio.</p>
+    <p>La informaciÃ³n contenida en este informe es de carÃ¡cter interno y confidencial, destinada exclusivamente a facilitar la toma de decisiones estratÃ©gicas por parte de la administraciÃ³n de Bodega A&M.</p>
+    <p>Los datos presentados fueron extraÃ­dos directamente del sistema de registro de caja digital, garantizando la precisiÃ³n y confiabilidad de las cifras reportadas. Cada transacciÃ³n fue registrada en tiempo real durante las operaciones diarias del establecimiento, asegurando la integridad de la informaciÃ³n.</p>
+    <p>Se recomienda utilizar este informe como herramienta de referencia para evaluar el desempeÃ±o financiero del mes, identificar los dÃ­as y mÃ©todos de pago mÃ¡s relevantes, y planificar estrategias comerciales para los perÃ­odos siguientes.</p>
+    <p>El documento se estructura en secciones que van desde un resumen ejecutivo con los indicadores clave, pasando por anÃ¡lisis detallados por mÃ©todo de pago, tipo de documento, comportamiento semanal y diario, hasta llegar a una conclusiÃ³n con recomendaciones concretas para la mejora continua del negocio.</p>
+    <p>Este informe fue generado de forma automÃ¡tica por el sistema de gestiÃ³n de Bodega A&M el dÃ­a ${fechaGen}, y corresponde al perÃ­odo comprendido entre el 1 y el Ãºltimo dÃ­a del mes de ${nombreMes}.</p>
   </div>
 
   <!-- 2. RESUMEN EJECUTIVO -->
   <div class="seccion" style="page-break-inside:auto">
     <h2>2. Resumen Ejecutivo</h2>
     <p style="font-size:0.82rem;color:#555;margin-bottom:10px;line-height:1.5">
-      Esta sección presenta los indicadores clave de rendimiento (KPI) del mes de ${nombreMes}.<br>
-      Se muestra el ingreso total, cantidad de ventas, promedio diario, días operativos, método preferido y variación vs mes anterior.<br>
-      Estos indicadores ofrecen una fotografía rápida del desempeño financiero mensual.
+      Esta secciÃ³n presenta los indicadores clave de rendimiento (KPI) del mes de ${nombreMes}.<br>
+      Se muestra el ingreso total, cantidad de ventas, promedio diario, dÃ­as operativos, mÃ©todo preferido y variaciÃ³n vs mes anterior.<br>
+      Estos indicadores ofrecen una fotografÃ­a rÃ¡pida del desempeÃ±o financiero mensual.
     </p>
     <div class="kpi-grid">
       <div class="kpi"><div class="num">${total.toLocaleString()}</div><div class="label">Total del Mes</div></div>
       <div class="kpi"><div class="num">${ventas.length}</div><div class="label">Total Ventas</div></div>
       <div class="kpi"><div class="num">${promDiario.toLocaleString()}</div><div class="label">Promedio Diario</div></div>
-      <div class="kpi"><div class="num">${diasConVentas}</div><div class="label">Días con Ventas</div></div>
-      <div class="kpi"><div class="num">${metodoTop.n}</div><div class="label">Método Más Usado</div></div>
+      <div class="kpi"><div class="num">${diasConVentas}</div><div class="label">DÃ­as con Ventas</div></div>
+      <div class="kpi"><div class="num">${metodoTop.n}</div><div class="label">MÃ©todo MÃ¡s Usado</div></div>
       <div class="kpi"><div class="num">${diffPct >= 0 ? '+' : ''}${diffPct}%</div><div class="label">vs Mes Anterior</div></div>
     </div>
     <div style="margin-top:12px;padding:12px 14px;background:#f0f4ff;border-radius:6px;font-size:0.82rem;color:#444;border-left:3px solid #1a56db;line-height:1.6">
-      <strong>Conclusión de esta sección:</strong><br>
+      <strong>ConclusiÃ³n de esta secciÃ³n:</strong><br>
       Durante ${nombreMes} se procesaron ${ventas.length} transacciones que generaron ingresos por $${total.toLocaleString()}.<br>
-      El promedio diario de ventas fue de $${promDiario.toLocaleString()}, calculado sobre ${diasConVentas} días con actividad comercial registrada.<br>
-      El método de pago preferido por los clientes fue ${metodoTop.n}, concentrando ${metodoTop.c} operaciones del total.<br>
-      ${diffPct >= 0 ? 'Se observa un crecimiento del ' + diffPct + '% respecto al mes anterior, indicando tendencia positiva.' : 'Se registró una caída del ' + Math.abs(diffPct) + '% respecto al mes anterior, lo que requiere atención.'}<br>
-      Estos números reflejan el pulso general del negocio y sirven como base para decisiones estratégicas.<br>
-      Se recomienda revisar las secciones siguientes para entender el comportamiento detrás de estos indicadores.<br>
-      El análisis por método de pago y tipo de documento complementa esta visión general.
+      El promedio diario de ventas fue de $${promDiario.toLocaleString()}, calculado sobre ${diasConVentas} dÃ­as con actividad comercial registrada.<br>
+      El mÃ©todo de pago preferido por los clientes fue ${metodoTop.n}, concentrando ${metodoTop.c} operaciones del total.<br>
+      ${diffPct >= 0 ? 'Se observa un crecimiento del ' + diffPct + '% respecto al mes anterior, indicando tendencia positiva.' : 'Se registrÃ³ una caÃ­da del ' + Math.abs(diffPct) + '% respecto al mes anterior, lo que requiere atenciÃ³n.'}<br>
+      Estos nÃºmeros reflejan el pulso general del negocio y sirven como base para decisiones estratÃ©gicas.<br>
+      Se recomienda revisar las secciones siguientes para entender el comportamiento detrÃ¡s de estos indicadores.<br>
+      El anÃ¡lisis por mÃ©todo de pago y tipo de documento complementa esta visiÃ³n general.
     </div>
   </div>
 
-  <!-- 2. DESGLOSE POR MÉTODO -->
+  <!-- 2. DESGLOSE POR MÃ‰TODO -->
   <div class="seccion">
-    <h2>3. Desglose por Método de Pago</h2>
+    <h2>3. Desglose por MÃ©todo de Pago</h2>
     <p style="font-size:0.85rem;color:#555;margin-bottom:14px;line-height:1.6">
-      En esta sección se analiza cómo se distribuyeron los pagos según el medio utilizado por los clientes.<br>
-      Se presentan los cuatro métodos disponibles: Efectivo, Débito, Crédito y Transferencia bancaria.<br>
-      Para cada método se muestra el monto total recaudado, la cantidad de transacciones y su porcentaje.<br>
-      El gráfico circular permite visualizar rápidamente qué método predomina en cantidad de operaciones.<br>
-      Las barras de distribución por monto muestran qué método concentra mayor volumen de dinero.<br>
-      Esta información es útil para evaluar si conviene incentivar algún medio de pago específico.<br>
-      También permite anticipar necesidades de cambio en efectivo o verificar comisiones por tarjeta.
+      En esta secciÃ³n se analiza cÃ³mo se distribuyeron los pagos segÃºn el medio utilizado por los clientes.<br>
+      Se presentan los cuatro mÃ©todos disponibles: Efectivo, DÃ©bito, CrÃ©dito y Transferencia bancaria.<br>
+      Para cada mÃ©todo se muestra el monto total recaudado, la cantidad de transacciones y su porcentaje.<br>
+      El grÃ¡fico circular permite visualizar rÃ¡pidamente quÃ© mÃ©todo predomina en cantidad de operaciones.<br>
+      Las barras de distribuciÃ³n por monto muestran quÃ© mÃ©todo concentra mayor volumen de dinero.<br>
+      Esta informaciÃ³n es Ãºtil para evaluar si conviene incentivar algÃºn medio de pago especÃ­fico.<br>
+      TambiÃ©n permite anticipar necesidades de cambio en efectivo o verificar comisiones por tarjeta.
     </p>
     <table>
-      <tr><th>Método</th><th>Monto</th><th>Ventas</th><th>%</th></tr>
+      <tr><th>MÃ©todo</th><th>Monto</th><th>Ventas</th><th>%</th></tr>
       <tr><td>Efectivo</td><td>$${efectivo.reduce((a,v)=>a+v.monto,0).toLocaleString()}</td><td>${efectivo.length}</td><td>${ventas.length>0?Math.round((efectivo.length/ventas.length)*100):0}%</td></tr>
-      <tr><td>Débito</td><td>$${debito.reduce((a,v)=>a+v.monto,0).toLocaleString()}</td><td>${debito.length}</td><td>${ventas.length>0?Math.round((debito.length/ventas.length)*100):0}%</td></tr>
-      <tr><td>Crédito</td><td>$${credito.reduce((a,v)=>a+v.monto,0).toLocaleString()}</td><td>${credito.length}</td><td>${ventas.length>0?Math.round((credito.length/ventas.length)*100):0}%</td></tr>
+      <tr><td>DÃ©bito</td><td>$${debito.reduce((a,v)=>a+v.monto,0).toLocaleString()}</td><td>${debito.length}</td><td>${ventas.length>0?Math.round((debito.length/ventas.length)*100):0}%</td></tr>
+      <tr><td>CrÃ©dito</td><td>$${credito.reduce((a,v)=>a+v.monto,0).toLocaleString()}</td><td>${credito.length}</td><td>${ventas.length>0?Math.round((credito.length/ventas.length)*100):0}%</td></tr>
       
       <tr style="font-weight:bold;background:#e0e7ff"><td>TOTAL</td><td>$${total.toLocaleString()}</td><td>${ventas.length}</td><td>100%</td></tr>
     </table>
@@ -4534,28 +4533,28 @@ const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>
       <div style="width:160px;height:160px;border-radius:50%;background:conic-gradient(#10b981 0% ${ventas.length>0?Math.round((efectivo.length/ventas.length)*100):0}%, #3b82f6 ${ventas.length>0?Math.round((efectivo.length/ventas.length)*100):0}% ${ventas.length>0?Math.round(((efectivo.length+debito.length)/ventas.length)*100):0}%, #f59e0b ${ventas.length>0?Math.round(((efectivo.length+debito.length)/ventas.length)*100):0}% ${ventas.length>0?Math.round(((efectivo.length+debito.length+credito.length)/ventas.length)*100):0}%)"></div>
       <div style="font-size:0.85rem">
         <div style="margin:6px 0"><span style="display:inline-block;width:14px;height:14px;background:#10b981;border-radius:50%;vertical-align:middle;margin-right:6px"></span>Efectivo: ${ventas.length>0?Math.round((efectivo.length/ventas.length)*100):0}%</div>
-        <div style="margin:6px 0"><span style="display:inline-block;width:14px;height:14px;background:#3b82f6;border-radius:50%;vertical-align:middle;margin-right:6px"></span>Débito: ${ventas.length>0?Math.round((debito.length/ventas.length)*100):0}%</div>
-        <div style="margin:6px 0"><span style="display:inline-block;width:14px;height:14px;background:#f59e0b;border-radius:50%;vertical-align:middle;margin-right:6px"></span>Crédito: ${ventas.length>0?Math.round((credito.length/ventas.length)*100):0}%</div>
+        <div style="margin:6px 0"><span style="display:inline-block;width:14px;height:14px;background:#3b82f6;border-radius:50%;vertical-align:middle;margin-right:6px"></span>DÃ©bito: ${ventas.length>0?Math.round((debito.length/ventas.length)*100):0}%</div>
+        <div style="margin:6px 0"><span style="display:inline-block;width:14px;height:14px;background:#f59e0b;border-radius:50%;vertical-align:middle;margin-right:6px"></span>CrÃ©dito: ${ventas.length>0?Math.round((credito.length/ventas.length)*100):0}%</div>
         <div style="margin:6px 0"><span style="display:inline-block;width:14px;height:14px;background:#8b5cf6;border-radius:50%;vertical-align:middle;margin-right:6px"></span>Transferencia: ${ventas.length>0?Math.round((0/ventas.length)*100):0}%</div>
       </div>
     </div>
     <div style="margin-top:20px">
-      <p style="font-weight:600;margin-bottom:8px">Distribución por Monto:</p>
+      <p style="font-weight:600;margin-bottom:8px">DistribuciÃ³n por Monto:</p>
       <div style="display:flex;align-items:center;margin:4px 0"><span style="width:100px;font-size:0.8rem">Efectivo</span><div style="height:20px;background:#10b981;border-radius:3px;width:${total>0?Math.round((efectivo.reduce((a,v)=>a+v.monto,0)/total)*100):0}%"></div><span style="margin-left:6px;font-size:0.8rem">${total>0?Math.round((efectivo.reduce((a,v)=>a+v.monto,0)/total)*100):0}%</span></div>
-      <div style="display:flex;align-items:center;margin:4px 0"><span style="width:100px;font-size:0.8rem">Débito</span><div style="height:20px;background:#3b82f6;border-radius:3px;width:${total>0?Math.round((debito.reduce((a,v)=>a+v.monto,0)/total)*100):0}%"></div><span style="margin-left:6px;font-size:0.8rem">${total>0?Math.round((debito.reduce((a,v)=>a+v.monto,0)/total)*100):0}%</span></div>
-      <div style="display:flex;align-items:center;margin:4px 0"><span style="width:100px;font-size:0.8rem">Crédito</span><div style="height:20px;background:#f59e0b;border-radius:3px;width:${total>0?Math.round((credito.reduce((a,v)=>a+v.monto,0)/total)*100):0}%"></div><span style="margin-left:6px;font-size:0.8rem">${total>0?Math.round((credito.reduce((a,v)=>a+v.monto,0)/total)*100):0}%</span></div>
+      <div style="display:flex;align-items:center;margin:4px 0"><span style="width:100px;font-size:0.8rem">DÃ©bito</span><div style="height:20px;background:#3b82f6;border-radius:3px;width:${total>0?Math.round((debito.reduce((a,v)=>a+v.monto,0)/total)*100):0}%"></div><span style="margin-left:6px;font-size:0.8rem">${total>0?Math.round((debito.reduce((a,v)=>a+v.monto,0)/total)*100):0}%</span></div>
+      <div style="display:flex;align-items:center;margin:4px 0"><span style="width:100px;font-size:0.8rem">CrÃ©dito</span><div style="height:20px;background:#f59e0b;border-radius:3px;width:${total>0?Math.round((credito.reduce((a,v)=>a+v.monto,0)/total)*100):0}%"></div><span style="margin-left:6px;font-size:0.8rem">${total>0?Math.round((credito.reduce((a,v)=>a+v.monto,0)/total)*100):0}%</span></div>
       <div style="display:flex;align-items:center;margin:4px 0"><span style="width:100px;font-size:0.8rem">Transferencia</span><div style="height:20px;background:#8b5cf6;border-radius:3px;width:${total>0?Math.round((0/total)*100):0}%"></div><span style="margin-left:6px;font-size:0.8rem">${total>0?Math.round((0/total)*100):0}%</span></div>
     </div>
 
     <div style="margin-top:16px;padding:12px 14px;background:#f0f4ff;border-radius:6px;font-size:0.82rem;color:#444;border-left:3px solid #1a56db;line-height:1.6">
-      <strong>Conclusión de esta sección:</strong><br>
-      El método de pago dominante en ${nombreMes} fue ${metodoTop.n} con ${metodoTop.c} transacciones (${ventas.length>0?Math.round((metodoTop.c/ventas.length)*100):0}% del total).<br>
-      En términos de monto, Efectivo representó ${efectivo.reduce((a,v)=>a+v.monto,0).toLocaleString()}, Débito ${debito.reduce((a,v)=>a+v.monto,0).toLocaleString()}, Crédito ${credito.reduce((a,v)=>a+v.monto,0).toLocaleString()}<br>
-      La distribución muestra las preferencias de los clientes y permite anticipar necesidades operativas.<br>
+      <strong>ConclusiÃ³n de esta secciÃ³n:</strong><br>
+      El mÃ©todo de pago dominante en ${nombreMes} fue ${metodoTop.n} con ${metodoTop.c} transacciones (${ventas.length>0?Math.round((metodoTop.c/ventas.length)*100):0}% del total).<br>
+      En tÃ©rminos de monto, Efectivo representÃ³ ${efectivo.reduce((a,v)=>a+v.monto,0).toLocaleString()}, DÃ©bito ${debito.reduce((a,v)=>a+v.monto,0).toLocaleString()}, CrÃ©dito ${credito.reduce((a,v)=>a+v.monto,0).toLocaleString()}<br>
+      La distribuciÃ³n muestra las preferencias de los clientes y permite anticipar necesidades operativas.<br>
       Si el efectivo predomina, es importante mantener fondo de caja suficiente para dar cambio.<br>
       Las transferencias bancarias reducen el riesgo de manejo de efectivo aunque demoran en confirmarse.<br>
-      Se sugiere monitorear mes a mes si algún método crece o decrece para adaptar la infraestructura.<br>
-      Considere ofrecer incentivos en métodos que desee promover según conveniencia del negocio.
+      Se sugiere monitorear mes a mes si algÃºn mÃ©todo crece o decrece para adaptar la infraestructura.<br>
+      Considere ofrecer incentivos en mÃ©todos que desee promover segÃºn conveniencia del negocio.
     </div>
   </div>
 
@@ -4563,11 +4562,11 @@ const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>
   <div class="seccion">
     <h2>4. Desglose por Tipo de Documento</h2>
     <p style="font-size:0.85rem;color:#555;margin-bottom:14px;line-height:1.6">
-      Esta sección muestra la distribución de ventas según el tipo de documento tributario emitido.<br>
+      Esta secciÃ³n muestra la distribuciÃ³n de ventas segÃºn el tipo de documento tributario emitido.<br>
       Se clasifican en Boleta y Factura, indicando monto, cantidad y porcentaje de cada tipo.<br>
       Las boletas corresponden a ventas a consumidor final, mientras que las facturas se emiten a empresas.<br>
-            Este análisis permite verificar el cumplimiento de obligaciones tributarias del negocio.<br>
-            Utilice estos datos para preparar declaraciones de impuestos y auditorías internas.
+            Este anÃ¡lisis permite verificar el cumplimiento de obligaciones tributarias del negocio.<br>
+            Utilice estos datos para preparar declaraciones de impuestos y auditorÃ­as internas.
     </p>
     <table>
       <tr><th>Tipo</th><th>Monto</th><th>Cantidad</th><th>%</th></tr>
@@ -4577,10 +4576,10 @@ const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>
     </table>
 
     <div style="margin-top:16px;padding:12px 14px;background:#f0f4ff;border-radius:6px;font-size:0.82rem;color:#444;border-left:3px solid #1a56db;line-height:1.6">
-      <strong>Conclusión de esta sección:</strong><br>
+      <strong>ConclusiÃ³n de esta secciÃ³n:</strong><br>
       Del total de ${ventas.length} ventas, se emitieron ${boletas.length} boletas (${ventas.length>0?Math.round((boletas.length/ventas.length)*100):0}%), ${facturas.length} facturas (${ventas.length>0?Math.round((facturas.length/ventas.length)*100):0}%) y ${0} sin documento (${ventas.length>0?Math.round((0/ventas.length)*100):0}%).<br>
       Las boletas generaron ${boletas.reduce((a,v)=>a+v.monto,0).toLocaleString()} y las facturas ${facturas.reduce((a,v)=>a+v.monto,0).toLocaleString()} en ingresos documentados.<br>
-      ${0 > 0 ? 'Existen ' + 0 + ' ventas sin respaldo tributario, lo cual debe reducirse progresivamente.' : 'Todas las ventas cuentan con respaldo tributario, lo cual es óptimo.'}<br>
+      ${0 > 0 ? 'Existen ' + 0 + ' ventas sin respaldo tributario, lo cual debe reducirse progresivamente.' : 'Todas las ventas cuentan con respaldo tributario, lo cual es Ã³ptimo.'}<br>
       El cumplimiento tributario es fundamental para evitar sanciones del SII y mantener la formalidad.<br>
       Se recomienda que toda venta, sin importar el monto, cuente con al menos una boleta como respaldo.<br>
       Las facturas son relevantes para clientes empresa y permiten recuperar IVA en compras corporativas.<br>
@@ -4588,108 +4587,108 @@ const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>
     </div>
   </div>
 
-  <!-- 4. ANÁLISIS POR SEMANA -->
+  <!-- 4. ANÃLISIS POR SEMANA -->
   <div class="seccion">
-    <h2>5. Análisis por Semana</h2>
+    <h2>5. AnÃ¡lisis por Semana</h2>
     <p style="font-size:0.85rem;color:#555;margin-bottom:14px;line-height:1.6">
-      Aquí se divide el mes en cuatro semanas para identificar en qué período se concentran las ventas.<br>
-      La Semana 1 comprende los días 1 al 7, la Semana 2 del 8 al 14, la Semana 3 del 15 al 21 y la Semana 4 del 22 en adelante.<br>
+      AquÃ­ se divide el mes en cuatro semanas para identificar en quÃ© perÃ­odo se concentran las ventas.<br>
+      La Semana 1 comprende los dÃ­as 1 al 7, la Semana 2 del 8 al 14, la Semana 3 del 15 al 21 y la Semana 4 del 22 en adelante.<br>
       Para cada semana se muestra el monto total recaudado y su porcentaje respecto al ingreso mensual.<br>
-      Este análisis permite detectar si las ventas se concentran a inicio, mitad o fin de mes.<br>
+      Este anÃ¡lisis permite detectar si las ventas se concentran a inicio, mitad o fin de mes.<br>
       Patrones como mayor venta en la primera semana pueden indicar compras post-sueldo de los clientes.<br>
-      Identificar semanas débiles ayuda a planificar promociones o acciones comerciales específicas.<br>
+      Identificar semanas dÃ©biles ayuda a planificar promociones o acciones comerciales especÃ­ficas.<br>
       Compare estos datos mes a mes para confirmar si los patrones semanales son consistentes.
     </p>
     <table>
-      <tr><th>Semana</th><th>Período</th><th>Monto</th><th>% del Total</th></tr>
-      <tr><td>Semana 1</td><td>Días 1-7</td><td>$${semanas[0].toLocaleString()}</td><td>${total>0?Math.round((semanas[0]/total)*100):0}%</td></tr>
-      <tr><td>Semana 2</td><td>Días 8-14</td><td>$${semanas[1].toLocaleString()}</td><td>${total>0?Math.round((semanas[1]/total)*100):0}%</td></tr>
-      <tr><td>Semana 3</td><td>Días 15-21</td><td>$${semanas[2].toLocaleString()}</td><td>${total>0?Math.round((semanas[2]/total)*100):0}%</td></tr>
-      <tr><td>Semana 4</td><td>Días 22+</td><td>$${semanas[3].toLocaleString()}</td><td>${total>0?Math.round((semanas[3]/total)*100):0}%</td></tr>
+      <tr><th>Semana</th><th>PerÃ­odo</th><th>Monto</th><th>% del Total</th></tr>
+      <tr><td>Semana 1</td><td>DÃ­as 1-7</td><td>$${semanas[0].toLocaleString()}</td><td>${total>0?Math.round((semanas[0]/total)*100):0}%</td></tr>
+      <tr><td>Semana 2</td><td>DÃ­as 8-14</td><td>$${semanas[1].toLocaleString()}</td><td>${total>0?Math.round((semanas[1]/total)*100):0}%</td></tr>
+      <tr><td>Semana 3</td><td>DÃ­as 15-21</td><td>$${semanas[2].toLocaleString()}</td><td>${total>0?Math.round((semanas[2]/total)*100):0}%</td></tr>
+      <tr><td>Semana 4</td><td>DÃ­as 22+</td><td>$${semanas[3].toLocaleString()}</td><td>${total>0?Math.round((semanas[3]/total)*100):0}%</td></tr>
     </table>
 
     <div style="margin-top:16px;padding:12px 14px;background:#f0f4ff;border-radius:6px;font-size:0.82rem;color:#444;border-left:3px solid #1a56db;line-height:1.6">
-      <strong>Conclusión de esta sección:</strong><br>
-      La semana con mayor recaudación alcanzó ${Math.max(...semanas).toLocaleString()}, representando ${total>0?Math.round((Math.max(...semanas)/total)*100):0}% del ingreso total.<br>
-      Distribución: Semana 1 (${semanas[0].toLocaleString()}), Semana 2 (${semanas[1].toLocaleString()}), Semana 3 (${semanas[2].toLocaleString()}) y Semana 4 (${semanas[3].toLocaleString()}).<br>
-      ${semanas[0] > semanas[3] ? 'Las ventas se concentran al inicio del mes, posiblemente por el ciclo de pago de sueldos.' : 'Las ventas se concentran hacia fin de mes, lo que puede indicar compras de reposición.'}<br>
-      Una distribución equilibrada entre semanas indica estabilidad en la demanda del negocio.<br>
-      Si alguna semana es significativamente baja, considere implementar promociones en ese período.<br>
-      Monitorear este patrón mes a mes permite confirmar si es comportamiento estacional o puntual.<br>
-      Use esta información para planificar compras a proveedores y gestionar el flujo de caja semanal.
+      <strong>ConclusiÃ³n de esta secciÃ³n:</strong><br>
+      La semana con mayor recaudaciÃ³n alcanzÃ³ ${Math.max(...semanas).toLocaleString()}, representando ${total>0?Math.round((Math.max(...semanas)/total)*100):0}% del ingreso total.<br>
+      DistribuciÃ³n: Semana 1 (${semanas[0].toLocaleString()}), Semana 2 (${semanas[1].toLocaleString()}), Semana 3 (${semanas[2].toLocaleString()}) y Semana 4 (${semanas[3].toLocaleString()}).<br>
+      ${semanas[0] > semanas[3] ? 'Las ventas se concentran al inicio del mes, posiblemente por el ciclo de pago de sueldos.' : 'Las ventas se concentran hacia fin de mes, lo que puede indicar compras de reposiciÃ³n.'}<br>
+      Una distribuciÃ³n equilibrada entre semanas indica estabilidad en la demanda del negocio.<br>
+      Si alguna semana es significativamente baja, considere implementar promociones en ese perÃ­odo.<br>
+      Monitorear este patrÃ³n mes a mes permite confirmar si es comportamiento estacional o puntual.<br>
+      Use esta informaciÃ³n para planificar compras a proveedores y gestionar el flujo de caja semanal.
     </div>
   </div>
 
-  <!-- 5. ANÁLISIS POR DÍA DE LA SEMANA -->
+  <!-- 5. ANÃLISIS POR DÃA DE LA SEMANA -->
   <div class="seccion">
-    <h2>6. Análisis por Día de la Semana</h2>
+    <h2>6. AnÃ¡lisis por DÃ­a de la Semana</h2>
     <p style="font-size:0.85rem;color:#555;margin-bottom:14px;line-height:1.6">
-      Esta sección agrupa todas las ventas del mes según el día de la semana en que se realizaron.<br>
-      Se muestra el monto acumulado para cada día (Lunes a Domingo) y su porcentaje del total mensual.<br>
-      El día con mayor recaudación se resalta en verde para identificarlo rápidamente.<br>
-      Este análisis revela los días de mayor y menor actividad comercial de la bodega.<br>
-      Conocer los días fuertes permite optimizar la dotación de personal y el stock disponible.<br>
-      Los días débiles pueden aprovecharse para tareas administrativas, reposición o promociones.<br>
-      Si un día específico es consistentemente bajo, considere ajustar horarios u ofertas especiales.
+      Esta secciÃ³n agrupa todas las ventas del mes segÃºn el dÃ­a de la semana en que se realizaron.<br>
+      Se muestra el monto acumulado para cada dÃ­a (Lunes a Domingo) y su porcentaje del total mensual.<br>
+      El dÃ­a con mayor recaudaciÃ³n se resalta en verde para identificarlo rÃ¡pidamente.<br>
+      Este anÃ¡lisis revela los dÃ­as de mayor y menor actividad comercial de la bodega.<br>
+      Conocer los dÃ­as fuertes permite optimizar la dotaciÃ³n de personal y el stock disponible.<br>
+      Los dÃ­as dÃ©biles pueden aprovecharse para tareas administrativas, reposiciÃ³n o promociones.<br>
+      Si un dÃ­a especÃ­fico es consistentemente bajo, considere ajustar horarios u ofertas especiales.
     </p>
     <table>
-      <tr><th>Día</th><th>Monto Total</th><th>% del Total</th></tr>
+      <tr><th>DÃ­a</th><th>Monto Total</th><th>% del Total</th></tr>
       ${diasSemNombres.map((n,i) => `<tr${porDiaSem[i]===diaSemMax?' style="background:#d1fae5;font-weight:bold"':''}><td>${n}</td><td>$${porDiaSem[i].toLocaleString()}</td><td>${total>0?Math.round((porDiaSem[i]/total)*100):0}%</td></tr>`).join('')}
     </table>
-    <p style="margin-top:8px"><strong>Día más activo:</strong> ${diaSemNombre}</p>
+    <p style="margin-top:8px"><strong>DÃ­a mÃ¡s activo:</strong> ${diaSemNombre}</p>
 
     <div style="margin-top:16px;padding:12px 14px;background:#f0f4ff;border-radius:6px;font-size:0.82rem;color:#444;border-left:3px solid #1a56db;line-height:1.6">
-      <strong>Conclusión de esta sección:</strong><br>
-      El día de la semana con mayor actividad fue ${diaSemNombre}, acumulando ${diaSemMax.toLocaleString()} (${total>0?Math.round((diaSemMax/total)*100):0}% del total).<br>
-      Este patrón indica que los clientes tienden a realizar sus compras principalmente los días ${diaSemNombre}.<br>
-      Los días con menor recaudación representan oportunidades para implementar estrategias de atracción.<br>
-      Se recomienda reforzar el personal y el stock disponible en los días de mayor demanda identificados.<br>
-      En los días más tranquilos, aproveche para realizar inventarios, limpieza y tareas administrativas.<br>
-      Si este patrón se repite mes a mes, puede considerarse ajustar horarios de apertura según demanda.<br>
-      Compare con meses anteriores para confirmar si ${diaSemNombre} es consistentemente el día más fuerte.
+      <strong>ConclusiÃ³n de esta secciÃ³n:</strong><br>
+      El dÃ­a de la semana con mayor actividad fue ${diaSemNombre}, acumulando ${diaSemMax.toLocaleString()} (${total>0?Math.round((diaSemMax/total)*100):0}% del total).<br>
+      Este patrÃ³n indica que los clientes tienden a realizar sus compras principalmente los dÃ­as ${diaSemNombre}.<br>
+      Los dÃ­as con menor recaudaciÃ³n representan oportunidades para implementar estrategias de atracciÃ³n.<br>
+      Se recomienda reforzar el personal y el stock disponible en los dÃ­as de mayor demanda identificados.<br>
+      En los dÃ­as mÃ¡s tranquilos, aproveche para realizar inventarios, limpieza y tareas administrativas.<br>
+      Si este patrÃ³n se repite mes a mes, puede considerarse ajustar horarios de apertura segÃºn demanda.<br>
+      Compare con meses anteriores para confirmar si ${diaSemNombre} es consistentemente el dÃ­a mÃ¡s fuerte.
     </div>
   </div>
 
-  <!-- 6. MEJOR Y PEOR DÍA -->
+  <!-- 6. MEJOR Y PEOR DÃA -->
   <div class="seccion">
-    <h2>7. Mejor y Peor Día del Mes</h2>
+    <h2>7. Mejor y Peor DÃ­a del Mes</h2>
     <p style="font-size:0.85rem;color:#555;margin-bottom:14px;line-height:1.6">
-      Se identifican los dos días extremos del mes: el de mayor y menor recaudación.<br>
-      El mejor día representa la jornada con más ingresos, posiblemente por eventos o demanda estacional.<br>
-      El peor día muestra la jornada con menor actividad, útil para investigar causas (feriados, clima).<br>
+      Se identifican los dos dÃ­as extremos del mes: el de mayor y menor recaudaciÃ³n.<br>
+      El mejor dÃ­a representa la jornada con mÃ¡s ingresos, posiblemente por eventos o demanda estacional.<br>
+      El peor dÃ­a muestra la jornada con menor actividad, Ãºtil para investigar causas (feriados, clima).<br>
       La diferencia entre ambos indica la variabilidad de las ventas durante el mes.<br>
-      Si la brecha es muy grande, el negocio depende de días puntuales y debería buscar mayor estabilidad.<br>
-      Analizar qué ocurrió en el mejor día puede ayudar a replicar esas condiciones en el futuro.<br>
-      Entender el peor día permite tomar medidas preventivas para evitar jornadas improductivas.
+      Si la brecha es muy grande, el negocio depende de dÃ­as puntuales y deberÃ­a buscar mayor estabilidad.<br>
+      Analizar quÃ© ocurriÃ³ en el mejor dÃ­a puede ayudar a replicar esas condiciones en el futuro.<br>
+      Entender el peor dÃ­a permite tomar medidas preventivas para evitar jornadas improductivas.
     </p>
     <div class="kpi-grid" style="grid-template-columns:1fr 1fr">
-      <div class="kpi" style="background:#d1fae5"><div class="num">$${mejorMonto.toLocaleString()}</div><div class="label">🏆 Mejor Día: ${mejorDia.split('-').reverse().join('/')}</div></div>
-      <div class="kpi" style="background:#fee2e2"><div class="num">$${peorMonto.toLocaleString()}</div><div class="label">📉 Peor Día: ${peorDia.split('-').reverse().join('/')}</div></div>
+      <div class="kpi" style="background:#d1fae5"><div class="num">$${mejorMonto.toLocaleString()}</div><div class="label">ðŸ† Mejor DÃ­a: ${mejorDia.split('-').reverse().join('/')}</div></div>
+      <div class="kpi" style="background:#fee2e2"><div class="num">$${peorMonto.toLocaleString()}</div><div class="label">ðŸ“‰ Peor DÃ­a: ${peorDia.split('-').reverse().join('/')}</div></div>
     </div>
 
     <div style="margin-top:16px;padding:12px 14px;background:#f0f4ff;border-radius:6px;font-size:0.82rem;color:#444;border-left:3px solid #1a56db;line-height:1.6">
-      <strong>Conclusión de esta sección:</strong><br>
-      El mejor día del mes fue el ${mejorDia.split('-').reverse().join('/')} con ${mejorMonto.toLocaleString()}, y el peor fue el ${peorDia.split('-').reverse().join('/')} con ${peorMonto.toLocaleString()}.<br>
+      <strong>ConclusiÃ³n de esta secciÃ³n:</strong><br>
+      El mejor dÃ­a del mes fue el ${mejorDia.split('-').reverse().join('/')} con ${mejorMonto.toLocaleString()}, y el peor fue el ${peorDia.split('-').reverse().join('/')} con ${peorMonto.toLocaleString()}.<br>
       La diferencia entre ambos extremos es de ${(mejorMonto - peorMonto).toLocaleString()}, reflejando la variabilidad de ventas.<br>
-      ${(mejorMonto - peorMonto) > promDiario * 2 ? 'La brecha es significativa, indicando dependencia de días puntuales de alta demanda.' : 'La brecha es moderada, sugiriendo una demanda relativamente estable.'}<br>
-      Investigue qué factores contribuyeron al éxito del mejor día para intentar replicarlos.<br>
-      Analice si el peor día coincidió con feriados, mal clima u otros factores externos.<br>
-      El objetivo es reducir esta brecha logrando ventas más consistentes a lo largo del mes.<br>
-      Establezca un piso mínimo de ventas diarias como meta y actúe cuando un día caiga por debajo.
+      ${(mejorMonto - peorMonto) > promDiario * 2 ? 'La brecha es significativa, indicando dependencia de dÃ­as puntuales de alta demanda.' : 'La brecha es moderada, sugiriendo una demanda relativamente estable.'}<br>
+      Investigue quÃ© factores contribuyeron al Ã©xito del mejor dÃ­a para intentar replicarlos.<br>
+      Analice si el peor dÃ­a coincidiÃ³ con feriados, mal clima u otros factores externos.<br>
+      El objetivo es reducir esta brecha logrando ventas mÃ¡s consistentes a lo largo del mes.<br>
+      Establezca un piso mÃ­nimo de ventas diarias como meta y actÃºe cuando un dÃ­a caiga por debajo.
     </div>
   </div>
 
-  <!-- 7. COMPARACIÓN CON MES ANTERIOR -->
+  <!-- 7. COMPARACIÃ“N CON MES ANTERIOR -->
   <div class="seccion">
-    <h2>8. Comparación con Mes Anterior</h2>
+    <h2>8. ComparaciÃ³n con Mes Anterior</h2>
     <p style="font-size:0.85rem;color:#555;margin-bottom:14px;line-height:1.6">
-      Esta sección compara el rendimiento del mes actual con el mes inmediatamente anterior.<br>
-      Se contrastan el monto total recaudado y la cantidad de ventas realizadas en ambos períodos.<br>
+      Esta secciÃ³n compara el rendimiento del mes actual con el mes inmediatamente anterior.<br>
+      Se contrastan el monto total recaudado y la cantidad de ventas realizadas en ambos perÃ­odos.<br>
       La columna de diferencia muestra el crecimiento o decrecimiento en porcentaje y unidades.<br>
       Un valor positivo (verde) indica mejora respecto al mes anterior; negativo (rojo) indica retroceso.<br>
-      Esta comparación es fundamental para evaluar la tendencia del negocio mes a mes.<br>
-      Caídas significativas deben investigarse: pueden deberse a estacionalidad o competencia.<br>
-      Crecimientos sostenidos confirman que las estrategias comerciales están funcionando correctamente.
+      Esta comparaciÃ³n es fundamental para evaluar la tendencia del negocio mes a mes.<br>
+      CaÃ­das significativas deben investigarse: pueden deberse a estacionalidad o competencia.<br>
+      Crecimientos sostenidos confirman que las estrategias comerciales estÃ¡n funcionando correctamente.
     </p>
     <table>
       <tr><th>Indicador</th><th>${nombreMes}</th><th>Mes Anterior</th><th>Diferencia</th></tr>
@@ -4698,51 +4697,51 @@ const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>
     </table>
 
     <div style="margin-top:16px;padding:12px 14px;background:#f0f4ff;border-radius:6px;font-size:0.82rem;color:#444;border-left:3px solid #1a56db;line-height:1.6">
-      <strong>Conclusión de esta sección:</strong><br>
-      ${diffPct >= 0 ? 'El mes de ' + nombreMes + ' mostró un crecimiento del ' + diffPct + '% en ingresos respecto al mes anterior.' : 'El mes de ' + nombreMes + ' mostró una caída del ' + Math.abs(diffPct) + '% en ingresos respecto al mes anterior.'}<br>
-      En cantidad de transacciones, se pasó de ${ventasAnt.length} a ${ventas.length} ventas (${ventas.length - ventasAnt.length >= 0 ? '+' : ''}${ventas.length - ventasAnt.length} operaciones).<br>
-      ${diffPct >= 0 ? 'Esta tendencia positiva debe mantenerse y potenciarse con las estrategias actuales.' : 'Se recomienda investigar las causas de la disminución y tomar medidas correctivas.'}<br>
-      Factores como estacionalidad, días hábiles y eventos especiales pueden influir en estas variaciones.<br>
+      <strong>ConclusiÃ³n de esta secciÃ³n:</strong><br>
+      ${diffPct >= 0 ? 'El mes de ' + nombreMes + ' mostrÃ³ un crecimiento del ' + diffPct + '% en ingresos respecto al mes anterior.' : 'El mes de ' + nombreMes + ' mostrÃ³ una caÃ­da del ' + Math.abs(diffPct) + '% en ingresos respecto al mes anterior.'}<br>
+      En cantidad de transacciones, se pasÃ³ de ${ventasAnt.length} a ${ventas.length} ventas (${ventas.length - ventasAnt.length >= 0 ? '+' : ''}${ventas.length - ventasAnt.length} operaciones).<br>
+      ${diffPct >= 0 ? 'Esta tendencia positiva debe mantenerse y potenciarse con las estrategias actuales.' : 'Se recomienda investigar las causas de la disminuciÃ³n y tomar medidas correctivas.'}<br>
+      Factores como estacionalidad, dÃ­as hÃ¡biles y eventos especiales pueden influir en estas variaciones.<br>
       Compare al menos 3 meses consecutivos para identificar si es una tendencia o un evento aislado.<br>
-      Establezca metas mensuales basadas en el promedio de los últimos 3 meses más un % de crecimiento.<br>
-      El seguimiento mensual constante es la base para una gestión financiera efectiva del negocio.
+      Establezca metas mensuales basadas en el promedio de los Ãºltimos 3 meses mÃ¡s un % de crecimiento.<br>
+      El seguimiento mensual constante es la base para una gestiÃ³n financiera efectiva del negocio.
     </div>
   </div>
 
   ${mes2Data ? `
-  <!-- COMPARACIÓN CON MES SELECCIONADO -->
+  <!-- COMPARACIÃ“N CON MES SELECCIONADO -->
   <div class="seccion" style="page-break-inside:auto">
-    <h2>Comparación: ${nombreMes} vs ${mes2Data.nombreMes2}</h2>
+    <h2>ComparaciÃ³n: ${nombreMes} vs ${mes2Data.nombreMes2}</h2>
     <p style="font-size:0.85rem;color:#555;margin-bottom:14px;line-height:1.6">
-      Esta sección compara el rendimiento entre los dos meses seleccionados.<br>
-      Se contrastan los principales indicadores financieros para evaluar la evolución del negocio.<br>
+      Esta secciÃ³n compara el rendimiento entre los dos meses seleccionados.<br>
+      Se contrastan los principales indicadores financieros para evaluar la evoluciÃ³n del negocio.<br>
       Los valores positivos (verde) indican mejora del mes principal respecto al mes comparado.<br>
-      Los valores negativos (rojo) indican que el mes comparado tuvo mejor desempeño.<br>
-      Esta comparación permite identificar tendencias y tomar decisiones informadas.<br>
-      Analice las diferencias en cada indicador para entender qué factores influyeron.<br>
-      Use esta información para establecer metas realistas para los próximos meses.
+      Los valores negativos (rojo) indican que el mes comparado tuvo mejor desempeÃ±o.<br>
+      Esta comparaciÃ³n permite identificar tendencias y tomar decisiones informadas.<br>
+      Analice las diferencias en cada indicador para entender quÃ© factores influyeron.<br>
+      Use esta informaciÃ³n para establecer metas realistas para los prÃ³ximos meses.
     </p>
     <table>
       <tr><th>Indicador</th><th>${nombreMes}</th><th>${mes2Data.nombreMes2}</th><th>Diferencia</th></tr>
       <tr><td>Total Ingresos</td><td>$${total.toLocaleString()}</td><td>$${mes2Data.total2.toLocaleString()}</td><td style="color:${total >= mes2Data.total2 ? '#065f46' : '#c81e1e'};font-weight:bold">${total >= mes2Data.total2 ? '+' : ''}${mes2Data.diffTotal}%</td></tr>
       <tr><td>Cantidad de Ventas</td><td>${ventas.length}</td><td>${mes2Data.ventas2.length}</td><td style="color:${ventas.length >= mes2Data.ventas2.length ? '#065f46' : '#c81e1e'};font-weight:bold">${ventas.length >= mes2Data.ventas2.length ? '+' : ''}${ventas.length - mes2Data.ventas2.length}</td></tr>
       <tr><td>Promedio Diario</td><td>$${promDiario.toLocaleString()}</td><td>$${mes2Data.promDiario2.toLocaleString()}</td><td style="color:${promDiario >= mes2Data.promDiario2 ? '#065f46' : '#c81e1e'};font-weight:bold">${promDiario >= mes2Data.promDiario2 ? '+' : ''}$${(promDiario - mes2Data.promDiario2).toLocaleString()}</td></tr>
-      <tr><td>Días con Ventas</td><td>${diasConVentas}</td><td>${mes2Data.diasConVentas2}</td><td>${diasConVentas - mes2Data.diasConVentas2 >= 0 ? '+' : ''}${diasConVentas - mes2Data.diasConVentas2}</td></tr>
+      <tr><td>DÃ­as con Ventas</td><td>${diasConVentas}</td><td>${mes2Data.diasConVentas2}</td><td>${diasConVentas - mes2Data.diasConVentas2 >= 0 ? '+' : ''}${diasConVentas - mes2Data.diasConVentas2}</td></tr>
       <tr><td>Ventas Efectivo</td><td>${efectivo.length}</td><td>${mes2Data.efectivo2.length}</td><td>${efectivo.length - mes2Data.efectivo2.length >= 0 ? '+' : ''}${efectivo.length - mes2Data.efectivo2.length}</td></tr>
-      <tr><td>Ventas Débito</td><td>${debito.length}</td><td>${mes2Data.debito2.length}</td><td>${debito.length - mes2Data.debito2.length >= 0 ? '+' : ''}${debito.length - mes2Data.debito2.length}</td></tr>
-      <tr><td>Ventas Crédito</td><td>${credito.length}</td><td>${mes2Data.credito2.length}</td><td>${credito.length - mes2Data.credito2.length >= 0 ? '+' : ''}${credito.length - mes2Data.credito2.length}</td></tr>
+      <tr><td>Ventas DÃ©bito</td><td>${debito.length}</td><td>${mes2Data.debito2.length}</td><td>${debito.length - mes2Data.debito2.length >= 0 ? '+' : ''}${debito.length - mes2Data.debito2.length}</td></tr>
+      <tr><td>Ventas CrÃ©dito</td><td>${credito.length}</td><td>${mes2Data.credito2.length}</td><td>${credito.length - mes2Data.credito2.length >= 0 ? '+' : ''}${credito.length - mes2Data.credito2.length}</td></tr>
       <tr><td>Boletas</td><td>${boletas.length}</td><td>${mes2Data.boletas2.length}</td><td>${boletas.length - mes2Data.boletas2.length >= 0 ? '+' : ''}${boletas.length - mes2Data.boletas2.length}</td></tr>
       <tr><td>Facturas</td><td>${facturas.length}</td><td>${mes2Data.facturas2.length}</td><td>${facturas.length - mes2Data.facturas2.length >= 0 ? '+' : ''}${facturas.length - mes2Data.facturas2.length}</td></tr>
     </table>
     <div style="margin-top:12px;padding:12px 14px;background:#f0f4ff;border-radius:6px;font-size:0.82rem;color:#444;border-left:3px solid #1a56db;line-height:1.6">
-      <strong>Conclusión de esta sección:</strong><br>
-      ${mes2Data.diffTotal >= 0 ? nombreMes + ' superó a ' + mes2Data.nombreMes2 + ' en un ' + mes2Data.diffTotal + '% en ingresos totales.' : mes2Data.nombreMes2 + ' superó a ' + nombreMes + ' en un ' + Math.abs(mes2Data.diffTotal) + '% en ingresos totales.'}<br>
+      <strong>ConclusiÃ³n de esta secciÃ³n:</strong><br>
+      ${mes2Data.diffTotal >= 0 ? nombreMes + ' superÃ³ a ' + mes2Data.nombreMes2 + ' en un ' + mes2Data.diffTotal + '% en ingresos totales.' : mes2Data.nombreMes2 + ' superÃ³ a ' + nombreMes + ' en un ' + Math.abs(mes2Data.diffTotal) + '% en ingresos totales.'}<br>
       En cantidad de operaciones, ${nombreMes} tuvo ${ventas.length} ventas vs ${mes2Data.ventas2.length} de ${mes2Data.nombreMes2}.<br>
-      El promedio diario pasó de $${mes2Data.promDiario2.toLocaleString()} a $${promDiario.toLocaleString()} (${promDiario >= mes2Data.promDiario2 ? 'mejora' : 'retroceso'}).<br>
-      ${diasConVentas >= mes2Data.diasConVentas2 ? 'Se trabajó más días en ' + nombreMes + ', lo que contribuyó al resultado.' : 'Se trabajó menos días en ' + nombreMes + ', lo que pudo afectar el resultado.'}<br>
+      El promedio diario pasÃ³ de $${mes2Data.promDiario2.toLocaleString()} a $${promDiario.toLocaleString()} (${promDiario >= mes2Data.promDiario2 ? 'mejora' : 'retroceso'}).<br>
+      ${diasConVentas >= mes2Data.diasConVentas2 ? 'Se trabajÃ³ mÃ¡s dÃ­as en ' + nombreMes + ', lo que contribuyÃ³ al resultado.' : 'Se trabajÃ³ menos dÃ­as en ' + nombreMes + ', lo que pudo afectar el resultado.'}<br>
       Analice los factores externos (estacionalidad, feriados, clima) que pudieron influir en las diferencias.<br>
-      Use esta comparación para establecer metas realistas y estrategias de mejora continua.<br>
-      Se recomienda comparar al menos 3 períodos para identificar tendencias confiables.
+      Use esta comparaciÃ³n para establecer metas realistas y estrategias de mejora continua.<br>
+      Se recomienda comparar al menos 3 perÃ­odos para identificar tendencias confiables.
     </div>
   </div>
   ` : ''}
@@ -4753,10 +4752,10 @@ const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>
     <p style="font-size:0.85rem;color:#555;margin-bottom:14px;line-height:1.6">
       Registro de todos los retiros de efectivo realizados durante el mes.<br>
       Los retiros corresponden a entregas de dinero desde la caja hacia los propietarios del negocio.<br>
-      Se detalla el monto, destinatario, fecha, hora y operador que realizó cada retiro.<br>
-      Esta información permite llevar un control preciso del efectivo que sale de la caja.<br>
-      El saldo neto (ventas - retiros) indica cuánto dinero debería quedar físicamente en caja.<br>
-      Mantenga un registro consistente de retiros para evitar descuadres al cierre del día.<br>
+      Se detalla el monto, destinatario, fecha, hora y operador que realizÃ³ cada retiro.<br>
+      Esta informaciÃ³n permite llevar un control preciso del efectivo que sale de la caja.<br>
+      El saldo neto (ventas - retiros) indica cuÃ¡nto dinero deberÃ­a quedar fÃ­sicamente en caja.<br>
+      Mantenga un registro consistente de retiros para evitar descuadres al cierre del dÃ­a.<br>
       Compare el total de retiros con el total de ventas en efectivo para verificar coherencia.
     </p>
     <div class="kpi-grid" style="grid-template-columns:1fr 1fr 1fr;margin-bottom:16px">
@@ -4766,14 +4765,14 @@ const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>
     </div>
     ${retirosMes.length > 0 ? '<table><tr><th>#</th><th>Fecha</th><th>Hora</th><th>Monto</th><th>Entregar a</th><th>Quien retira</th><th>Nota</th></tr>' + retirosMes.map((r,i) => '<tr><td>' + (i+1) + '</td><td>' + r.fecha.split('-').reverse().join('/') + '</td><td>' + r.hora + '</td><td style="color:#c81e1e;font-weight:bold">-$' + r.monto.toLocaleString() + '</td><td>' + r.destinatario + '</td><td>' + (r.quienRetira||r.operador) + '</td><td>' + (r.nota||'-') + '</td></tr>').join('') + '</table>' : '<p style="text-align:center;color:#888">No se registraron retiros en este mes</p>'}
     <div style="margin-top:12px;padding:12px 14px;background:#f0f4ff;border-radius:6px;font-size:0.82rem;color:#444;border-left:3px solid #1a56db;line-height:1.6">
-      <strong>Conclusión de esta sección:</strong><br>
+      <strong>ConclusiÃ³n de esta secciÃ³n:</strong><br>
       Durante ${nombreMes} se realizaron ${retirosMes.length} retiros de caja por un total de $${totalRetirosMes.toLocaleString()}.<br>
       El ingreso neto del mes (ventas menos retiros) fue de $${(total - totalRetirosMes).toLocaleString()}.<br>
-      ${retirosMes.length > 0 ? 'El retiro promedio fue de $' + Math.round(totalRetirosMes / retirosMes.length).toLocaleString() + ' por operación.' : 'No se registraron retiros durante este período.'}<br>
+      ${retirosMes.length > 0 ? 'El retiro promedio fue de $' + Math.round(totalRetirosMes / retirosMes.length).toLocaleString() + ' por operaciÃ³n.' : 'No se registraron retiros durante este perÃ­odo.'}<br>
       Los retiros representan el ${total > 0 ? Math.round((totalRetirosMes/total)*100) : 0}% del total de ventas del mes.<br>
       Es importante que cada retiro quede documentado para mantener la trazabilidad del efectivo.<br>
-      Verifique que el saldo físico en caja coincida con el saldo calculado por el sistema.<br>
-      Un control riguroso de retiros previene descuadres y facilita la rendición de cuentas.
+      Verifique que el saldo fÃ­sico en caja coincida con el saldo calculado por el sistema.<br>
+      Un control riguroso de retiros previene descuadres y facilita la rendiciÃ³n de cuentas.
     </div>
   </div>
 
@@ -4781,12 +4780,12 @@ const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>
   <div class="seccion" style="page-break-inside:auto">
     <h2>10. Horarios Pico de Ventas</h2>
     <p style="font-size:0.85rem;color:#555;margin-bottom:14px;line-height:1.6">
-      Esta sección analiza en qué horas del día se concentran las ventas del mes.<br>
+      Esta secciÃ³n analiza en quÃ© horas del dÃ­a se concentran las ventas del mes.<br>
       Se muestra el monto acumulado y la cantidad de transacciones para cada franja horaria.<br>
-      Identificar los horarios pico permite optimizar la atención al cliente y la dotación de personal.<br>
-      Las horas con baja actividad pueden aprovecharse para tareas administrativas o reposición.<br>
-      El gráfico de barras visualiza rápidamente las horas de mayor y menor movimiento.<br>
-      Esta información es clave para definir horarios de apertura y cierre óptimos.<br>
+      Identificar los horarios pico permite optimizar la atenciÃ³n al cliente y la dotaciÃ³n de personal.<br>
+      Las horas con baja actividad pueden aprovecharse para tareas administrativas o reposiciÃ³n.<br>
+      El grÃ¡fico de barras visualiza rÃ¡pidamente las horas de mayor y menor movimiento.<br>
+      Esta informaciÃ³n es clave para definir horarios de apertura y cierre Ã³ptimos.<br>
       Compare con meses anteriores para confirmar si los patrones horarios son consistentes.
     </p>
     <table>
@@ -4799,28 +4798,28 @@ const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>
     </table>
     <p style="margin-top:8px"><strong>Hora pico:</strong> ${String(horaPico).padStart(2,'0')}:00 - ${String(horaPico).padStart(2,'0')}:59 con $${horaMax.toLocaleString()} en ventas</p>
     <div style="margin-top:12px;padding:12px 14px;background:#f0f4ff;border-radius:6px;font-size:0.82rem;color:#444;border-left:3px solid #1a56db;line-height:1.6">
-      <strong>Conclusión de esta sección:</strong><br>
+      <strong>ConclusiÃ³n de esta secciÃ³n:</strong><br>
       La hora con mayor actividad fue las ${String(horaPico).padStart(2,'0')}:00, acumulando $${horaMax.toLocaleString()} en ventas.<br>
       ${ventasPorHora[horaPico]} transacciones se realizaron en esa franja horaria durante todo el mes.<br>
       Los horarios con mayor movimiento deben contar con personal suficiente para atender la demanda.<br>
-      Las horas sin ventas registradas indican períodos donde el local podría estar cerrado o sin clientes.<br>
+      Las horas sin ventas registradas indican perÃ­odos donde el local podrÃ­a estar cerrado o sin clientes.<br>
       Si hay ventas concentradas en pocas horas, considere extender horarios o crear incentivos fuera de pico.<br>
-      Conocer los horarios pico también ayuda a planificar los horarios de colación del personal.<br>
-      Use esta información para decidir si conviene abrir más temprano o cerrar más tarde según la demanda real.
+      Conocer los horarios pico tambiÃ©n ayuda a planificar los horarios de colaciÃ³n del personal.<br>
+      Use esta informaciÃ³n para decidir si conviene abrir mÃ¡s temprano o cerrar mÃ¡s tarde segÃºn la demanda real.
     </div>
   </div>
 
-  <!-- 10. GRÁFICO DE TENDENCIA DIARIA -->
+  <!-- 10. GRÃFICO DE TENDENCIA DIARIA -->
   <div class="seccion" style="page-break-inside:auto">
-    <h2>11. Gráfico de Tendencia Diaria</h2>
+    <h2>11. GrÃ¡fico de Tendencia Diaria</h2>
     <p style="font-size:0.85rem;color:#555;margin-bottom:14px;line-height:1.6">
-      Visualización gráfica de la evolución de ventas día a día durante el mes.<br>
-      Cada barra representa el monto total vendido en un día específico del mes.<br>
-      La línea punteada indica el promedio diario como referencia visual.<br>
-      Los días por encima del promedio se muestran en azul oscuro, los que están por debajo en azul claro.<br>
-      Este gráfico permite identificar rápidamente tendencias, picos y caídas en las ventas.<br>
-      Es útil para detectar patrones como caídas de fin de semana o picos a inicio de mes.<br>
-      Compare visualmente con el gráfico del mes anterior para evaluar la evolución del negocio.
+      VisualizaciÃ³n grÃ¡fica de la evoluciÃ³n de ventas dÃ­a a dÃ­a durante el mes.<br>
+      Cada barra representa el monto total vendido en un dÃ­a especÃ­fico del mes.<br>
+      La lÃ­nea punteada indica el promedio diario como referencia visual.<br>
+      Los dÃ­as por encima del promedio se muestran en azul oscuro, los que estÃ¡n por debajo en azul claro.<br>
+      Este grÃ¡fico permite identificar rÃ¡pidamente tendencias, picos y caÃ­das en las ventas.<br>
+      Es Ãºtil para detectar patrones como caÃ­das de fin de semana o picos a inicio de mes.<br>
+      Compare visualmente con el grÃ¡fico del mes anterior para evaluar la evoluciÃ³n del negocio.
     </p>
     <div style="display:flex;align-items:flex-end;gap:2px;height:180px;border-bottom:2px solid #333;padding-bottom:4px;margin-bottom:8px">
       ${diasOrdenados.map(([dia, monto]) => {
@@ -4836,14 +4835,14 @@ const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>
       <div>Promedio diario: $${promDiario.toLocaleString()}</div>
     </div>
     <div style="margin-top:12px;padding:12px 14px;background:#f0f4ff;border-radius:6px;font-size:0.82rem;color:#444;border-left:3px solid #1a56db;line-height:1.6">
-      <strong>Conclusión de esta sección:</strong><br>
-      El gráfico muestra la evolución de ventas durante los ${diasConVentas} días operativos del mes.<br>
-      El promedio diario fue de $${promDiario.toLocaleString()}, representado como línea de referencia.<br>
-      ${diasOrdenados.filter(([,m]) => m >= promDiario).length} días superaron el promedio (barras azul oscuro) y ${diasOrdenados.filter(([,m]) => m < promDiario).length} quedaron por debajo (azul claro).<br>
-      El día más alto alcanzó $${mejorMonto.toLocaleString()} y el más bajo $${peorMonto.toLocaleString()}.<br>
-      Una tendencia ascendente indica crecimiento progresivo; descendente sugiere pérdida de impulso.<br>
-      Los picos aislados pueden corresponder a eventos especiales, promociones o días de alta demanda estacional.<br>
-      Utilice este gráfico para planificar acciones comerciales en los períodos de menor actividad.
+      <strong>ConclusiÃ³n de esta secciÃ³n:</strong><br>
+      El grÃ¡fico muestra la evoluciÃ³n de ventas durante los ${diasConVentas} dÃ­as operativos del mes.<br>
+      El promedio diario fue de $${promDiario.toLocaleString()}, representado como lÃ­nea de referencia.<br>
+      ${diasOrdenados.filter(([,m]) => m >= promDiario).length} dÃ­as superaron el promedio (barras azul oscuro) y ${diasOrdenados.filter(([,m]) => m < promDiario).length} quedaron por debajo (azul claro).<br>
+      El dÃ­a mÃ¡s alto alcanzÃ³ $${mejorMonto.toLocaleString()} y el mÃ¡s bajo $${peorMonto.toLocaleString()}.<br>
+      Una tendencia ascendente indica crecimiento progresivo; descendente sugiere pÃ©rdida de impulso.<br>
+      Los picos aislados pueden corresponder a eventos especiales, promociones o dÃ­as de alta demanda estacional.<br>
+      Utilice este grÃ¡fico para planificar acciones comerciales en los perÃ­odos de menor actividad.
     </div>
   </div>
 
@@ -4851,12 +4850,12 @@ const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>
   <div class="seccion">
     <h2>12. Detalle Diario Resumido</h2>
     <p style="font-size:0.85rem;color:#555;margin-bottom:14px;line-height:1.6">
-      Tabla con el resumen de ventas día por día durante todo el mes analizado.<br>
+      Tabla con el resumen de ventas dÃ­a por dÃ­a durante todo el mes analizado.<br>
       Para cada fecha se muestra el monto total recaudado y la cantidad de transacciones realizadas.<br>
-      Los días sin registro no aparecen en la tabla, indicando jornadas sin actividad comercial.<br>
-      Este detalle permite identificar patrones diarios, días atípicos o irregularidades en el registro.<br>
-      Es útil para cruzar información con otros registros como inventario o asistencia del personal.<br>
-      Los días con montos inusualmente altos o bajos merecen revisión para entender sus causas.<br>
+      Los dÃ­as sin registro no aparecen en la tabla, indicando jornadas sin actividad comercial.<br>
+      Este detalle permite identificar patrones diarios, dÃ­as atÃ­picos o irregularidades en el registro.<br>
+      Es Ãºtil para cruzar informaciÃ³n con otros registros como inventario o asistencia del personal.<br>
+      Los dÃ­as con montos inusualmente altos o bajos merecen revisiÃ³n para entender sus causas.<br>
       Utilice esta tabla como respaldo para conciliaciones bancarias y cuadraturas de caja diarias.
     </p>
     <table>
@@ -4868,14 +4867,14 @@ const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>
     </table>
 
     <div style="margin-top:16px;padding:12px 14px;background:#f0f4ff;border-radius:6px;font-size:0.82rem;color:#444;border-left:3px solid #1a56db;line-height:1.6">
-      <strong>Conclusión de esta sección:</strong><br>
-      Se registraron ventas en ${diasConVentas} días del mes, con ingreso total de ${total.toLocaleString()} y promedio de ${promDiario.toLocaleString()} por día.<br>
-      El día más productivo generó ${mejorMonto.toLocaleString()} y el menos productivo ${peorMonto.toLocaleString()}.<br>
-      ${diasConVentas < 25 ? 'Hubo ' + (30 - diasConVentas) + ' días sin ventas, lo que podría indicar días de cierre o falta de registro.' : 'La cobertura de días con ventas es alta, indicando operación regular del negocio.'}<br>
-      Los días con montos superiores al promedio representan oportunidades para entender qué genera mayor demanda.<br>
-      Los días por debajo del promedio deben analizarse para identificar si son patrones o situaciones puntuales.<br>
-      Esta tabla es útil para la cuadratura diaria de caja y para detectar posibles omisiones en el registro.<br>
-      Mantenga un registro consistente todos los días para que este análisis sea cada vez más preciso.
+      <strong>ConclusiÃ³n de esta secciÃ³n:</strong><br>
+      Se registraron ventas en ${diasConVentas} dÃ­as del mes, con ingreso total de ${total.toLocaleString()} y promedio de ${promDiario.toLocaleString()} por dÃ­a.<br>
+      El dÃ­a mÃ¡s productivo generÃ³ ${mejorMonto.toLocaleString()} y el menos productivo ${peorMonto.toLocaleString()}.<br>
+      ${diasConVentas < 25 ? 'Hubo ' + (30 - diasConVentas) + ' dÃ­as sin ventas, lo que podrÃ­a indicar dÃ­as de cierre o falta de registro.' : 'La cobertura de dÃ­as con ventas es alta, indicando operaciÃ³n regular del negocio.'}<br>
+      Los dÃ­as con montos superiores al promedio representan oportunidades para entender quÃ© genera mayor demanda.<br>
+      Los dÃ­as por debajo del promedio deben analizarse para identificar si son patrones o situaciones puntuales.<br>
+      Esta tabla es Ãºtil para la cuadratura diaria de caja y para detectar posibles omisiones en el registro.<br>
+      Mantenga un registro consistente todos los dÃ­as para que este anÃ¡lisis sea cada vez mÃ¡s preciso.
     </div>
   </div>
 
@@ -4883,54 +4882,54 @@ const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>
   <div class="seccion">
     <h2>13. Detalle Completo de Ventas</h2>
     <p style="font-size:0.85rem;color:#555;margin-bottom:14px;line-height:1.6">
-      Listado exhaustivo de cada transacción individual registrada durante el mes.<br>
-      Cada fila incluye: número correlativo, fecha, hora, monto, método de pago y tipo de documento.<br>
-      Este es el registro más detallado disponible y sirve como respaldo documental completo.<br>
-      Permite verificar transacciones específicas en caso de reclamos, devoluciones o auditorías.<br>
-      La hora de registro ayuda a identificar los horarios de mayor actividad durante el día.<br>
-      Si detecta registros duplicados o montos incorrectos, puede corregirlos desde el módulo de caja.<br>
+      Listado exhaustivo de cada transacciÃ³n individual registrada durante el mes.<br>
+      Cada fila incluye: nÃºmero correlativo, fecha, hora, monto, mÃ©todo de pago y tipo de documento.<br>
+      Este es el registro mÃ¡s detallado disponible y sirve como respaldo documental completo.<br>
+      Permite verificar transacciones especÃ­ficas en caso de reclamos, devoluciones o auditorÃ­as.<br>
+      La hora de registro ayuda a identificar los horarios de mayor actividad durante el dÃ­a.<br>
+      Si detecta registros duplicados o montos incorrectos, puede corregirlos desde el mÃ³dulo de caja.<br>
       Este detalle es equivalente al libro de ventas diario y puede usarse para fines contables y tributarios.
     </p>
     <table>
-      <tr><th>#</th><th>Fecha</th><th>Hora</th><th>Monto</th><th>Método</th><th>Documento</th></tr>
+      <tr><th>#</th><th>Fecha</th><th>Hora</th><th>Monto</th><th>MÃ©todo</th><th>Documento</th></tr>
       ${ventas.map((v,i) => `<tr><td>${i+1}</td><td>${v.fecha.split('-').reverse().join('/')}</td><td>${v.hora||'-'}</td><td>$${v.monto.toLocaleString()}</td><td>${v.metodo}</td><td>${v.tipoDoc||'-'}</td></tr>`).join('')}
     </table>
 
     <div style="margin-top:16px;padding:12px 14px;background:#f0f4ff;border-radius:6px;font-size:0.82rem;color:#444;border-left:3px solid #1a56db;line-height:1.6">
-      <strong>Conclusión de esta sección:</strong><br>
+      <strong>ConclusiÃ³n de esta secciÃ³n:</strong><br>
       Se registraron ${ventas.length} transacciones individuales durante ${nombreMes} por un total de ${total.toLocaleString()}.<br>
-      El monto promedio por transacción fue de ${ventas.length > 0 ? Math.round(total/ventas.length).toLocaleString() : 0}, reflejando el ticket promedio del negocio.<br>
-      El método de pago más frecuente fue ${metodoTop.n} con ${metodoTop.c} operaciones registradas.<br>
+      El monto promedio por transacciÃ³n fue de ${ventas.length > 0 ? Math.round(total/ventas.length).toLocaleString() : 0}, reflejando el ticket promedio del negocio.<br>
+      El mÃ©todo de pago mÃ¡s frecuente fue ${metodoTop.n} con ${metodoTop.c} operaciones registradas.<br>
       Este listado constituye el respaldo completo de todas las operaciones y tiene valor legal y contable.<br>
-      En caso de discrepancias con el banco o con clientes, este detalle permite rastrear cada transacción.<br>
-      Se recomienda verificar que todas las ventas tengan hora registrada para un control más preciso.<br>
-      Conserve este informe como archivo histórico para futuras auditorías o consultas administrativas.
+      En caso de discrepancias con el banco o con clientes, este detalle permite rastrear cada transacciÃ³n.<br>
+      Se recomienda verificar que todas las ventas tengan hora registrada para un control mÃ¡s preciso.<br>
+      Conserve este informe como archivo histÃ³rico para futuras auditorÃ­as o consultas administrativas.
     </div>
   </div>
 
-  <!-- 13. CONCLUSIÓN -->
+  <!-- 13. CONCLUSIÃ“N -->
   <div class="seccion">
-    <h2>14. Conclusión y Recomendaciones</h2>
+    <h2>14. ConclusiÃ³n y Recomendaciones</h2>
     <div class="conclusion">
       ${generarConclusionAleatoria(nombreMes, total, ventas, metodoTop, mejorDia, mejorMonto, peorDia, peorMonto, promDiario, diasConVentas, diffPct, diaSemNombre, semanas, boletas, facturas, efectivo, debito, credito)}
     </div>
     ${mes2Data ? `
     <div style="margin-top:20px;padding:16px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px">
-      <h3 style="color:#1a56db;margin-bottom:10px;font-size:1rem">Conclusión Comparativa: ${nombreMes} vs ${mes2Data.nombreMes2}</h3>
+      <h3 style="color:#1a56db;margin-bottom:10px;font-size:1rem">ConclusiÃ³n Comparativa: ${nombreMes} vs ${mes2Data.nombreMes2}</h3>
       <p style="font-size:0.9rem;line-height:1.7">
         ${mes2Data.diffTotal >= 0 
-          ? 'El mes de ' + nombreMes + ' superó a ' + mes2Data.nombreMes2 + ' en un <strong>' + mes2Data.diffTotal + '%</strong> en ingresos totales, pasando de $' + mes2Data.total2.toLocaleString() + ' a $' + total.toLocaleString() + '.'
+          ? 'El mes de ' + nombreMes + ' superÃ³ a ' + mes2Data.nombreMes2 + ' en un <strong>' + mes2Data.diffTotal + '%</strong> en ingresos totales, pasando de $' + mes2Data.total2.toLocaleString() + ' a $' + total.toLocaleString() + '.'
           : 'El mes de ' + mes2Data.nombreMes2 + ' fue superior a ' + nombreMes + ' en un <strong>' + Math.abs(mes2Data.diffTotal) + '%</strong> en ingresos, con $' + mes2Data.total2.toLocaleString() + ' vs $' + total.toLocaleString() + '.'}<br>
-        En volumen de operaciones, ${nombreMes} registró ${ventas.length} ventas mientras que ${mes2Data.nombreMes2} tuvo ${mes2Data.ventas2.length} (diferencia de ${ventas.length - mes2Data.ventas2.length >= 0 ? '+' : ''}${ventas.length - mes2Data.ventas2.length}).<br>
-        El promedio diario ${promDiario >= mes2Data.promDiario2 ? 'mejoró' : 'disminuyó'}, pasando de $${mes2Data.promDiario2.toLocaleString()} a $${promDiario.toLocaleString()} por día.<br>
-        ${diasConVentas >= mes2Data.diasConVentas2 ? 'Se operó más días en ' + nombreMes + ' (' + diasConVentas + ' vs ' + mes2Data.diasConVentas2 + '), lo que contribuyó al resultado.' : 'Se operó menos días en ' + nombreMes + ' (' + diasConVentas + ' vs ' + mes2Data.diasConVentas2 + '), lo que pudo afectar negativamente.'}<br>
-        <strong>Recomendación:</strong> ${mes2Data.diffTotal >= 0 ? 'Mantener las estrategias que generaron el crecimiento y buscar consolidar la tendencia positiva en los próximos meses.' : 'Investigar las causas de la caída (estacionalidad, competencia, días no operativos) y definir acciones correctivas para recuperar el nivel de ' + mes2Data.nombreMes2 + '.'}
+        En volumen de operaciones, ${nombreMes} registrÃ³ ${ventas.length} ventas mientras que ${mes2Data.nombreMes2} tuvo ${mes2Data.ventas2.length} (diferencia de ${ventas.length - mes2Data.ventas2.length >= 0 ? '+' : ''}${ventas.length - mes2Data.ventas2.length}).<br>
+        El promedio diario ${promDiario >= mes2Data.promDiario2 ? 'mejorÃ³' : 'disminuyÃ³'}, pasando de $${mes2Data.promDiario2.toLocaleString()} a $${promDiario.toLocaleString()} por dÃ­a.<br>
+        ${diasConVentas >= mes2Data.diasConVentas2 ? 'Se operÃ³ mÃ¡s dÃ­as en ' + nombreMes + ' (' + diasConVentas + ' vs ' + mes2Data.diasConVentas2 + '), lo que contribuyÃ³ al resultado.' : 'Se operÃ³ menos dÃ­as en ' + nombreMes + ' (' + diasConVentas + ' vs ' + mes2Data.diasConVentas2 + '), lo que pudo afectar negativamente.'}<br>
+        <strong>RecomendaciÃ³n:</strong> ${mes2Data.diffTotal >= 0 ? 'Mantener las estrategias que generaron el crecimiento y buscar consolidar la tendencia positiva en los prÃ³ximos meses.' : 'Investigar las causas de la caÃ­da (estacionalidad, competencia, dÃ­as no operativos) y definir acciones correctivas para recuperar el nivel de ' + mes2Data.nombreMes2 + '.'}
       </p>
     </div>
     ` : ''}
   </div>
 
-  <div class="footer">Bodega A&amp;M — Informe generado automáticamente el ${fechaGen}</div>
+  <div class="footer">Bodega A&amp;M â€” Informe generado automÃ¡ticamente el ${fechaGen}</div>
   </body></html>`;
 
   if (window.require) {
@@ -4938,7 +4937,7 @@ const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>
     if (guardarEnEscritorio) {
       ipcRenderer.send('guardarInformePDF', html);
       ipcRenderer.once('informe-guardado', (event, ruta) => {
-        showToast('✔ Informe guardado en: ' + ruta);
+        showToast('âœ” Informe guardado en: ' + ruta);
       });
       ipcRenderer.once('informe-error', (event, err) => {
         showToast('Error al guardar: ' + err, true);
@@ -4949,8 +4948,8 @@ const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>
   }
 }
 
-// ══════════════════════════════════════════════════════════════
-// ── Pegar desde Laudus ────────────────────────────────────────
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// â”€â”€ Pegar desde Laudus â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function procesarPegadoLaudus() {
   const texto = document.getElementById('laudusTexto').value.trim();
   if (!texto) { showToast('Pega el texto de Laudus primero', true); return; }
@@ -4976,7 +4975,7 @@ function procesarPegadoLaudus() {
     const cantidadStr = cols[2].trim().replace(',', '.');
     const cantidad = parseFloat(cantidadStr) || 1;
 
-    // Buscar en catálogo ignorando ceros a la izquierda
+    // Buscar en catÃ¡logo ignorando ceros a la izquierda
     const codigoSinCeros = codigoLaudus.replace(/^0+/, '');
     const encontrado = catalogo.find(p => {
       const codCat = p.codigo.replace(/^0+/, '');
@@ -4989,7 +4988,7 @@ function procesarPegadoLaudus() {
         descripcion: encontrado.nombre,
         unidad: encontrado.unidad || 'unidad',
         cantidad: cantidad,
-        palabras: numeroAPalabras(cantidad)
+        cantPalabras: numeroAPalabras(cantidad)
       });
       productosAgregados++;
     } else {
@@ -4999,7 +4998,7 @@ function procesarPegadoLaudus() {
         descripcion: descripcion,
         unidad: 'unidad',
         cantidad: cantidad,
-        palabras: numeroAPalabras(cantidad)
+        cantPalabras: numeroAPalabras(cantidad)
       });
       productosAgregados++;
       noEncontrados.push(codigoLaudus + ' - ' + descripcion);
@@ -5011,9 +5010,9 @@ function procesarPegadoLaudus() {
   document.getElementById('laudusTexto').value = '';
 
   if (productosAgregados > 0) {
-    let msg = '✔ ' + productosAgregados + ' productos cargados desde Laudus';
+    let msg = 'âœ” ' + productosAgregados + ' productos cargados desde Laudus';
     if (noEncontrados.length > 0) {
-      msg += ' (' + noEncontrados.length + ' no estaban en catálogo)';
+      msg += ' (' + noEncontrados.length + ' no estaban en catÃ¡logo)';
     }
     showToast(msg);
   } else {
@@ -5036,107 +5035,10 @@ document.getElementById('btnPegarLaudus').addEventListener('click', () => {
 });
 
 
-// ── COMPARADOR DE PRECIOS DIMARSA ─────────────────────────────
-let dimarsaHistorial = JSON.parse(localStorage.getItem('dimarsaHistorial') || '{}');
-let dimarsaOcultos = JSON.parse(localStorage.getItem('dimarsaOcultos') || '[]');
-let dimarsaFavoritos = JSON.parse(localStorage.getItem('dimarsaFavoritos') || '[]');
+// â”€â”€ PANEL DE DIAGNÃ“STICOS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
-async function dimarsaFetch(url) { try { const r = await fetch(url); if (!r.ok) throw new Error('HTTP '+r.status); return await r.json(); } catch(e) { return null; } }
-
-async function dimarsaCargarFerreteria() {
-  const status = document.getElementById('dimarsaStatus');
-  status.textContent = 'Consultando precios...';
-  const baseUrl = 'https://www.dimarsa.cl/api/catalog_system/pub/products/search';
-  const categorias = ['ferreteria','ferreteria/gasfiteria','ferreteria/fijaciones-y-complementos','construccion/materiales-de-construccion','construccion/materiales-de-construccion/cemento-y-complementos','construccion/materiales-de-construccion/perfiles-y-barras','construccion/materiales-de-construccion/tableros','construccion/pinturas'];
-  let todos = [];
-  for (const cat of categorias) {
-    for (let page = 1; page <= 5; page++) {
-      status.textContent = 'Cargando ' + cat.split('/').pop() + ' (p' + page + ')...';
-      const datos = await dimarsaFetch(baseUrl+'/'+cat+'?_from='+((page-1)*50)+'&_to='+(page*50-1));
-      if (!datos || datos.length === 0) break;
-      datos.forEach(prod => { const s = prod.items&&prod.items[0]&&prod.items[0].sellers&&prod.items[0].sellers[0]; const precio = s?s.commertialOffer.Price:0; const disp = s?s.commertialOffer.IsAvailable:false; if (precio>0) { const img = prod.items&&prod.items[0]&&prod.items[0].images&&prod.items[0].images[0]?prod.items[0].images[0].imageUrl:''; const cats = prod.categories?prod.categories.join(' '):''; todos.push({id:prod.productId,nombre:prod.productName,marca:prod.brand||'-',precio,disponible:disp,img:img,cat:cats}); } });
-      await new Promise(r => setTimeout(r, 500));
-    }
-  }
-  const unicos = {}; todos.forEach(p => { unicos[p.id] = p; }); todos = Object.values(unicos);
-  if (todos.length === 0) { status.textContent = 'Sin productos.'; return; }
-  const hoy = new Date().toISOString().slice(0,10);
-  todos.forEach(p => { if (!dimarsaHistorial[p.id]) dimarsaHistorial[p.id] = {nombre:p.nombre,marca:p.marca,img:'',cat:'',registros:[]}; if(p.img) dimarsaHistorial[p.id].img = p.img; if(p.cat) dimarsaHistorial[p.id].cat = p.cat; dimarsaHistorial[p.id].nombre=p.nombre; dimarsaHistorial[p.id].marca=p.marca; if (!dimarsaHistorial[p.id].registros.find(r=>r.fecha===hoy)) { dimarsaHistorial[p.id].registros.push({precio:p.precio,fecha:hoy,disponible:p.disponible}); if (dimarsaHistorial[p.id].registros.length>60) dimarsaHistorial[p.id].registros.shift(); } });
-  localStorage.setItem('dimarsaHistorial', JSON.stringify(dimarsaHistorial));
-  if (window.fbGuardar) fbGuardar('dimarsaHistorial','data',{data:dimarsaHistorial,fecha:new Date().toISOString()}).catch(()=>{});
-  status.textContent = todos.length + ' productos actualizados (' + hoy + ')';
-  dimarsaRender();
-}
-
-async function dimarsaBuscarProducto() {
-  const q = document.getElementById('dimarsaBuscar').value.trim();
-  if (q && Object.keys(dimarsaHistorial).length > 0) { dimarsaRender(q); return; }
-  if (!q) { dimarsaRender(); return; }
-  const status = document.getElementById('dimarsaStatus'); status.textContent = 'Buscando...';
-  const datos = await dimarsaFetch('https://www.dimarsa.cl/api/catalog_system/pub/products/search/'+encodeURIComponent(q));
-  if (!datos||datos.length===0) { status.textContent = 'Sin resultados.'; return; }
-  const hoy = new Date().toISOString().slice(0,10);
-  datos.forEach(prod => { const s=prod.items&&prod.items[0]&&prod.items[0].sellers&&prod.items[0].sellers[0]; const precio=s?s.commertialOffer.Price:0; const disp=s?s.commertialOffer.IsAvailable:false; if(precio>0){if(!dimarsaHistorial[prod.productId])dimarsaHistorial[prod.productId]={nombre:prod.productName,marca:prod.brand||'-',registros:[]};if(!dimarsaHistorial[prod.productId].registros.find(r=>r.fecha===hoy))dimarsaHistorial[prod.productId].registros.push({precio,fecha:hoy,disponible:disp});} });
-  localStorage.setItem('dimarsaHistorial', JSON.stringify(dimarsaHistorial));
-  status.textContent = datos.length + ' resultados.'; dimarsaRender();
-}
-
-function dimarsaToggleFav(id) { if(dimarsaFavoritos.includes(id))dimarsaFavoritos=dimarsaFavoritos.filter(f=>f!==id);else dimarsaFavoritos.push(id); localStorage.setItem('dimarsaFavoritos',JSON.stringify(dimarsaFavoritos)); if(window.fbGuardar)fbGuardar('dimarsaConfig','favoritos',{ids:dimarsaFavoritos}).catch(()=>{}); dimarsaRender(); }
-function dimarsaVerFavoritos() { dimarsaRender('__FAV__'); }
-function dimarsaEliminar(id) { dimarsaOcultos.push(id); localStorage.setItem('dimarsaOcultos',JSON.stringify(dimarsaOcultos)); if(window.fbGuardar)fbGuardar('dimarsaConfig','ocultos',{ids:dimarsaOcultos}).catch(()=>{}); dimarsaRender(); }
-
-function dimarsaMiniGrafico(regs) { if(regs.length<2)return''; const p=regs.map(r=>r.precio);const max=Math.max(...p);const min=Math.min(...p);const rng=max-min||1;const w=Math.min(regs.length*8,120);const h=30; const pts=p.map((v,i)=>{const x=(i/(p.length-1))*w;const y=h-((v-min)/rng)*(h-4);return x+','+y;}).join(' '); const col=p[p.length-1]<=p[0]?'#065f46':'#c81e1e'; return'<svg width="'+w+'" height="'+h+'" style="vertical-align:middle"><polyline points="'+pts+'" fill="none" stroke="'+col+'" stroke-width="2"/></svg>'; }
-
-function dimarsaFiltrarCat(cat) {
-  dimarsaRender(cat);
-}
-
-function dimarsaRender(filtro) {
-  const tbody = document.getElementById('tbodyDimarsa'); if(!tbody)return;
-  let ids = Object.keys(dimarsaHistorial).filter(id=>!dimarsaOcultos.includes(id));
-  if(filtro==='__FAV__')ids=ids.filter(id=>dimarsaFavoritos.includes(id));
-  else if(filtro){const q=filtro.toLowerCase();ids=ids.filter(id=>{const p=dimarsaHistorial[id];return p.nombre.toLowerCase().includes(q)||p.marca.toLowerCase().includes(q)||(p.cat&&p.cat.toLowerCase().includes(q));});}
-  // Filtrar solo los que cambiaron
-  const soloCambios = document.getElementById('dimarsaSoloCambios') && document.getElementById('dimarsaSoloCambios').checked;
-  if (soloCambios) {
-    ids = ids.filter(id => {
-      const regs = dimarsaHistorial[id].registros;
-      if (regs.length < 2) return false;
-      return regs[regs.length-1].precio !== regs[regs.length-2].precio;
-    });
-  }
-  // Ordenar
-  const orden = document.getElementById('dimarsaOrden') ? document.getElementById('dimarsaOrden').value : '';
-  if (orden === 'precio-asc') ids.sort((a,b) => { const pa = dimarsaHistorial[a].registros; const pb = dimarsaHistorial[b].registros; return (pa.length?pa[pa.length-1].precio:0) - (pb.length?pb[pb.length-1].precio:0); });
-  else if (orden === 'precio-desc') ids.sort((a,b) => { const pa = dimarsaHistorial[a].registros; const pb = dimarsaHistorial[b].registros; return (pb.length?pb[pb.length-1].precio:0) - (pa.length?pa[pa.length-1].precio:0); });
-  else if (orden === 'subio') ids.sort((a,b) => { const ra=dimarsaHistorial[a].registros;const rb=dimarsaHistorial[b].registros; const da=ra.length>1?ra[ra.length-1].precio-ra[ra.length-2].precio:0; const db=rb.length>1?rb[rb.length-1].precio-rb[rb.length-2].precio:0; return db-da; });
-  else if (orden === 'bajo') ids.sort((a,b) => { const ra=dimarsaHistorial[a].registros;const rb=dimarsaHistorial[b].registros; const da=ra.length>1?ra[ra.length-1].precio-ra[ra.length-2].precio:0; const db=rb.length>1?rb[rb.length-1].precio-rb[rb.length-2].precio:0; return da-db; });
-  if(ids.length===0){tbody.innerHTML='<tr><td colspan="6" class="empty-msg">No hay productos.</td></tr>';const res=document.getElementById('dimarsaResumen');if(res)res.style.display='none';return;}
-  let mantiene=0,subio=0,bajo=0;
-  tbody.innerHTML = ids.map(id => {
-    const prod=dimarsaHistorial[id];const regs=prod.registros;if(regs.length===0)return'';
-    const actual=regs[regs.length-1];const anterior=regs.length>1?regs[regs.length-2]:null;
-    const minH=Math.min(...regs.map(r=>r.precio));
-    const u4=regs.slice(-5,-1).reverse();
-    const hist4=u4.length>0?u4.map(r=>{const idx=regs.indexOf(r);const prev=idx>0?regs[idx-1]:null;let ch='';if(prev){if(r.precio>prev.precio)ch=' <span style="color:#c81e1e">▲+$'+(r.precio-prev.precio).toLocaleString()+'</span>';else if(r.precio<prev.precio)ch=' <span style="color:#065f46">▼-$'+(prev.precio-r.precio).toLocaleString()+'</span>';else ch=' <span style="color:#888">—</span>';}return'<span style="font-size:0.72rem">'+r.fecha.slice(5).split('-').reverse().join('/')+': $'+r.precio.toLocaleString()+ch+'</span>';}).join('<br>'):'—';
-    let cambio='';if(anterior){if(actual.precio>anterior.precio){cambio='<span style="color:#c81e1e;font-weight:bold">▲ +$'+(actual.precio-anterior.precio).toLocaleString()+'</span>';subio++;}else if(actual.precio<anterior.precio){cambio='<span style="color:#065f46;font-weight:bold">▼ -$'+(anterior.precio-actual.precio).toLocaleString()+'</span>';bajo++;}else{cambio='<span style="color:#888">— Igual</span>';mantiene++;}}else{cambio='<span style="color:#3b82f6">1er reg</span>';mantiene++;}
-    const buenPrecio=actual.precio<=minH*1.05?'<span style="color:#065f46;font-size:0.7rem;font-weight:bold">✅ Buen precio</span>':'';
-    return `<tr><td style="display:flex;align-items:flex-start;gap:8px">${prod.img ? '<img src="'+prod.img+'" style="width:120px;height:120px;object-fit:contain;border-radius:4px;flex-shrink:0" onerror="this.style.display=\'none\'">' : ''}<div><strong>${prod.nombre}</strong><br><span style="font-size:0.7rem;color:#888">${prod.marca} | Mín: $${minH.toLocaleString()} ${buenPrecio}</span><br>${dimarsaMiniGrafico(regs)}</div></td><td style="font-weight:bold">$${actual.precio.toLocaleString()}</td><td>${hist4}</td><td>${cambio}</td><td>${actual.disponible?'✅':'❌'}</td><td><button style="padding:2px 6px;font-size:0.9rem;background:none;border:none;cursor:pointer" onclick="dimarsaToggleFav('${id}')">${dimarsaFavoritos.includes(id)?'★':'☆'}</button><button class="btn-delete" style="padding:2px 6px;font-size:0.7rem" onclick="dimarsaEliminar('${id}')">✖</button></td></tr>`;
-  }).filter(r=>r).join('');
-  const res=document.getElementById('dimarsaResumen');if(res){res.style.display='';document.getElementById('dimarsaMantiene').textContent=mantiene;document.getElementById('dimarsaSubio').textContent=subio;document.getElementById('dimarsaBajo').textContent=bajo;document.getElementById('dimarsaTotal').textContent=ids.length;const uf=Object.values(dimarsaHistorial).reduce((u,p)=>{const f=p.registros.length>0?p.registros[p.registros.length-1].fecha:'';return f>u?f:u;},'');document.getElementById('dimarsaUltimaConsulta').textContent=uf?uf.split('-').reverse().join('/'):'—';}
-}
-
-document.getElementById('btnDimarsaCargar').addEventListener('click', dimarsaCargarFerreteria);
-document.getElementById('btnDimarsaBuscar').addEventListener('click', dimarsaBuscarProducto);
-document.getElementById('dimarsaBuscar').addEventListener('keydown', e => { if(e.key==='Enter')dimarsaBuscarProducto(); });
-if(Object.keys(dimarsaHistorial).length>0)setTimeout(()=>dimarsaRender(),500);
-(async function(){if(!window.fbListo){setTimeout(arguments.callee,5000);return;}try{const d=await fbCargar('dimarsaHistorial');if(d&&d.length>0){const doc=d.find(x=>x.data);if(doc&&doc.data){Object.keys(doc.data).forEach(id=>{if(!dimarsaHistorial[id]||(doc.data[id].registros&&doc.data[id].registros.length>(dimarsaHistorial[id].registros||[]).length))dimarsaHistorial[id]=doc.data[id];});localStorage.setItem('dimarsaHistorial',JSON.stringify(dimarsaHistorial));}}const cfg=await fbCargar('dimarsaConfig');if(cfg)cfg.forEach(x=>{if(x._id==='favoritos'&&x.ids){dimarsaFavoritos=x.ids;localStorage.setItem('dimarsaFavoritos',JSON.stringify(dimarsaFavoritos));}if(x._id==='ocultos'&&x.ids){dimarsaOcultos=x.ids;localStorage.setItem('dimarsaOcultos',JSON.stringify(dimarsaOcultos));}});dimarsaRender();}catch(e){}})();
-
-
-// ── PANEL DE DIAGNÓSTICOS ─────────────────────────────────────
-// ══════════════════════════════════════════════════════════════
-
-// ── Vista Previa antes de registrar ───────────────────────────
+// â”€â”€ Vista Previa antes de registrar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function mostrarVistaPrevia(tipoDoc, nroDoc, cliente, prods, esEdicion) {
   return new Promise((resolve) => {
     const listaProds = prods.map((p, i) => `<tr><td>${i+1}</td><td>${p.codigo||'-'}</td><td>${p.descripcion}</td><td>${p.unidad}</td><td>${p.cantidad}</td></tr>`).join('');
@@ -5146,22 +5048,22 @@ function mostrarVistaPrevia(tipoDoc, nroDoc, cliente, prods, esEdicion) {
     overlay.innerHTML = `
       <div class="modal" style="max-width:500px">
         <div class="modal-header">
-          <h3>${esEdicion ? '¿Guardar cambios?' : '¿Confirmar esta orden?'}</h3>
-          <button class="modal-close" id="prevCerrar">✕</button>
+          <h3>${esEdicion ? 'Â¿Guardar cambios?' : 'Â¿Confirmar esta orden?'}</h3>
+          <button class="modal-close" id="prevCerrar">âœ•</button>
         </div>
         <div class="modal-body" style="padding:16px">
           <div class="detail-row"><strong>Cliente:</strong> ${cliente}</div>
           <div class="detail-row"><strong>Tipo Doc.:</strong> ${tipoDoc || '-'}</div>
-          ${nroDoc ? `<div class="detail-row"><strong>N° Doc.:</strong> ${nroDoc}</div>` : ''}
+          ${nroDoc ? `<div class="detail-row"><strong>NÂ° Doc.:</strong> ${nroDoc}</div>` : ''}
           <div class="detail-row" style="margin-top:12px"><strong>Productos (${prods.length}):</strong></div>
           <table style="margin-top:8px;font-size:0.85rem">
-            <thead><tr><th>#</th><th>Código</th><th>Descripción</th><th>Unid.</th><th>Cant.</th></tr></thead>
+            <thead><tr><th>#</th><th>CÃ³digo</th><th>DescripciÃ³n</th><th>Unid.</th><th>Cant.</th></tr></thead>
             <tbody>${listaProds}</tbody>
           </table>
         </div>
         <div class="modal-footer">
           <button class="btn-secondary" id="prevCancelar">Cancelar</button>
-          <button class="btn-primary" id="prevConfirmar">✔ ${esEdicion ? 'Guardar' : 'Confirmar'}</button>
+          <button class="btn-primary" id="prevConfirmar">âœ” ${esEdicion ? 'Guardar' : 'Confirmar'}</button>
         </div>
       </div>`;
     document.body.appendChild(overlay);
@@ -5172,7 +5074,7 @@ function mostrarVistaPrevia(tipoDoc, nroDoc, cliente, prods, esEdicion) {
   });
 }
 
-// ── Error Logger ──────────────────────────────────────────────
+// â”€â”€ Error Logger â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 let diagErrores = [];
 const DIAG_MAX_ERRORES = 50;
 
@@ -5199,7 +5101,7 @@ function diagMarcarResueltos(tipo) {
   });
 }
 
-// ── Firebase Connection Monitor ───────────────────────────────
+// â”€â”€ Firebase Connection Monitor â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 let diagUltimaSync = null;
 let diagConectado = navigator.onLine;
 
@@ -5213,7 +5115,7 @@ function diagMedirLatencia() {
     return Math.round(fin - inicio);
   }).catch(err => {
     diagConectado = false;
-    diagRegistrarError('Error de conexión: ' + err.message, 'network');
+    diagRegistrarError('Error de conexiÃ³n: ' + err.message, 'network');
     return null;
   });
 }
@@ -5234,14 +5136,14 @@ async function diagActualizarConexion() {
     estadoEl.textContent = 'Desconectado';
     estadoEl.style.background = '#fee2e2';
     estadoEl.style.color = '#991b1b';
-    latenciaEl.textContent = '—';
+    latenciaEl.textContent = 'â€”';
   }
   if (diagUltimaSync) {
     syncEl.textContent = diagFormatearFecha(diagUltimaSync);
   }
 }
 
-// ── Storage Calculator ────────────────────────────────────────
+// â”€â”€ Storage Calculator â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const DIAG_TAMANO_PROMEDIO = {
   historial: 2048,
   catalogo: 512,
@@ -5310,7 +5212,7 @@ async function diagActualizarStorage() {
   }
 }
 
-// ── System Info ───────────────────────────────────────────────
+// â”€â”€ System Info â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 async function diagObtenerInfoSistema() {
   if (window.require) {
     try {
@@ -5330,7 +5232,7 @@ async function diagActualizarSistema() {
   const memoriaEl = document.getElementById('diagMemoria');
   if (!versionEl) return;
 
-  // Versión
+  // VersiÃ³n
   const verEl = document.getElementById('appVersion');
   versionEl.textContent = verEl ? verEl.textContent || 'N/A' : 'N/A';
 
@@ -5348,7 +5250,7 @@ async function diagActualizarSistema() {
   }
 }
 
-// ── Session Duration ──────────────────────────────────────────
+// â”€â”€ Session Duration â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 let diagInicioSesion = null;
 
 function diagCalcularDuracionSesion(inicioTimestamp, ahoraTimestamp) {
@@ -5366,11 +5268,11 @@ function diagActualizarSesion() {
     const duracion = diagCalcularDuracionSesion(diagInicioSesion, Date.now());
     sesionEl.textContent = duracion.texto;
   } else {
-    sesionEl.textContent = '—';
+    sesionEl.textContent = 'â€”';
   }
 }
 
-// ── Timestamp Formatter ───────────────────────────────────────
+// â”€â”€ Timestamp Formatter â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function diagFormatearFecha(timestamp) {
   const d = new Date(timestamp);
   const dd = String(d.getDate()).padStart(2, '0');
@@ -5382,7 +5284,7 @@ function diagFormatearFecha(timestamp) {
   return `${dd}/${mm}/${yyyy} ${hh}:${min}:${ss}`;
 }
 
-// ── Periodic Refresh Controller ───────────────────────────────
+// â”€â”€ Periodic Refresh Controller â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 let diagIntervalConexion = null;
 let diagIntervalStorage = null;
 let diagIntervalSesion = null;
@@ -5400,7 +5302,7 @@ function diagDetenerIntervalos() {
   if (diagIntervalSesion) { clearInterval(diagIntervalSesion); diagIntervalSesion = null; }
 }
 
-// ── Main Refresh Orchestrator ─────────────────────────────────
+// â”€â”€ Main Refresh Orchestrator â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 async function diagnosticosRefresh() {
   try {
     await diagActualizarConexion();
@@ -5435,7 +5337,7 @@ function diagRenderErrores() {
   }).join('');
 }
 
-// ── Button Event Listeners ────────────────────────────────────
+// â”€â”€ Button Event Listeners â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 document.getElementById('btnLimpiarErrores').addEventListener('click', () => {
   diagLimpiarErrores();
   diagRenderErrores();
@@ -5445,7 +5347,7 @@ document.getElementById('btnActualizarDiag').addEventListener('click', () => {
   diagnosticosRefresh();
 });
 
-// ── Global Error Interception ─────────────────────────────────
+// â”€â”€ Global Error Interception â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 window.addEventListener('unhandledrejection', (event) => {
   diagRegistrarError('Promise: ' + event.reason, 'general');
 });
