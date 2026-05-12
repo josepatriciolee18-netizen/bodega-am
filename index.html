@@ -103,6 +103,7 @@
       <button class="tab" data-tab="usuarios">👤 Usuarios</button>
       <button class="tab" data-tab="caja">💰 Caja Bodega</button>
       <button class="tab" data-tab="facturas">🧾 Recepción de Facturas</button>
+      <button class="tab" data-tab="proveedores">🏭 Proveedores</button>
 
       <button class="tab" data-tab="papelera">🗑 Papelera</button>
       <button class="tab" data-tab="diagnosticos">🩺 Diagnósticos</button>
@@ -728,6 +729,7 @@
             <label class="perm-item"><input type="checkbox" id="permRecepciones" checked /> Recepciones de Órdenes</label>
             <label class="perm-item"><input type="checkbox" id="permCaja" checked /> Caja Bodega</label>
             <label class="perm-item"><input type="checkbox" id="permFacturas" /> Recepción de Facturas</label>
+            <label class="perm-item"><input type="checkbox" id="permProveedores" /> Gestión de Proveedores</label>
 
             <label class="perm-item"><input type="checkbox" id="permUsuarios" /> Gestionar Usuarios</label>
           </div>
@@ -1212,6 +1214,75 @@
         </div>
         <div id="modalFacturaBody" class="modal-body"></div>
       </div>
+    </div>
+
+    <!-- ── PESTAÑA: PROVEEDORES ── -->
+    <div id="tab-proveedores" class="tab-content">
+      <section class="section">
+        <h2>🏭 Gestión de Proveedores</h2>
+        <div class="add-product-row">
+          <div class="field">
+            <label>RUT</label>
+            <input type="text" id="provRut" placeholder="Ej: 76.123.456-7" />
+          </div>
+          <div class="field" style="flex:2">
+            <label>Razón Social</label>
+            <input type="text" id="provNombre" placeholder="Nombre o razón social" />
+          </div>
+          <div class="field">
+            <label>Giro</label>
+            <input type="text" id="provGiro" placeholder="Ej: Ferretería" />
+          </div>
+          <div class="field">
+            <label>Teléfono</label>
+            <input type="text" id="provTelefono" placeholder="+56 9 1234 5678" />
+          </div>
+          <div class="field" style="flex:2">
+            <label>Dirección</label>
+            <input type="text" id="provDireccion" placeholder="Dirección" />
+          </div>
+          <div class="field">
+            <label>Email</label>
+            <input type="email" id="provEmail" placeholder="correo@empresa.cl" />
+          </div>
+          <div class="field">
+            <label>Contacto</label>
+            <input type="text" id="provContacto" placeholder="Nombre contacto" />
+          </div>
+          <button type="button" id="btnGuardarProveedor" class="btn-add">+ Guardar</button>
+        </div>
+        <div class="filtros" style="margin-bottom:8px">
+          <div class="field" style="flex:2">
+            <label>Buscar proveedor</label>
+            <input type="text" id="buscarProveedorLista" placeholder="RUT o nombre..." />
+          </div>
+          <button type="button" id="btnBuscarProveedorLista" class="btn-add">🔍 Buscar</button>
+          <button type="button" id="btnMostrarTodosProveedores" class="btn-secondary" style="align-self:flex-end">Mostrar todos</button>
+        </div>
+        <div style="overflow-x:auto">
+          <table id="tablaProveedores">
+            <thead>
+              <tr>
+                <th><input type="checkbox" id="chkTodosProveedores" onclick="document.querySelectorAll('.chk-proveedor').forEach(c=>c.checked=this.checked)" /></th>
+                <th>RUT</th>
+                <th>Razón Social</th>
+                <th>Giro</th>
+                <th>Teléfono</th>
+                <th>Dirección</th>
+                <th>Email</th>
+                <th>Contacto</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="tbodyProveedores">
+              <tr><td colspan="9" class="empty-msg">No hay proveedores registrados</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div style="margin-top:10px">
+          <button type="button" class="btn-delete" style="padding:8px 16px" onclick="eliminarMasivoProveedores()">🗑 Eliminar seleccionados</button>
+        </div>
+      </section>
     </div>
 
     <!-- ── PESTAÑA: PAPELERA ── -->

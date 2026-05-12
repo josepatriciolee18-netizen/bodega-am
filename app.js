@@ -141,6 +141,7 @@ let ordenImpresion   = null;
 let ordenEnRecepcion = null;
 let logActividad     = [];
 let facturasProveedores = JSON.parse(localStorage.getItem('facturasProveedores') || '[]');
+let proveedores = JSON.parse(localStorage.getItem('proveedoresBodega') || '[]');
 let contadorFacturas = parseInt(localStorage.getItem('contadorFacturas') || '1');
 let productosFactura = [];
 let registrandoFactura = false;
@@ -183,21 +184,9 @@ function verificarSesion() {
   const sesion = localStorage.getItem('sesionActiva');
   if (sesion) {
     const sesionGuardada = JSON.parse(sesion);
-    // Si la lista de usuarios está vacía, usar la sesión guardada directamente (aún no cargó Firebase)
-    if (usuarios.length === 0) {
-      usuarioActivo = sesionGuardada;
-    } else {
-      // Siempre cargar permisos frescos desde la lista de usuarios actual
-      const usuarioFresco = usuarios.find(u => u.login === sesionGuardada.login && u.activo);
-      if (usuarioFresco) {
-        usuarioActivo = usuarioFresco;
-        localStorage.setItem('sesionActiva', JSON.stringify(usuarioFresco));
-      } else {
-        // Usuario no existe o fue desactivado — cerrar sesión
-        localStorage.removeItem('sesionActiva');
-        return;
-      }
-    }
+    // Siempre usar la sesión guardada — no verificar contra lista de usuarios al inicio
+    // La verificación de permisos se hace después cuando Firebase carga
+    usuarioActivo = sesionGuardada;
     // Solo mostrar app si no estamos en pantalla de actualización
     const updateScreen = document.getElementById('updateScreen');
     if (!updateScreen || updateScreen.style.display === 'none') {
@@ -634,6 +623,14 @@ async function cargarDesdeFirebase() {
       }
     }));
 
+    _unsubscribers.push(fbEscuchar('proveedores', (datos) => {
+      if (datos.length > 0 && datos.length !== proveedores.length) {
+        proveedores = datos;
+        localStorage.setItem('proveedoresBodega', JSON.stringify(proveedores));
+        renderProveedores();
+      }
+    }));
+
   } catch(e) {
     console.error('Error Firebase:', e);
   }
@@ -674,6 +671,7 @@ document.querySelectorAll('.tab').forEach(btn => {
     }
     if (btn.dataset.tab === 'recepciones') { renderOrdenesEmitidas(); renderRecepciones(); }
     if (btn.dataset.tab === 'facturas') { renderFacturasProveedores(); }
+    if (btn.dataset.tab === 'proveedores') { renderProveedores(); }
     if (btn.dataset.tab === 'papelera') { renderPapelera(); }
     if (btn.dataset.tab === 'diagnosticos') { diagnosticosRefresh(); diagIniciarIntervalos(); }
     if (btn.dataset.tab !== 'diagnosticos') { diagDetenerIntervalos(); }
@@ -2162,6 +2160,7 @@ function aplicarPermisos() {
   document.querySelector('[data-tab="usuarios"]').style.display    = (esAdmin || p.usuarios)     ? '' : 'none';
   document.querySelector('[data-tab="caja"]').style.display        = (esAdmin || p.caja)         ? '' : 'none';
   document.querySelector('[data-tab="facturas"]').style.display    = (esAdmin || p.facturas)     ? '' : 'none';
+  document.querySelector('[data-tab="proveedores"]').style.display = (esAdmin || p.proveedores) ? '' : 'none';
   document.querySelector('[data-tab="papelera"]').style.display    = esAdmin ? '' : 'none';
   document.querySelector('[data-tab="diagnosticos"]').style.display = esAdmin ? '' : 'none';
 
@@ -2571,6 +2570,7 @@ document.getElementById('btnGuardarUsuario').addEventListener('click', async () 
     recepciones:      document.getElementById('permRecepciones').checked,
     caja:             document.getElementById('permCaja').checked,
     facturas:         document.getElementById('permFacturas') ? document.getElementById('permFacturas').checked : false,
+    proveedores: document.getElementById('permProveedores') ? document.getElementById('permProveedores').checked : false,
     usuarios:         document.getElementById('permUsuarios').checked,
   };
 
@@ -5091,6 +5091,131 @@ function mostrarVistaPrevia(tipoDoc, nroDoc, cliente, prods, esEdicion) {
   });
 }
 
+// ── PROVEEDORES ───────────────────────────────────────────────
+
+function renderProveedores(filtro) {
+  const tbody = document.getElementById('tbodyProveedores');
+  if (!tbody) return;
+  let datos = proveedores;
+  if (filtro) {
+    const q = filtro.toLowerCase();
+    datos = proveedores.filter(p => 
+      (p.rut && p.rut.toLowerCase().includes(q)) ||
+      (p.nombre && p.nombre.toLowerCase().includes(q))
+    );
+  }
+  if (datos.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="9" class="empty-msg">No hay proveedores registrados</td></tr>';
+    return;
+  }
+  tbody.innerHTML = datos.map((p, i) => `<tr>
+    <td><input type="checkbox" class="chk-proveedor" data-idx="${i}" /></td>
+    <td>${p.rut || '-'}</td>
+    <td><strong>${p.nombre}</strong></td>
+    <td>${p.giro || '-'}</td>
+    <td>${p.telefono || '-'}</td>
+    <td>${p.direccion || '-'}</td>
+    <td>${p.email || '-'}</td>
+    <td>${p.contacto || '-'}</td>
+    <td>
+      <button class="btn-toggle" style="font-size:0.75rem;padding:4px 8px" onclick="editarProveedor(${i})">✏️</button>
+      <button class="btn-delete" style="font-size:0.75rem;padding:4px 8px" onclick="eliminarProveedor(${i})">✕</button>
+    </td>
+  </tr>`).join('');
+}
+
+let editandoProveedorIdx = null;
+
+document.getElementById('btnGuardarProveedor').addEventListener('click', () => {
+  const rut = document.getElementById('provRut').value.trim();
+  const nombre = document.getElementById('provNombre').value.trim();
+  const giro = document.getElementById('provGiro').value.trim();
+  const telefono = document.getElementById('provTelefono').value.trim();
+  const direccion = document.getElementById('provDireccion').value.trim();
+  const email = document.getElementById('provEmail').value.trim();
+  const contacto = document.getElementById('provContacto').value.trim();
+
+  if (!nombre) { showToast('Ingresa la razón social del proveedor', true); return; }
+
+  // Validar RUT si se ingresó
+  if (rut && !validarRut(rut)) { showToast('El RUT ingresado no es válido', true); return; }
+
+  // Verificar duplicado por RUT (solo si tiene RUT)
+  if (rut && editandoProveedorIdx === null) {
+    const existe = proveedores.find(p => p.rut && p.rut.replace(/\./g,'').replace(/-/g,'') === rut.replace(/\./g,'').replace(/-/g,''));
+    if (existe) { showToast('Ya existe un proveedor con ese RUT: ' + existe.nombre, true); return; }
+  }
+
+  const proveedor = { rut, nombre, giro, telefono, direccion, email, contacto };
+
+  if (editandoProveedorIdx !== null) {
+    proveedores[editandoProveedorIdx] = proveedor;
+    editandoProveedorIdx = null;
+    showToast('✔ Proveedor actualizado');
+  } else {
+    proveedores.push(proveedor);
+    showToast('✔ Proveedor guardado');
+  }
+
+  localStorage.setItem('proveedoresBodega', JSON.stringify(proveedores));
+  if (window.fbListo) fbGuardar('proveedores', rut || nombre, proveedor);
+  renderProveedores();
+  // Limpiar inputs
+  ['provRut','provNombre','provGiro','provTelefono','provDireccion','provEmail','provContacto'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('btnGuardarProveedor').textContent = '+ Guardar';
+});
+
+function editarProveedor(idx) {
+  const p = proveedores[idx];
+  if (!p) return;
+  document.getElementById('provRut').value = p.rut || '';
+  document.getElementById('provNombre').value = p.nombre || '';
+  document.getElementById('provGiro').value = p.giro || '';
+  document.getElementById('provTelefono').value = p.telefono || '';
+  document.getElementById('provDireccion').value = p.direccion || '';
+  document.getElementById('provEmail').value = p.email || '';
+  document.getElementById('provContacto').value = p.contacto || '';
+  editandoProveedorIdx = idx;
+  document.getElementById('btnGuardarProveedor').textContent = '💾 Actualizar';
+  document.querySelector('#tab-proveedores .section').scrollIntoView({ behavior: 'smooth' });
+}
+
+function eliminarProveedor(idx) {
+  if (!confirm('¿Eliminar este proveedor?')) return;
+  const p = proveedores[idx];
+  proveedores.splice(idx, 1);
+  localStorage.setItem('proveedoresBodega', JSON.stringify(proveedores));
+  if (window.fbListo && p) fbEliminar('proveedores', p.rut || p.nombre);
+  renderProveedores();
+  showToast('Proveedor eliminado');
+}
+
+function eliminarMasivoProveedores() {
+  const checks = document.querySelectorAll('.chk-proveedor:checked');
+  if (checks.length === 0) { showToast('Selecciona proveedores para eliminar', true); return; }
+  if (!confirm('¿Eliminar ' + checks.length + ' proveedores seleccionados?')) return;
+  const indices = [...checks].map(c => parseInt(c.dataset.idx)).sort((a,b) => b - a);
+  indices.forEach(i => proveedores.splice(i, 1));
+  localStorage.setItem('proveedoresBodega', JSON.stringify(proveedores));
+  renderProveedores();
+  showToast('✔ ' + indices.length + ' proveedores eliminados');
+}
+
+document.getElementById('btnBuscarProveedorLista').addEventListener('click', () => {
+  renderProveedores(document.getElementById('buscarProveedorLista').value.trim());
+});
+document.getElementById('buscarProveedorLista').addEventListener('keydown', e => {
+  if (e.key === 'Enter') renderProveedores(document.getElementById('buscarProveedorLista').value.trim());
+});
+document.getElementById('btnMostrarTodosProveedores').addEventListener('click', () => {
+  document.getElementById('buscarProveedorLista').value = '';
+  renderProveedores();
+});
+
+renderProveedores();
+
 // ── RECEPCIÓN DE FACTURAS DE PROVEEDORES ──────────────────────
 
 function generarNroFactura(n) {
@@ -5402,11 +5527,42 @@ function seleccionarProductoFac(idx) {
 document.getElementById('facProveedor').addEventListener('input', function() {
   const q = this.value.trim().toLowerCase();
   const ul = document.getElementById('facSugerenciasProveedor');
-  if (!q || q.length < 2 || !clientes || clientes.length === 0) { ul.classList.remove('visible'); ul.innerHTML = ''; return; }
-  const filtrados = clientes.filter(c => c.nombre && c.nombre.toLowerCase().includes(q)).slice(0, 5);
+  if (!q || q.length < 2) { ul.classList.remove('visible'); ul.innerHTML = ''; return; }
+  // Search in proveedores first, then clientes
+  const filtradosProv = proveedores.filter(p => p.nombre && p.nombre.toLowerCase().includes(q)).slice(0, 5);
+  const filtradosCli = clientes.filter(c => c.nombre && c.nombre.toLowerCase().includes(q) && !filtradosProv.some(fp => fp.nombre === c.nombre)).slice(0, 3);
+  const filtrados = [...filtradosProv, ...filtradosCli.map(c => ({nombre: c.nombre, rut: c.rut}))].slice(0, 5);
   if (filtrados.length === 0) { ul.classList.remove('visible'); ul.innerHTML = ''; return; }
-  ul.innerHTML = filtrados.map(c => `<li onclick="document.getElementById('facProveedor').value='${c.nombre.replace(/'/g,"\\'")}';document.getElementById('facSugerenciasProveedor').classList.remove('visible')"><strong>${c.nombre}</strong>${c.rut ? '<span>'+c.rut+'</span>' : ''}</li>`).join('');
+  ul.innerHTML = filtrados.map((c, idx) => `<li onclick="seleccionarProveedorFac2(${idx})"><strong>${c.nombre}</strong>${c.rut ? '<span>'+c.rut+'</span>' : ''}</li>`).join('');
+  window._facProveedoresFiltrados2 = filtrados;
   ul.classList.add('visible');
+});
+
+function seleccionarProveedorFac2(idx) {
+  const c = window._facProveedoresFiltrados2[idx];
+  if (!c) return;
+  document.getElementById('facProveedor').value = c.nombre || '';
+  document.getElementById('facRutProveedor').value = c.rut || '';
+  document.getElementById('facSugerenciasProveedor').classList.remove('visible');
+}
+
+function seleccionarProveedorFac(idx) {
+  const c = window._facProveedoresFiltrados[idx];
+  if (!c) return;
+  document.getElementById('facProveedor').value = c.nombre || '';
+  document.getElementById('facRutProveedor').value = c.rut || '';
+  document.getElementById('facSugerenciasProveedor').classList.remove('visible');
+}
+
+document.getElementById('facRutProveedor').addEventListener('blur', function() {
+  const rut = this.value.trim();
+  if (!rut || rut.length < 3) return;
+  const rutLimpio = rut.replace(/\./g, '').replace(/-/g, '').toLowerCase();
+  const encontrado = proveedores.find(p => p.rut && p.rut.replace(/\./g, '').replace(/-/g, '').toLowerCase() === rutLimpio);
+  if (encontrado && !document.getElementById('facProveedor').value.trim()) {
+    document.getElementById('facProveedor').value = encontrado.nombre || '';
+    showToast('Proveedor encontrado: ' + encontrado.nombre);
+  }
 });
 
 // Filtro de facturas

@@ -91,6 +91,18 @@ function createWindow() {
     win.webContents.focus();
   });
 
+  // Prevenir que el renderer se recargue solo por errores
+  win.webContents.on('render-process-gone', (event, details) => {
+    console.error('Renderer process gone:', details.reason);
+    // Recrear ventana sin perder sesión
+    createWindow();
+  });
+
+  win.webContents.on('unresponsive', () => {
+    console.error('Window unresponsive - waiting...');
+    // NO recargar, solo esperar
+  });
+
   // Buscar actualizaciones inmediatamente al iniciar
   win.webContents.once('did-finish-load', () => {
     if (autoUpdater) {
