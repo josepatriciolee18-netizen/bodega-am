@@ -233,24 +233,20 @@ ipcMain.on('imprimir', (event, htmlContent) => {
   printWin.setMenuBarVisibility(false);
   printWin.loadURL('file:///' + tmpHtml.replace(/\\/g, '/'));
 
-  let printDialogOpen = false;
-
-  printWin.on('blur', () => {
-    printDialogOpen = true;
-  });
-
-  printWin.on('focus', () => {
-    if (printDialogOpen) {
-      setTimeout(() => {
-        if (!printWin.isDestroyed()) printWin.close();
-      }, 300);
-    }
-  });
+  let printStarted = false;
 
   printWin.webContents.on('did-finish-load', () => {
+    // Esperar más tiempo para que el QR y estilos se rendericen completamente
     setTimeout(() => {
-      printWin.webContents.executeJavaScript('window.print()');
-    }, 800);
+      if (printWin.isDestroyed()) return;
+      printStarted = true;
+      printWin.webContents.print({ silent: false, printBackground: true }, (success, failureReason) => {
+        // Cerrar ventana después de imprimir (o cancelar)
+        setTimeout(() => {
+          if (!printWin.isDestroyed()) printWin.close();
+        }, 500);
+      });
+    }, 1200);
     try { event.reply('impresion-terminada'); } catch(e) {}
   });
 
